@@ -51,3 +51,6 @@
 - Updated policy per request: `Epic` no longer requires `Sprint` and `Parent` (moved to optional in `cp-ticket-issue-structures.yaml`).
 - Synced skill guardrails to reflect: `Parent`/`Sprint` required only for Story/Technical Story, optional for Epic.
 - Queried Jira with JQL `project = CP AND issuetype = Epic AND reporter = "Rambo Wang" ORDER BY created DESC` and retrieved the latest 50 matching epics.
+- Created new Jira Epic `CP-45460` (`SOV Upgrade - 26Q2`) via `create-team-ticket` skill flow with: project `CP`, component `SOV`, assignee `Rambo Wang`, priority `Medium`, label `roadmap_26q2`, and `Delivery Quarter = Q2`.
+- Optimized `create-team-ticket` skill: added shorthand intent inference (e.g. `Q2 SOV epic`), pre-create duplicate check, mandatory custom-field-id discovery via `jira_search_fields`, Epic naming convention, and stricter markdown checklist guidance; also added an Epic description template.
+- Updated `create-team-ticket` skill policy: ticket creation no longer requires description; description is optional and should not block create flow.
