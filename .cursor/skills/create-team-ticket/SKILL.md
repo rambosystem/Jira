@@ -10,6 +10,7 @@ description: Create Jira tickets for the CP team using workspace configuration, 
 Create Jira tickets in a consistent format using:
 - team configuration in `cp-team-board.config.yaml`
 - issue field structure in `cp-ticket-issue-structures.yaml`
+- quarterly epic management in `cp-epic-management.yaml`
 
 ## Read Configuration First
 
@@ -19,10 +20,16 @@ Read `cp-team-board.config.yaml` and use:
 - `team.members`
 - `ticketing.supported_work_types`
 - `ticketing.defaults.assignee`
+- `ticketing.epic_management_file`
 
 Read `cp-ticket-issue-structures.yaml` and use:
 - `issue_structures.Story`
 - `issue_structures.Technical Story`
+
+Read `cp-epic-management.yaml` and use:
+- `epic_management.module_quarter_default_epics`
+- `epic_management.recent_epics`
+- `epic_management.conventions`
 
 ## Required Inputs
 
@@ -58,12 +65,19 @@ For `Story` and `Technical Story`, enforce title style:
    - Assignee exists in `team.members`.
    - All required fields for the selected issue type are present per `cp-ticket-issue-structures.yaml`.
    - If a provided field value has options in `field_options`, validate against the allowed options.
+   - For `Story`, apply defaults from `issue_structures.Story.field_defaults` when user does not specify:
+     - `UX Review Required? = No`
+     - `UX Review Status = Not Needed`
    - Validate sprint using `issue_structures.<type>.field_options.Sprint`:
      - Format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
      - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
    - Validate labels using `issue_structures.<type>.field_options.Labels`:
      - Standard roadmap label should follow `roadmap_YYqN` (for example `roadmap_26q1`, `roadmap_26q2`).
      - If the work involves cross-team collaboration, include `cross-team` label.
+   - Resolve `Parent` for Story/Technical Story using `cp-epic-management.yaml`:
+     - For functional-module work, default to the module quarterly Epic when mapping exists.
+     - If user specifies a special Epic, use the user-specified Epic.
+     - If no mapping exists for the module/quarter and user did not specify special Epic, ask for Parent confirmation.
 2. Normalize assignee to `account_id`.
    - If assignee is missing, use `ticketing.defaults.assignee` (Xuanyu Liu, Dev Leader).
 3. Build summary:
@@ -91,6 +105,8 @@ For `Story` and `Technical Story`, enforce title style:
 - If assignee is not provided, assign to `ticketing.defaults.assignee`.
 - Enforce sprint convention: `YYQn-Sprintm-Defenders`, with `m` in `1..6`.
 - Enforce label convention: roadmap labels use `roadmap_YYqN`; cross-team work must include `cross-team`.
+- For Story/Technical Story Parent, default to module quarterly Epic; allow explicit special-Epic override.
+- For `Story`, default `UX Review Required?` to `No`; only set `Yes` when user explicitly requests UX review.
 - For `Story` and `Technical Story`, enforce the naming format defined in this skill.
 - Keep summary and description clear and actionable.
 

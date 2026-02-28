@@ -59,6 +59,7 @@ ticketing:
       name: Xuanyu Liu
       account_id: "712020:56137117-3aff-4ea4-b5b5-59aae5ad5235"
       role: Dev Leader
+  epic_management_file: cp-epic-management.yaml
 
 board_filter:
   issue_types:

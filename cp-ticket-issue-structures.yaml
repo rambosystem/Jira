@@ -56,6 +56,9 @@ issue_structures:
         - Not Needed
         - Pending
         - Reviewed
+    field_defaults:
+      UX Review Required?: "No"
+      UX Review Status: Not Needed
 
   Technical Story:
     required_fields:
@@ -115,3 +118,4 @@ issue_structures:
 notes:
   - Based on Jira create screen snapshots provided on 2026-02-28.
   - Field required/optional status can change if Jira screen configuration changes.
+  - Epic structure is initialized from current CP Epic usage and should be refined against Jira create-screen required markers when available.
