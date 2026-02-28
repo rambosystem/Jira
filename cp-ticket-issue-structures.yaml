@@ -1,0 +1,117 @@
+version: 1
+project: CP
+issue_structures:
+  Story:
+    required_fields:
+      - Space
+      - Work type
+      - Summary
+      - Story Type
+      - Sprint
+      - Priority
+      - Components
+      - Labels
+      - Client ID
+      - Parent
+      - UX Review Required?
+    optional_fields:
+      - Status
+      - Assignee
+      - UX Review Status
+      - Story Points
+      - Last Response Date
+      - Due date
+    field_options:
+      Sprint:
+        format_pattern: "^[0-9]{2}Q[1-4]-Sprint[1-6]-Defenders$"
+        examples:
+          - 26Q1-Sprint6-Defenders
+        sprints_per_quarter: 6
+        team_name: Defenders
+      Labels:
+        format_pattern: "^roadmap_[0-9]{2}q[1-4]$"
+        examples:
+          - roadmap_26q1
+          - roadmap_26q2
+        cross_team_label: cross-team
+      Story Type:
+        - New Feature
+        - Improvement
+        - API Integration & Enablement
+      Priority:
+        - Critical
+        - Highest
+        - High
+        - Medium
+        - Low
+        - Lowest
+        - "4.0"
+        - "3.0"
+        - "2.0"
+        - "1.0"
+      UX Review Required?:
+        - "Yes"
+        - "No"
+      UX Review Status:
+        - Not Needed
+        - Pending
+        - Reviewed
+
+  Technical Story:
+    required_fields:
+      - Space
+      - Work type
+      - Summary
+      - Technical Story Type
+      - Sprint
+      - Priority
+      - Components
+      - Labels
+      - Client ID
+      - Parent
+    optional_fields:
+      - Status
+      - Assignee
+      - Story Points
+      - Due date
+    field_options:
+      Sprint:
+        format_pattern: "^[0-9]{2}Q[1-4]-Sprint[1-6]-Defenders$"
+        examples:
+          - 26Q1-Sprint6-Defenders
+        sprints_per_quarter: 6
+        team_name: Defenders
+      Labels:
+        format_pattern: "^roadmap_[0-9]{2}q[1-4]$"
+        examples:
+          - roadmap_26q1
+          - roadmap_26q2
+        cross_team_label: cross-team
+      Technical Story Type:
+        - Code Quality
+        - Architecture
+        - Performance & Scalability
+        - Security & Compliance
+        - Testing & Automation
+        - Operations & Configuration
+        - Cross-Platform Support / Integration
+        - Spike
+        - CS Support - Investigation
+        - CS Support - Offline Migration
+        - UX-Driven
+        - Others
+      Priority:
+        - Critical
+        - Highest
+        - High
+        - Medium
+        - Low
+        - Lowest
+        - "4.0"
+        - "3.0"
+        - "2.0"
+        - "1.0"
+
+notes:
+  - Based on Jira create screen snapshots provided on 2026-02-28.
+  - Field required/optional status can change if Jira screen configuration changes.
