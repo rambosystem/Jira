@@ -141,7 +141,12 @@ For `Story` and `Technical Story`, enforce title style:
    - Search Jira for same project + issue type + summary.
    - For Epic quarterly naming, check existing `<Module> Upgrade - <YYQn>` first.
    - If duplicate exists, ask user whether to reuse existing issue or create a new one.
-3. Normalize assignee to `account_id`.
+3. Run pre-create confirmation with ticket name list:
+   - Before any create call, provide a `Ticket Name List` containing all to-be-created summaries.
+   - For batch creation, list all ticket names in order and mark any duplicates/existing tickets found in step 2.
+   - Ask for explicit user confirmation (for example: "Confirm create these tickets?").
+   - Only proceed after explicit confirmation from user.
+4. Normalize assignee to `account_id`.
    - Assignee is treated as required for all ticket types.
    - If assignee is missing and work type is `Epic`, use `ticketing.defaults.assignee_by_work_type.Epic` (Rambo Wang).
    - Otherwise use `ticketing.defaults.assignee` (Xuanyu Liu, Dev Leader).
@@ -150,28 +155,37 @@ For `Story` and `Technical Story`, enforce title style:
      - `account_id`
      - `email` (if available)
      - `is_active` (if available from user lookup)
-4. Build summary:
-   - For `Story` and `Technical Story`, use the naming style in this skill.
+5. Build summary:
+   - For `Story` and `Technical Story`, always normalize summary to:
+     - `[模块] - [平台或范围] - [动作 + 对象]`
+   - Derive and enforce the three parts before create:
+     - `模块`: from selected `Component` (in bracket form like `[My Report]`).
+     - `平台或范围`: use user-provided platform/scope; default to `All Platforms` if missing.
+     - `动作 + 对象`: use the user intent text as concise action/object phrase.
+   - If user-provided summary does not match the naming format:
+     - Rewrite to normalized format first.
+     - Use the normalized title in pre-create `Ticket Name List`.
+     - Ask for explicit confirmation on the normalized title before creation.
    - For `Epic`, prefer `<Module> Upgrade - <YYQn>`.
-5. Build issue description only when user provides description content.
+6. Build issue description only when user provides description content.
    - Description is optional and should not block ticket creation.
    - If provided, use template guidance from `templates.md`.
    - Ensure acceptance criteria checklist uses strict markdown syntax: `- [ ]`.
-6. Before calling any Jira MCP tool, read that tool schema/descriptor first.
-7. Resolve custom field ids before create/update:
+7. Before calling any Jira MCP tool, read that tool schema/descriptor first.
+8. Resolve custom field ids before create/update:
    - Use `jira_search_fields` for:
      - `Delivery Quarter`
      - `Epic Name`
      - `Client ID` (if needed by issue type/screen)
    - Pass these through `additional_fields` using discovered `customfield_xxxxx`.
-8. Create Jira issue with:
+9. Create Jira issue with:
    - Project = `workspace.project.key`
    - Issue type = selected type
    - Summary = user summary
    - Assignee = resolved `account_id`
    - Component = selected component
    - Description = optional (only include when provided)
-9. Run post-create validation (read-after-write):
+10. Run post-create validation (read-after-write):
    - Query created issue(s) and verify expected fields.
    - Minimum validation set:
      - `Summary`
@@ -188,7 +202,7 @@ For `Story` and `Technical Story`, enforce title style:
    - If any mismatch is found:
      - Report mismatched fields clearly.
      - Ask user whether to auto-fix immediately.
-10. Return:
+11. Return:
    - issue key
    - issue URL
    - fields used for creation
@@ -201,6 +215,7 @@ For `Story` and `Technical Story`, enforce title style:
 - If assignee appears external (not in `team.members`), verify existence via Atlassian user tools before use.
 - Never assign to an unverified external user.
 - If external user is verified and missing from config, append to `team.external_members`.
+- Always provide a pre-create `Ticket Name List` and require explicit user confirmation before creating ticket(s).
 - If required fields are missing, ask concise follow-up questions.
 - Do not invent issue-type fields; follow `cp-ticket-issue-structures.yaml`.
 - Treat `Labels` and `Assignee` as required for all ticket types.
@@ -215,6 +230,8 @@ For `Story` and `Technical Story`, enforce title style:
 - When creating tickets, prioritize selecting Sprint/Labels from the corresponding recent lists.
 - For `Story`, default `UX Review Required?` to `No`; only set `Yes` when user explicitly requests UX review.
 - For `Story` and `Technical Story`, enforce the naming format defined in this skill.
+- Never create `Story`/`Technical Story` with unformatted/raw summary text.
+- For `Story`/`Technical Story`, pre-create confirmation must show the normalized summary (not the raw input).
 - For `Epic`, use `<Module> Upgrade - <YYQn>` unless user explicitly requests different naming.
 - Always perform duplicate check by summary before creating a new issue.
 - Always discover custom-field ids via `jira_search_fields` before setting `additional_fields`.
@@ -234,3 +251,8 @@ After issue creation, respond with:
 - `Project`: `<workspace.project.key>`
 - `Validation`: `PASS` or `FAIL`
 - `Validation Details`: `<mismatch summary or "All required fields match expected values">`
+
+Before issue creation, provide:
+
+- `Ticket Name List`: `<list of ticket summaries to be created>`
+- `Confirmation Needed`: `Yes`
