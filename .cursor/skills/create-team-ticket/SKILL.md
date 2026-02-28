@@ -11,6 +11,8 @@ Create Jira tickets in a consistent format using:
 - team configuration in `cp-team-board.config.yaml`
 - issue field structure in `cp-ticket-issue-structures.yaml`
 - quarterly epic management in `cp-epic-management.yaml`
+- sprint management in `cp-sprint-management.yaml`
+- label management in `cp-label-management.yaml`
 
 ## Read Configuration First
 
@@ -20,16 +22,31 @@ Read `cp-team-board.config.yaml` and use:
 - `team.members`
 - `ticketing.supported_work_types`
 - `ticketing.defaults.assignee`
+- `ticketing.defaults.assignee_by_work_type`
+- `ticketing.defaults.client_id`
 - `ticketing.epic_management_file`
+- `ticketing.sprint_management_file`
+- `ticketing.label_management_file`
 
 Read `cp-ticket-issue-structures.yaml` and use:
 - `issue_structures.Story`
 - `issue_structures.Technical Story`
+- `issue_structures.Epic`
 
 Read `cp-epic-management.yaml` and use:
 - `epic_management.module_quarter_default_epics`
 - `epic_management.recent_epics`
 - `epic_management.conventions`
+
+Read `cp-sprint-management.yaml` and use:
+- `sprint_management.format`
+- `sprint_management.rules`
+- `sprint_management.recent_sprints`
+
+Read `cp-label-management.yaml` and use:
+- `label_management.roadmap`
+- `label_management.cross_team`
+- `label_management.recent_labels`
 
 ## Required Inputs
 
@@ -37,14 +54,13 @@ Collect these fields before creating a ticket:
 1. Issue type (must be in `ticketing.supported_work_types`)
 2. Summary
 3. Component (must be in `workspace.ownership.modules`)
-4. Assignee (optional; default to `ticketing.defaults.assignee`)
+4. Assignee (required; if missing, auto-fill by default rules)
 5. Description details (background, goal, acceptance criteria)
 6. Issue-type-specific required fields from `cp-ticket-issue-structures.yaml`
 
 Optional:
 - Priority
 - Due date
-- Labels
 - Links
 
 For `Story` and `Technical Story`, enforce title style:
@@ -65,21 +81,28 @@ For `Story` and `Technical Story`, enforce title style:
    - Assignee exists in `team.members`.
    - All required fields for the selected issue type are present per `cp-ticket-issue-structures.yaml`.
    - If a provided field value has options in `field_options`, validate against the allowed options.
+   - If `Client ID` is missing, default to `ticketing.defaults.client_id` (`0000`).
    - For `Story`, apply defaults from `issue_structures.Story.field_defaults` when user does not specify:
+     - `Client ID = 0000`
      - `UX Review Required? = No`
      - `UX Review Status = Not Needed`
-   - Validate sprint using `issue_structures.<type>.field_options.Sprint`:
+   - Validate sprint using `cp-sprint-management.yaml`:
      - Format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
      - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
-   - Validate labels using `issue_structures.<type>.field_options.Labels`:
+     - Prefer values from `sprint_management.recent_sprints.values` when selecting/confirming Sprint.
+   - Validate labels using `cp-label-management.yaml`:
      - Standard roadmap label should follow `roadmap_YYqN` (for example `roadmap_26q1`, `roadmap_26q2`).
      - If the work involves cross-team collaboration, include `cross-team` label.
+     - Prefer values from `label_management.recent_labels` when selecting/confirming Labels.
    - Resolve `Parent` for Story/Technical Story using `cp-epic-management.yaml`:
+     - Always prioritize `cp-epic-management.yaml` as the source of Parent candidates.
      - For functional-module work, default to the module quarterly Epic when mapping exists.
      - If user specifies a special Epic, use the user-specified Epic.
-     - If no mapping exists for the module/quarter and user did not specify special Epic, ask for Parent confirmation.
+     - If no suitable Parent can be matched from `cp-epic-management.yaml`, ask user for Parent confirmation before creation.
 2. Normalize assignee to `account_id`.
-   - If assignee is missing, use `ticketing.defaults.assignee` (Xuanyu Liu, Dev Leader).
+   - Assignee is treated as required for all ticket types.
+   - If assignee is missing and work type is `Epic`, use `ticketing.defaults.assignee_by_work_type.Epic` (Rambo Wang).
+   - Otherwise use `ticketing.defaults.assignee` (Xuanyu Liu, Dev Leader).
 3. Build summary:
    - For `Story` and `Technical Story`, use the naming style in this skill.
 4. Build issue description using the template in `templates.md`.
@@ -102,10 +125,15 @@ For `Story` and `Technical Story`, enforce title style:
 - If assignee is ambiguous, ask for confirmation.
 - If required fields are missing, ask concise follow-up questions.
 - Do not invent issue-type fields; follow `cp-ticket-issue-structures.yaml`.
-- If assignee is not provided, assign to `ticketing.defaults.assignee`.
+- Treat `Labels`, `Assignee`, `Parent`, and `Sprint` as required for all ticket types.
+- Treat `Summary` as the ticket name.
+- Default ticket `Priority` to `Medium` when not specified.
+- Default `Client ID` to `0000` when not specified.
+- If assignee is not provided, auto-fill work-type default first, then fallback to global default assignee.
 - Enforce sprint convention: `YYQn-Sprintm-Defenders`, with `m` in `1..6`.
 - Enforce label convention: roadmap labels use `roadmap_YYqN`; cross-team work must include `cross-team`.
-- For Story/Technical Story Parent, default to module quarterly Epic; allow explicit special-Epic override.
+- For Story/Technical Story Parent, use `cp-epic-management.yaml` first; if unmatched, ask user before creating.
+- When creating tickets, prioritize selecting Sprint/Labels from the corresponding recent lists.
 - For `Story`, default `UX Review Required?` to `No`; only set `Yes` when user explicitly requests UX review.
 - For `Story` and `Technical Story`, enforce the naming format defined in this skill.
 - Keep summary and description clear and actionable.

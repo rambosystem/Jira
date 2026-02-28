@@ -8,6 +8,7 @@ issue_structures:
       - Summary
       - Story Type
       - Sprint
+      - Assignee
       - Priority
       - Components
       - Labels
@@ -16,24 +17,11 @@ issue_structures:
       - UX Review Required?
     optional_fields:
       - Status
-      - Assignee
       - UX Review Status
       - Story Points
       - Last Response Date
       - Due date
     field_options:
-      Sprint:
-        format_pattern: "^[0-9]{2}Q[1-4]-Sprint[1-6]-Defenders$"
-        examples:
-          - 26Q1-Sprint6-Defenders
-        sprints_per_quarter: 6
-        team_name: Defenders
-      Labels:
-        format_pattern: "^roadmap_[0-9]{2}q[1-4]$"
-        examples:
-          - roadmap_26q1
-          - roadmap_26q2
-        cross_team_label: cross-team
       Story Type:
         - New Feature
         - Improvement
@@ -57,6 +45,7 @@ issue_structures:
         - Pending
         - Reviewed
     field_defaults:
+      Client ID: "0000"
       UX Review Required?: "No"
       UX Review Status: Not Needed
 
@@ -67,6 +56,7 @@ issue_structures:
       - Summary
       - Technical Story Type
       - Sprint
+      - Assignee
       - Priority
       - Components
       - Labels
@@ -74,22 +64,9 @@ issue_structures:
       - Parent
     optional_fields:
       - Status
-      - Assignee
       - Story Points
       - Due date
     field_options:
-      Sprint:
-        format_pattern: "^[0-9]{2}Q[1-4]-Sprint[1-6]-Defenders$"
-        examples:
-          - 26Q1-Sprint6-Defenders
-        sprints_per_quarter: 6
-        team_name: Defenders
-      Labels:
-        format_pattern: "^roadmap_[0-9]{2}q[1-4]$"
-        examples:
-          - roadmap_26q1
-          - roadmap_26q2
-        cross_team_label: cross-team
       Technical Story Type:
         - Code Quality
         - Architecture
@@ -114,8 +91,48 @@ issue_structures:
         - "3.0"
         - "2.0"
         - "1.0"
+    field_defaults:
+      Client ID: "0000"
+
+  Epic:
+    required_fields:
+      - Space
+      - Work type
+      - Summary
+      - Sprint
+      - Assignee
+      - Priority
+      - Components
+      - Labels
+      - Parent
+      - Delivery Quarter
+    optional_fields:
+      - Status
+      - Epic Name
+      - Story Points
+      - Due date
+    field_options:
+      Priority:
+        - Critical
+        - Highest
+        - High
+        - Medium
+        - Low
+        - Lowest
+        - "4.0"
+        - "3.0"
+        - "2.0"
+        - "1.0"
+      Delivery Quarter:
+        - Q1
+        - Q2
+        - Q3
+        - Q4
+    field_defaults:
+      Client ID: "0000"
 
 notes:
   - Based on Jira create screen snapshots provided on 2026-02-28.
   - Field required/optional status can change if Jira screen configuration changes.
   - Epic structure is initialized from current CP Epic usage and should be refined against Jira create-screen required markers when available.
+  - Sprint and Label rules are managed in `cp-sprint-management.yaml` and `cp-label-management.yaml`.

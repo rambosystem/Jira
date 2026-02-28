@@ -32,4 +32,20 @@
 - Simplified `cp-team-board.config.yaml` to reference `ticketing.epic_management_file` instead of embedding epic data.
 - Updated skill to read parent-resolution conventions and epic mappings from `cp-epic-management.yaml`.
 - Removed `status` from `cp-epic-management.yaml` recent epic entries; keep only key/title/date for lightweight maintenance.
+- Added standalone `cp-sprint-management.yaml` and `cp-label-management.yaml` for independent Sprint/Label governance.
+- Added `ticketing.sprint_management_file` and `ticketing.label_management_file` references in `cp-team-board.config.yaml`.
+- Removed Sprint/Label option details from `cp-ticket-issue-structures.yaml`; issue structure now focuses on required/optional fields.
+- Updated skill to validate Sprint and Labels from the dedicated management YAML files.
+- Added `recent_labels` to `cp-label-management.yaml`.
+- Added `recent_sprints` (active quarter + sprint list) to `cp-sprint-management.yaml`.
+- Updated skill behavior: when creating tickets, prioritize Sprint/Labels/Parent selection from `recent_sprints`, `recent_labels`, and `recent_epics` lists.
+- Tightened Parent rule in skill: Parent must be resolved from `cp-epic-management.yaml` first; if unmatched, ask user before creation.
+- Added `Epic` create structure into `cp-ticket-issue-structures.yaml` (required/optional fields + `Delivery Quarter` options `Q1..Q4`).
+- Added work-type assignee default override in `cp-team-board.config.yaml`: `Epic` defaults to `Rambo Wang`.
+- Updated skill to read Epic structure and apply assignee defaults by work type (`Epic` -> Rambo, others -> global default Xuanyu).
+- Updated ticket policy: `Labels`, `Assignee`, `Parent`, and `Sprint` are now treated as required across Story, Technical Story, and Epic in `cp-ticket-issue-structures.yaml`.
+- Synced skill prompts/guardrails to enforce the same required-field policy (with assignee auto-fill defaults retained).
+- Added global default `ticketing.defaults.client_id = "0000"` in `cp-team-board.config.yaml`.
+- Added `field_defaults.Client ID = "0000"` for Story/Technical Story/Epic in `cp-ticket-issue-structures.yaml`.
+- Updated skill to auto-fill `Client ID` as `0000` when not provided.
 - Queried Jira with JQL `project = CP AND issuetype = Epic AND reporter = "Rambo Wang" ORDER BY created DESC` and retrieved the latest 50 matching epics.

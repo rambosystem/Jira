@@ -55,11 +55,19 @@ ticketing:
     - Sub-task
     - Dev Bug (Sub-task)
   defaults:
+    client_id: "0000"
     assignee:
       name: Xuanyu Liu
       account_id: "712020:56137117-3aff-4ea4-b5b5-59aae5ad5235"
       role: Dev Leader
+    assignee_by_work_type:
+      Epic:
+        name: Rambo Wang
+        account_id: "712020:95adf17b-c3ec-4b54-a057-2777a6a9cab2"
+        role: Product Owner
   epic_management_file: cp-epic-management.yaml
+  sprint_management_file: cp-sprint-management.yaml
+  label_management_file: cp-label-management.yaml
 
 board_filter:
   issue_types:
