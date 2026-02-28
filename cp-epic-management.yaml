@@ -11,7 +11,44 @@ epic_management:
       Dayparting Scheduler: CP-44089
       SOV: CP-44087
       My Report: CP-44086
+    "26Q2":
+      Bid Explorer: CP-45461
+      Budget Scheduler: CP-45463
+      Dayparting Scheduler: CP-45464
+      Download Center: CP-45462
+      My Report: CP-45465
+      Pacvue Copilot: CP-45466
+      SOV: CP-45460
+      Calendar Center: CP-45467
+      Message: CP-45468
   recent_epics:
+    - key: CP-45468
+      title: Message Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45467
+      title: Calendar Center Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45466
+      title: Pacvue Copilot Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45465
+      title: My Report Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45464
+      title: Dayparting Scheduler Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45463
+      title: Budget Scheduler Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45462
+      title: Download Center Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45461
+      title: Bid Explorer Upgrade - 26Q2
+      created_on: "2026-02-28"
+    - key: CP-45460
+      title: SOV Upgrade - 26Q2
+      created_on: "2026-02-28"
     - key: CP-44575
       title: Calender Center Rollout to Target
       created_on: "2026-01-29"
