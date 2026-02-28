@@ -45,6 +45,11 @@ team:
     - name: Rambo Wang
       account_id: "712020:95adf17b-c3ec-4b54-a057-2777a6a9cab2"
       email: rambo.wang@pacvue.com
+  external_members:
+    - name: Keping Meng
+      account_id: "712020:283e4a23-8798-468a-8f74-f45c357535ec"
+      email: keping.meng@pacvue.com
+      is_active: false
 
 ticketing:
   supported_work_types:

@@ -22,6 +22,7 @@ Read `cp-team-board.config.yaml` and use:
 - `workspace.project.key`
 - `workspace.ownership.modules`
 - `team.members`
+- `team.external_members` (if present)
 - `ticketing.supported_work_types`
 - `ticketing.defaults.assignee`
 - `ticketing.defaults.assignee_by_work_type`
@@ -110,7 +111,12 @@ For `Story` and `Technical Story`, enforce title style:
    - `workspace.project.key` exists.
    - Issue type is in `ticketing.supported_work_types`.
    - Component is in `workspace.ownership.modules`.
-   - Assignee exists in `team.members`.
+   - Assignee exists in `team.members` or `team.external_members`.
+   - If assignee is not in either list, treat as potential external assignee and run identity verification before creation:
+     - Use Jira user lookup (`jira_get_user_profile`) with email/name/account_id.
+     - Optionally cross-check via `confluence_search_user` for account id and active status.
+     - If user does not exist, stop and ask user to provide a valid assignee.
+     - If user exists, record user into `cp-team-board.config.yaml` under `team.external_members` before creating ticket.
    - All required fields for the selected issue type are present per `cp-ticket-issue-structures.yaml`.
    - If a provided field value has options in `field_options`, validate against the allowed options.
    - If `Client ID` is missing, default to `ticketing.defaults.client_id` (`0000`).
@@ -139,6 +145,11 @@ For `Story` and `Technical Story`, enforce title style:
    - Assignee is treated as required for all ticket types.
    - If assignee is missing and work type is `Epic`, use `ticketing.defaults.assignee_by_work_type.Epic` (Rambo Wang).
    - Otherwise use `ticketing.defaults.assignee` (Xuanyu Liu, Dev Leader).
+   - For external assignee, always normalize and persist as:
+     - `name`
+     - `account_id`
+     - `email` (if available)
+     - `is_active` (if available from user lookup)
 4. Build summary:
    - For `Story` and `Technical Story`, use the naming style in this skill.
    - For `Epic`, prefer `<Module> Upgrade - <YYQn>`.
@@ -187,6 +198,9 @@ For `Story` and `Technical Story`, enforce title style:
 
 - Do not use components outside `workspace.ownership.modules`.
 - If assignee is ambiguous, ask for confirmation.
+- If assignee appears external (not in `team.members`), verify existence via Atlassian user tools before use.
+- Never assign to an unverified external user.
+- If external user is verified and missing from config, append to `team.external_members`.
 - If required fields are missing, ask concise follow-up questions.
 - Do not invent issue-type fields; follow `cp-ticket-issue-structures.yaml`.
 - Treat `Labels` and `Assignee` as required for all ticket types.
