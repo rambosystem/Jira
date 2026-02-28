@@ -121,9 +121,10 @@ For `Story` and `Technical Story`, enforce title style:
    - If a provided field value has options in `field_options`, validate against the allowed options.
    - If `Client ID` is missing, default to `ticketing.defaults.client_id` (`0000`).
    - For `Story`, apply defaults from `issue_structures.Story.field_defaults` when user does not specify:
-     - `Client ID = 0000`
-     - `UX Review Required? = No`
-     - `UX Review Status = Not Needed`
+   - `Story Type = Improvement` (or the configured default in YAML)
+   - `Client ID = 0000`
+   - `UX Review Required? = No`
+   - `UX Review Status = Not Needed`
    - Validate sprint using `cp-sprint-management.yaml`:
      - Format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
      - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
@@ -186,27 +187,30 @@ For `Story` and `Technical Story`, enforce title style:
    - Component = selected component
    - Description = optional (only include when provided)
 10. Run post-create validation (read-after-write):
-   - Query created issue(s) and verify expected fields.
-   - Minimum validation set:
-     - `Summary`
-     - `Issue type`
-     - `Assignee`
-     - `Priority`
-     - `Components`
-     - `Labels`
-   - For `Epic`, also verify:
-     - `Delivery Quarter` custom field value
-   - For `Story`/`Technical Story`, also verify:
-     - `Parent`
-     - `Sprint`
-   - If any mismatch is found:
-     - Report mismatched fields clearly.
-     - Ask user whether to auto-fix immediately.
+
+- Query created issue(s) and verify expected fields.
+- Minimum validation set:
+  - `Summary`
+  - `Issue type`
+  - `Assignee`
+  - `Priority`
+  - `Components`
+  - `Labels`
+- For `Epic`, also verify:
+  - `Delivery Quarter` custom field value
+- For `Story`/`Technical Story`, also verify:
+  - `Parent`
+  - `Sprint`
+- If any mismatch is found:
+  - Report mismatched fields clearly.
+  - Ask user whether to auto-fix immediately.
+
 11. Return:
-   - issue key
-   - issue URL
-   - fields used for creation
-   - validation result (pass/fail + mismatches if any)
+
+- issue key
+- issue URL
+- fields used for creation
+- validation result (pass/fail + mismatches if any)
 
 ## Guardrails
 
@@ -223,6 +227,7 @@ For `Story` and `Technical Story`, enforce title style:
 - Treat `Summary` as the ticket name.
 - Default ticket `Priority` to `Medium` when not specified.
 - Default `Client ID` to `0000` when not specified.
+- Default `Story Type` from `issue_structures.Story.field_defaults` when user does not specify it.
 - If assignee is not provided, auto-fill work-type default first, then fallback to global default assignee.
 - Enforce sprint convention: `YYQn-Sprintm-Defenders`, with `m` in `1..6`.
 - Enforce label convention: roadmap labels use `roadmap_YYqN`; cross-team work must include `cross-team`.

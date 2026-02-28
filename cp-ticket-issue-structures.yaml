@@ -45,6 +45,7 @@ issue_structures:
         - Pending
         - Reviewed
     field_defaults:
+      Story Type: Improvement
       Client ID: "0000"
       UX Review Required?: "No"
       UX Review Status: Not Needed
