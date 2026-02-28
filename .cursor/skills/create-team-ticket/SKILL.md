@@ -160,10 +160,28 @@ For `Story` and `Technical Story`, enforce title style:
    - Assignee = resolved `account_id`
    - Component = selected component
    - Description = optional (only include when provided)
-9. Return:
+9. Run post-create validation (read-after-write):
+   - Query created issue(s) and verify expected fields.
+   - Minimum validation set:
+     - `Summary`
+     - `Issue type`
+     - `Assignee`
+     - `Priority`
+     - `Components`
+     - `Labels`
+   - For `Epic`, also verify:
+     - `Delivery Quarter` custom field value
+   - For `Story`/`Technical Story`, also verify:
+     - `Parent`
+     - `Sprint`
+   - If any mismatch is found:
+     - Report mismatched fields clearly.
+     - Ask user whether to auto-fix immediately.
+10. Return:
    - issue key
    - issue URL
    - fields used for creation
+   - validation result (pass/fail + mismatches if any)
 
 ## Guardrails
 
@@ -187,6 +205,7 @@ For `Story` and `Technical Story`, enforce title style:
 - Always perform duplicate check by summary before creating a new issue.
 - Always discover custom-field ids via `jira_search_fields` before setting `additional_fields`.
 - Never block creation due to missing description.
+- Always run post-create validation for created issue(s) and report the result.
 - Keep summary and description clear and actionable.
 
 ## Output Format
@@ -199,3 +218,5 @@ After issue creation, respond with:
 - `Component`: `<component>`
 - `Assignee`: `<name> (<account_id>)`
 - `Project`: `<workspace.project.key>`
+- `Validation`: `PASS` or `FAIL`
+- `Validation Details`: `<mismatch summary or "All required fields match expected values">`
