@@ -99,15 +99,15 @@ issue_structures:
       - Space
       - Work type
       - Summary
-      - Sprint
       - Assignee
       - Priority
       - Components
       - Labels
-      - Parent
       - Delivery Quarter
     optional_fields:
       - Status
+      - Sprint
+      - Parent
       - Epic Name
       - Story Points
       - Due date

@@ -125,7 +125,8 @@ For `Story` and `Technical Story`, enforce title style:
 - If assignee is ambiguous, ask for confirmation.
 - If required fields are missing, ask concise follow-up questions.
 - Do not invent issue-type fields; follow `cp-ticket-issue-structures.yaml`.
-- Treat `Labels`, `Assignee`, `Parent`, and `Sprint` as required for all ticket types.
+- Treat `Labels` and `Assignee` as required for all ticket types.
+- Treat `Parent` and `Sprint` as required for `Story`/`Technical Story`, but optional for `Epic`.
 - Treat `Summary` as the ticket name.
 - Default ticket `Priority` to `Medium` when not specified.
 - Default `Client ID` to `0000` when not specified.

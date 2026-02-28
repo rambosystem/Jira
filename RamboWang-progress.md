@@ -48,4 +48,6 @@
 - Added global default `ticketing.defaults.client_id = "0000"` in `cp-team-board.config.yaml`.
 - Added `field_defaults.Client ID = "0000"` for Story/Technical Story/Epic in `cp-ticket-issue-structures.yaml`.
 - Updated skill to auto-fill `Client ID` as `0000` when not provided.
+- Updated policy per request: `Epic` no longer requires `Sprint` and `Parent` (moved to optional in `cp-ticket-issue-structures.yaml`).
+- Synced skill guardrails to reflect: `Parent`/`Sprint` required only for Story/Technical Story, optional for Epic.
 - Queried Jira with JQL `project = CP AND issuetype = Epic AND reporter = "Rambo Wang" ORDER BY created DESC` and retrieved the latest 50 matching epics.
