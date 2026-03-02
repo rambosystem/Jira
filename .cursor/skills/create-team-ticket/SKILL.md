@@ -93,9 +93,16 @@ For `Story` and `Technical Story`, enforce title style:
 - Module should be bracketed, e.g. `[My Report]`, `[SOV]`
 - For all-platform scope use `All Platforms`
 - For multi-platform scope use slash format, e.g. `Amazon/Walmart/Target`
+- Use formal, business-friendly wording in the `动作 + 对象` segment.
+- Avoid colloquial or ambiguous phrases (e.g. `给别的组`, `搞一下`, `做个`).
+- Prefer concise verb-object phrases such as `提供`, `支持`, `新增`, `优化`, `重构`, `对齐`, `迁移`.
+- Prefer domain-subject style in `动作 + 对象`: `<业务主体> + <动作> + <对象>`.
+- Domain subject examples: `SOV Rule`, `Task Scheduler`, `Event Explorer`, `Report API`.
+- For cross-team intent, when the business subject is clear, use subject-style phrasing (e.g. `SOV Rule 提供 Brand SOV 接口`) instead of generic wording.
 - Example titles:
   - `[My Report] - All Platforms - SOV Report 支持 Google Sheet`
   - `[SOV] - Amazon - Add New Metrics SB Banner`
+  - `[SOV] - Amazon - SOV Rule 提供 Brand SOV 接口`
 
 ## Creation Workflow
 
@@ -125,10 +132,12 @@ For `Story` and `Technical Story`, enforce title style:
    - `Client ID = 0000`
    - `UX Review Required? = No`
    - `UX Review Status = Not Needed`
-   - Validate sprint using `cp-sprint-management.yaml`:
-     - Format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
-     - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
-     - Prefer values from `sprint_management.recent_sprints.values` when selecting/confirming Sprint.
+  - Validate sprint using `cp-sprint-management.yaml`:
+    - For `Story` and `Technical Story`, Sprint is required by default.
+    - Exception: when assignee is in `team.external_members`, Sprint can be left empty.
+    - If Sprint is provided, format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
+    - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
+    - Prefer values from `sprint_management.recent_sprints.values` when selecting/confirming Sprint.
    - Validate labels using `cp-label-management.yaml`:
      - Standard roadmap label should follow `roadmap_YYqN` (for example `roadmap_26q1`, `roadmap_26q2`).
      - If the work involves cross-team collaboration, include `cross-team` label.
@@ -147,15 +156,17 @@ For `Story` and `Technical Story`, enforce title style:
    - For batch creation, list all ticket names in order and mark any duplicates/existing tickets found in step 2.
    - Ask for explicit user confirmation (for example: "Confirm create these tickets?").
    - Only proceed after explicit confirmation from user.
-4. Normalize assignee to `account_id`.
+4. Normalize assignee with email-first strategy.
    - Assignee is treated as required for all ticket types.
    - If assignee is missing and work type is `Epic`, use `ticketing.defaults.assignee_by_work_type.Epic` (Rambo Wang).
    - Otherwise use `ticketing.defaults.assignee` (Xuanyu Liu, Dev Leader).
+   - For Jira create/update calls, prefer `email` as assignee identifier.
+   - Fallback order when assigning: `email` -> `name` -> `account_id`.
+   - If assignment does not take effect after create/update, retry immediately with the next fallback identifier.
    - For external assignee, always normalize and persist as:
      - `name`
      - `account_id`
      - `email` (if available)
-     - `is_active` (if available from user lookup)
 5. Build summary:
    - For `Story` and `Technical Story`, always normalize summary to:
      - `[模块] - [平台或范围] - [动作 + 对象]`
@@ -163,6 +174,11 @@ For `Story` and `Technical Story`, enforce title style:
      - `模块`: from selected `Component` (in bracket form like `[My Report]`).
      - `平台或范围`: use user-provided platform/scope; default to `All Platforms` if missing.
      - `动作 + 对象`: use the user intent text as concise action/object phrase.
+   - Normalize `动作 + 对象` to formal written style:
+     - Replace colloquial expressions with formal verbs (e.g. `给别的组` -> `为跨团队提供`).
+     - When business subject exists, prefer `<业务主体> + <动作> + <对象>` (e.g. `SOV Rule 提供 Brand SOV 接口`).
+     - Keep objective nouns explicit (e.g. `接口`, `字段展示`, `能力支持`, `数据同步`).
+     - Keep title concise; avoid filler words and casual tone.
    - If user-provided summary does not match the naming format:
      - Rewrite to normalized format first.
      - Use the normalized title in pre-create `Ticket Name List`.
@@ -183,7 +199,7 @@ For `Story` and `Technical Story`, enforce title style:
    - Project = `workspace.project.key`
    - Issue type = selected type
    - Summary = user summary
-   - Assignee = resolved `account_id`
+   - Assignee = resolved identifier (prefer `email`, fallback `name`, then `account_id`)
    - Component = selected component
    - Description = optional (only include when provided)
 10. Run post-create validation (read-after-write):
@@ -200,7 +216,7 @@ For `Story` and `Technical Story`, enforce title style:
   - `Delivery Quarter` custom field value
 - For `Story`/`Technical Story`, also verify:
   - `Parent`
-  - `Sprint`
+  - `Sprint` (required unless assignee is in `team.external_members`)
 - If any mismatch is found:
   - Report mismatched fields clearly.
   - Ask user whether to auto-fix immediately.
@@ -223,18 +239,20 @@ For `Story` and `Technical Story`, enforce title style:
 - If required fields are missing, ask concise follow-up questions.
 - Do not invent issue-type fields; follow `cp-ticket-issue-structures.yaml`.
 - Treat `Labels` and `Assignee` as required for all ticket types.
-- Treat `Parent` and `Sprint` as required for `Story`/`Technical Story`, but optional for `Epic`.
+- Treat `Parent` as required for `Story`/`Technical Story`.
+- Treat `Sprint` as required for `Story`/`Technical Story` unless assignee is in `team.external_members`.
 - Treat `Summary` as the ticket name.
 - Default ticket `Priority` to `Medium` when not specified.
 - Default `Client ID` to `0000` when not specified.
 - Default `Story Type` from `issue_structures.Story.field_defaults` when user does not specify it.
 - If assignee is not provided, auto-fill work-type default first, then fallback to global default assignee.
-- Enforce sprint convention: `YYQn-Sprintm-Defenders`, with `m` in `1..6`.
+- Enforce sprint convention when Sprint is provided: `YYQn-Sprintm-Defenders`, with `m` in `1..6`.
 - Enforce label convention: roadmap labels use `roadmap_YYqN`; cross-team work must include `cross-team`.
 - For Story/Technical Story Parent, use `cp-epic-management.yaml` first; if unmatched, ask user before creating.
 - When creating tickets, prioritize selecting Sprint/Labels from the corresponding recent lists.
 - For `Story`, default `UX Review Required?` to `No`; only set `Yes` when user explicitly requests UX review.
 - For `Story` and `Technical Story`, enforce the naming format defined in this skill.
+- For `Story` and `Technical Story`, enforce formal title wording; avoid colloquial phrasing.
 - Never create `Story`/`Technical Story` with unformatted/raw summary text.
 - For `Story`/`Technical Story`, pre-create confirmation must show the normalized summary (not the raw input).
 - For `Epic`, use `<Module> Upgrade - <YYQn>` unless user explicitly requests different naming.
@@ -252,7 +270,7 @@ After issue creation, respond with:
 - `URL`: `<LINK>`
 - `Type`: `<work_type>`
 - `Component`: `<component>`
-- `Assignee`: `<name> (<account_id>)`
+- `Assignee`: `<name> (<email>)` (if email unavailable, use `<name> (<account_id>)`)
 - `Project`: `<workspace.project.key>`
 - `Validation`: `PASS` or `FAIL`
 - `Validation Details`: `<mismatch summary or "All required fields match expected values">`
