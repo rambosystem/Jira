@@ -71,3 +71,13 @@
 - Created Story `CP-45480` for `My Report` with sprint/parent/default story fields, but post-create validation found assignee mismatch (`Unassigned` instead of `Xuanyu Liu`); pending user confirmation for auto-fix.
 - Applied assignee fix on `CP-45480`: set assignee to `Xuanyu Liu` and re-validated successfully.
 - Queried unfinished `Sprint4` Stories using `cp-team-board.config.yaml` scope (component/assignee/reporter JQL); current result includes 17 Stories not in Done, grouped under `Open`, `In Progress`, and `Acceptance Testing`.
+- Intake for new Sprint6 Story request: normalized summary to `[My Report] - All Platforms - SOV Report 支持 Google Sheet`; duplicate check found existing `CP-45455`, and read-back validation confirmed it is already a `Story` under `My Report` with `Sprint=26Q1-Sprint6-Defenders`, `Parent=CP-44086`, `Assignee=Xuanyu Liu`, and `label=roadmap_26q1`.
+- Intake for new Story request (`My Report`): normalized summary candidate `[My Report] - Pacvue HQ - Company Board 支持 Brand List`; duplicate check returned no exact existing Story in `CP`; resolved field ids for create path (`Story Type=customfield_10085`, `Sprint=customfield_10020`, `Client ID=customfield_10043`, `UX Review Required?=customfield_13319`, `UX Review Status=customfield_13320`).
+- Created Story `CP-45647` with normalized summary `[My Report] - Pacvue HQ - Company Board 支持 Brand List`; applied defaults (`Story Type=Improvement`, `Client ID=0000`, `UX Review Required?=No`, `UX Review Status=Not Needed`), set `Sprint=26Q1-Sprint6-Defenders` (id `11448`), `Parent=CP-44086`, `Assignee=Xuanyu Liu`, `Priority=Medium`, `Component=My Report`, `label=roadmap_26q1`; post-create validation passed.
+
+## 2026-03-06
+
+- Created `pag-team-board.config.yaml` for PAG (Pacvue Agent) using CP config schema as baseline.
+- Added PAG core members: Hongjian Zhao, Tianwei Cai, Yongteng Li, Zack Shang, Kaifeng Xue (with emails).
+- Set `workspace.project.key` to `PAG`, initialized module to `Pacvue Agent`, and scaffolded ticketing defaults/board filter/JQL.
+- Verified all five members via Atlassian (`jira_get_user_profile`) and then resolved `account_id` via `confluence_search_user`; backfilled member/default/board filter account ids and updated PAG JQL assignee/reporter clauses.

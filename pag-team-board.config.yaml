@@ -1,0 +1,85 @@
+workspace:
+  name: PAG Team Workspace
+  project:
+    key: PAG
+  ownership:
+    modules:
+      - Pacvue Agent
+
+team:
+  members:
+    - name: Hongjian Zhao
+      email: hongjian.zhao@pacvue.com
+      account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+    - name: Tianwei Cai
+      email: tianwei.cai@helium10.com
+      account_id: "712020:c3a41fa6-5c83-460a-80ca-a50827135ce5"
+    - name: Yongteng Li
+      email: yongteng.li@helium10.com
+      account_id: "712020:4d3c5575-206d-4737-9d22-2af480cda3c7"
+    - name: Zack Shang
+      email: zack.shang@pacvue.com
+      account_id: "712020:764cf448-210c-4e4b-abd0-cfb411693cd3"
+    - name: Kaifeng Xue
+      email: kaifeng.xue@pacvue.com
+      account_id: "712020:d962cf4e-1564-429c-95d3-7a72d12b697c"
+  external_members: []
+
+ticketing:
+  supported_work_types:
+    - Story
+    - Technical Story
+    - Bug
+    - Epic
+    - Sub-task
+    - Dev Bug (Sub-task)
+  defaults:
+    client_id: "0000"
+    assignee:
+      name: Hongjian Zhao
+      account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+      role: Team Lead
+    assignee_by_work_type:
+      Epic:
+        name: Hongjian Zhao
+        account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+        role: Product Owner
+  epic_management_file: pag-epic-management.yaml
+  sprint_management_file: pag-sprint-management.yaml
+  label_management_file: pag-label-management.yaml
+
+board_filter:
+  issue_types:
+    - Story
+    - Technical Story
+    - Bug
+    - Epic
+    - Sub-task
+    - Dev Bug (Sub-task)
+  assignee_account_ids:
+    - "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+    - "712020:c3a41fa6-5c83-460a-80ca-a50827135ce5"
+    - "712020:4d3c5575-206d-4737-9d22-2af480cda3c7"
+    - "712020:764cf448-210c-4e4b-abd0-cfb411693cd3"
+    - "712020:d962cf4e-1564-429c-95d3-7a72d12b697c"
+  reporter_account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+  order_by: created DESC
+
+jql: >-
+  (
+    project = PAG
+    AND component IN ("Pacvue Agent")
+  )
+  OR
+  (
+    issuetype IN ("Story","Technical Story","Bug","Epic","Sub-task","Dev Bug (Sub-task)")
+    AND assignee IN (
+      "712020:1683110c-d149-4ca7-a0ad-03ed10597e96",
+      "712020:c3a41fa6-5c83-460a-80ca-a50827135ce5",
+      "712020:4d3c5575-206d-4737-9d22-2af480cda3c7",
+      "712020:764cf448-210c-4e4b-abd0-cfb411693cd3",
+      "712020:d962cf4e-1564-429c-95d3-7a72d12b697c"
+    )
+  )
+  OR reporter = "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+  ORDER BY created DESC
