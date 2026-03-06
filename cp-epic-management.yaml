@@ -11,6 +11,7 @@ epic_management:
       Dayparting Scheduler: CP-44089
       SOV: CP-44087
       My Report: CP-44086
+      Creative Management: CP-42994
     "26Q2":
       Bid Explorer: CP-45461
       Budget Scheduler: CP-45463
@@ -24,88 +25,166 @@ epic_management:
   recent_epics:
     - key: CP-45468
       title: Message Upgrade - 26Q2
+      status: Open
+      components: [Message]
       created_on: "2026-02-28"
     - key: CP-45467
       title: Calendar Center Upgrade - 26Q2
+      status: Open
+      components: [Calendar Center]
       created_on: "2026-02-28"
     - key: CP-45466
       title: Pacvue Copilot Upgrade - 26Q2
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2026-02-28"
     - key: CP-45465
       title: My Report Upgrade - 26Q2
+      status: Open
+      components: [My Report]
       created_on: "2026-02-28"
     - key: CP-45464
       title: Dayparting Scheduler Upgrade - 26Q2
+      status: Open
+      components: [Dayparting Scheduler]
       created_on: "2026-02-28"
     - key: CP-45463
       title: Budget Scheduler Upgrade - 26Q2
+      status: Open
+      components: [Budget Scheduler]
       created_on: "2026-02-28"
     - key: CP-45462
       title: Download Center Upgrade - 26Q2
+      status: Open
+      components: [Download Center]
       created_on: "2026-02-28"
     - key: CP-45461
       title: Bid Explorer Upgrade - 26Q2
+      status: Open
+      components: [Bid Explorer]
       created_on: "2026-02-28"
     - key: CP-45460
       title: SOV Upgrade - 26Q2
+      status: Open
+      components: [SOV]
       created_on: "2026-02-28"
     - key: CP-44575
       title: Calender Center Rollout to Target
+      status: In Progress
+      components: [Calendar Center]
       created_on: "2026-01-29"
+    - key: CP-44143
+      title: 【Action Executor】New Action Type
+      status: In Progress
+      components: [Pacvue Copilot]
+      created_on: "2026-01-21"
+    - key: CP-44134
+      title: 【Visualization Report】Report Upgrade
+      status: Open
+      components: [Pacvue Copilot]
+      created_on: "2026-01-21"
     - key: CP-44089
       title: Dayparting Upgrade - 26Q1
+      status: Open
+      components: [Dayparting Scheduler]
       created_on: "2026-01-19"
     - key: CP-44087
       title: SOV Upgrade - 26Q1
+      status: In Progress
+      components: [SOV]
       created_on: "2026-01-19"
     - key: CP-44086
       title: My Report Upgrade - 26Q1
+      status: In Progress
+      components: [My Report]
       created_on: "2026-01-19"
     - key: CP-44007
       title: Reddit - Dayparting
+      status: In Progress
+      components: [Dayparting Scheduler]
       created_on: "2026-01-16"
     - key: CP-43672
       title: Home Depot - Dayparting Scheduler
+      status: Done
+      components: [Dayparting Scheduler]
       created_on: "2026-01-12"
     - key: CP-43671
       title: Kroger - Dayparting & Budget Scheduler
+      status: In Progress
+      components: [Budget Scheduler, Dayparting Scheduler]
       created_on: "2026-01-12"
     - key: CP-43139
       title: Copilot - Proactive Engagement
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-24"
+    - key: CP-42994
+      title: Creative Hub - 26Q1
+      status: In Progress
+      components: [Creative Management]
+      created_on: "2025-12-22"
+    - key: CP-42670
+      title: Reddit - Automation Function Integration
+      status: In Progress
+      components: [Budget Manager, Dayparting Scheduler, Rule]
+      created_on: "2025-12-12"
     - key: CP-42669
       title: Ads Agent - Visualized Report Generation
+      status: In Progress
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42668
       title: My Report - Rollout to Moloco
+      status: Open
+      components: [My Report]
       created_on: "2025-12-12"
     - key: CP-42667
       title: Ads Agent - Data Insights & Analysis V2
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42666
       title: Ads Agent - Action Auto-Executor V2
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42665
       title: Ads Agent - Recommended Actions V2
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42664
       title: Ads Agent - Visualized Report Generation V2
-      created_on: "2025-12-12"
-    - key: CP-42663
-      title: Home Depot - Automation Function Integration
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42662
       title: Slack Copilot
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42661
       title: SOV - Support Walmart MX & CA Market
+      status: Open
+      components: [SOV]
       created_on: "2025-12-12"
     - key: CP-42660
       title: Ads Agent - Action Auto-Executor
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42659
       title: Ads Agent - Recommended Actions
+      status: Open
+      components: [Pacvue Copilot]
       created_on: "2025-12-12"
     - key: CP-42658
       title: Ads Agent - Data Insights & Analysis
+      status: In Progress
+      components: [Pacvue Copilot]
+      created_on: "2025-12-12"
+    - key: CP-42657
+      title: Calendar Center Rollout to Target
+      status: Open
+      components: [Calendar Center]
       created_on: "2025-12-12"
