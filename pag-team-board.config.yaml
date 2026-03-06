@@ -30,7 +30,6 @@ ticketing:
     - Story
     - Technical Story
     - Bug
-    - Epic
     - Sub-task
     - Dev Bug (Sub-task)
   defaults:
@@ -39,21 +38,24 @@ ticketing:
       name: Hongjian Zhao
       account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
       role: Team Lead
-    assignee_by_work_type:
-      Epic:
-        name: Hongjian Zhao
-        account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
-        role: Product Owner
-  epic_management_file: pag-epic-management.yaml
-  sprint_management_file: pag-sprint-management.yaml
-  label_management_file: pag-label-management.yaml
+  issue_structure_file: pag-ticket-issue-structures.yaml
+  policy:
+    require_epic: false
+    require_sprint: false
+    require_labels: false
+    require_components: false
+    default_assignee: Hongjian Zhao
+    default_assignee_account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+    default_components: []
+    default_sprint: ""
+    default_labels: []
+    default_parent: ""
 
 board_filter:
   issue_types:
     - Story
     - Technical Story
     - Bug
-    - Epic
     - Sub-task
     - Dev Bug (Sub-task)
   assignee_account_ids:
@@ -68,11 +70,10 @@ board_filter:
 jql: >-
   (
     project = PAG
-    AND component IN ("Pacvue Agent")
   )
   OR
   (
-    issuetype IN ("Story","Technical Story","Bug","Epic","Sub-task","Dev Bug (Sub-task)")
+    issuetype IN ("Story","Technical Story","Bug","Sub-task","Dev Bug (Sub-task)")
     AND assignee IN (
       "712020:1683110c-d149-4ca7-a0ad-03ed10597e96",
       "712020:c3a41fa6-5c83-460a-80ca-a50827135ce5",

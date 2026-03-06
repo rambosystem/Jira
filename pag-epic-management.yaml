@@ -1,0 +1,15 @@
+version: 1
+project: PAG
+epic_management:
+  purpose: Manage Story parent linkage through PAG quarterly epics.
+  conventions:
+    quarterly_module_epic_naming_pattern: "<Module> Upgrade - <YYQn>"
+    story_parent_default_rule: "Default Parent to module quarterly Epic when available."
+    special_epic_override_rule: "Use a special Epic when user explicitly specifies one."
+  module_quarter_default_epics:
+    "26Q1":
+      Pacvue Agent: ""
+  recent_epics: []
+  notes:
+    - Fill module quarterly epic keys after PAG epics are created.
+    - Keep recent epics ordered by newest first.

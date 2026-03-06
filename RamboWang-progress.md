@@ -81,3 +81,13 @@
 - Added PAG core members: Hongjian Zhao, Tianwei Cai, Yongteng Li, Zack Shang, Kaifeng Xue (with emails).
 - Set `workspace.project.key` to `PAG`, initialized module to `Pacvue Agent`, and scaffolded ticketing defaults/board filter/JQL.
 - Verified all five members via Atlassian (`jira_get_user_profile`) and then resolved `account_id` via `confluence_search_user`; backfilled member/default/board filter account ids and updated PAG JQL assignee/reporter clauses.
+- Captured PAG Story create-screen configuration from provided screenshot and codified it in `pag-ticket-issue-structures.yaml` (required/optional/default fields for Story).
+- Added `ticketing.issue_structure_file = pag-ticket-issue-structures.yaml` in `pag-team-board.config.yaml`.
+- Added PAG supporting governance files: `pag-sprint-management.yaml`, `pag-label-management.yaml`, and `pag-epic-management.yaml` for sprint/label/parent conventions.
+- Updated PAG policy: Epic is removed from default work types; Sprint/Labels/Parent are explicitly non-required and default empty in `pag-team-board.config.yaml` and `pag-ticket-issue-structures.yaml`.
+- Confirmed and reinforced PAG default assignee as `Hongjian Zhao` by adding explicit defaults in both `pag-team-board.config.yaml` (`ticketing.policy`) and `pag-ticket-issue-structures.yaml` (`field_defaults` for Story/Technical Story).
+- Updated PAG to not require `Components`: moved `Components` from required to optional for Story/Technical Story, added `require_components: false` with `default_components: []`, and removed component-based restriction from PAG JQL.
+- Attempted to create 4 PAG Stories after user confirmation, but Jira API rejected all with: `Components field is required and the project has no components`; verified via `jira_get_project_components` that PAG currently has `[]` components, so ticket creation is blocked until Jira screen/field config or project components are fixed.
+- Retried PAG Story creation with explicit `components = Pacvue Agent`; Jira returned permission error: `You do not have permission to create new components`, indicating the component does not exist yet and creation rights are required.
+- After user added PAG component `Pacvue Agent`, successfully created 4 Stories: `PAG-1` to `PAG-4`; post-create validation confirmed expected fields (`Story`, `Assignee=Hongjian Zhao`, `Priority=Medium`, `Component=Pacvue Agent`, `Story Type=Improvement`, `Client ID=0000`, `UX Review Required?=No`, `UX Review Status=Not Needed`).
+- Created PAG Story `PAG-6` for Kaifeng Xue with summary `[Pacvue Agent] - All Platforms - 接入 Admin Whitelist Management`; post-create validation passed for key fields (type/assignee/priority/component/story-type/client-id/UX fields/status).
