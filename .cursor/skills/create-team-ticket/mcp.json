@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "mcp-atlassian": {
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "https://pacvue-enterprise.atlassian.net",
+        "JIRA_USERNAME": "rambo.wang@pacvue.com",
+        "JIRA_API_TOKEN": "$JIRA_API_TOKEN",
+        "CONFLUENCE_URL": "https://pacvue-enterprise.atlassian.net/wiki",
+        "CONFLUENCE_USERNAME": "rambo.wang@pacvue.com",
+        "CONFLUENCE_API_TOKEN": "$CONFLUENCE_API_TOKEN"
+      }
+    }
+  }
+}
