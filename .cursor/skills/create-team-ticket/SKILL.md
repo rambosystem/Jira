@@ -195,6 +195,7 @@ For `Story` and `Technical Story`, enforce title style:
      - `Epic Name`
      - `Client ID` (if needed by issue type/screen)
    - Pass these through `additional_fields` using discovered `customfield_xxxxx`.
+   - **Parent format (Jira MCP)**: In `jira_create_issue` `additional_fields`, set `parent` as the **issue key string** (e.g. `"parent": "CP-45465"`). Do **not** use an object (e.g. `{"parent": {"key": "CP-45465"}}`); that causes the error: `expected 'key' property to be a string`.
 9. Create Jira issue with:
    - Project = `workspace.project.key`
    - Issue type = selected type
@@ -258,6 +259,7 @@ For `Story` and `Technical Story`, enforce title style:
 - For `Epic`, use `<Module> Upgrade - <YYQn>` unless user explicitly requests different naming.
 - Always perform duplicate check by summary before creating a new issue.
 - Always discover custom-field ids via `jira_search_fields` before setting `additional_fields`.
+- In `jira_create_issue` `additional_fields`, set `parent` as the issue key **string** (e.g. `"parent": "CP-45465"`), never as an object.
 - Never block creation due to missing description.
 - Always run post-create validation for created issue(s) and report the result.
 - Keep summary and description clear and actionable.

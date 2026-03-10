@@ -91,3 +91,8 @@
 - Retried PAG Story creation with explicit `components = Pacvue Agent`; Jira returned permission error: `You do not have permission to create new components`, indicating the component does not exist yet and creation rights are required.
 - After user added PAG component `Pacvue Agent`, successfully created 4 Stories: `PAG-1` to `PAG-4`; post-create validation confirmed expected fields (`Story`, `Assignee=Hongjian Zhao`, `Priority=Medium`, `Component=Pacvue Agent`, `Story Type=Improvement`, `Client ID=0000`, `UX Review Required?=No`, `UX Review Status=Not Needed`).
 - Created PAG Story `PAG-6` for Kaifeng Xue with summary `[Pacvue Agent] - All Platforms - 接入 Admin Whitelist Management`; post-create validation passed for key fields (type/assignee/priority/component/story-type/client-id/UX fields/status).
+
+## 2026-03-10
+
+- **踩坑记录（Jira MCP `jira_create_issue`）**：在 `additional_fields` 中设置 Story 的父任务时，`parent` 必须传 **issue key 的字符串**（例如 `"parent": "CP-45465"`），不能传对象（例如 `{"parent": {"key": "CP-45465"}}`）。传对象时 MCP/后端会报错：`expected 'key' property to be a string`。正确写法：`"parent": "CP-45465"`。
+- Created Story `CP-45818` for Minghui Chen（My Report, All Platforms, 「Company Board ETL支持」）with parent `CP-45465`, label `roadmap_26q2`, default Story Type/Client ID/UX fields; creation succeeded after correcting parent format to string.
