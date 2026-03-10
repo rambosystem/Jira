@@ -1,0 +1,87 @@
+---
+name: sprint-report
+description: Generate a Sprint completion report for Defenders team—query Jira for Done Stories in a given sprint, group by functional module, and write a 迭代总结 markdown file. Use when user asks for sprint report, sprint summary, 迭代总结, or "Sprint N 完成了哪些/按模块总结".
+---
+
+# Sprint Report（迭代总结）
+
+## Purpose
+
+Produce a **Sprint 迭代总结** document that:
+
+- Lists all **completed (Done)** Stories in a specified Defenders sprint
+- Groups them by **functional module** (component)
+- Outputs a markdown file with section tables and a one-line **迭代要点** per module, plus a summary table
+
+## When to Use
+
+- User asks for "Sprint N 完成了哪些 Story" or "Sprint N 按模块总结"
+- User asks for "迭代总结" or "Sprint Report" for a given sprint
+- User wants a written summary of what was delivered in a sprint, by module
+
+## Configuration to Read
+
+1. **`cp-sprint-management.yaml`**
+   - `sprint_management.format.template`: `<YYQn>-Sprint<1..6>-Defenders`
+   - `sprint_management.recent_sprints.active_quarter`: e.g. `26Q1`
+   - `sprint_management.recent_sprints.values`: list of sprint names (e.g. `26Q1-Sprint4-Defenders`)
+
+2. **`cp-team-board.config.yaml`**
+   - `workspace.project.key`: e.g. `CP`
+   - `workspace.ownership.modules`: canonical module list for grouping and section order
+
+## Resolving Sprint Name
+
+- If user says **"Sprint4"** or **"Sprint 4"**: use `active_quarter` + `-Sprint4-Defenders` (e.g. `26Q1-Sprint4-Defenders`).
+- If user gives full name (e.g. `26Q1-Sprint4-Defenders`): use as-is.
+- If quarter is ambiguous, prefer `recent_sprints.active_quarter` from `cp-sprint-management.yaml`.
+
+## Workflow
+
+1. **Resolve sprint identifier**
+   - From user input (e.g. "Sprint4") derive full sprint name (e.g. `26Q1-Sprint4-Defenders`) using `cp-sprint-management.yaml`.
+
+2. **Query Jira**
+   - Use `jira_search` (or equivalent) with JQL:
+     - `project = <workspace.project.key> AND issuetype = Story AND sprint = "<sprint_name>" AND statusCategory = Done ORDER BY key ASC`
+   - Request fields: `summary`, `status`, `assignee`, `key`, `components` (if available). Include `components` so grouping is by Jira component; if the API does not return components, infer module from summary (see below).
+
+3. **Group by module**
+   - **Preferred**: group by issue `components` (use first component or primary component if multiple).
+   - **Fallback**: infer module from summary:
+     - Match pattern `[Module Name]` at the start (e.g. `[My Report]`, `[SOV]`, `[Calendar Center]`).
+     - Or map known prefixes (e.g. "Creative Hub" / "Creative HUb" → Creative Management, "Dayparting" / "Dayparting Scheduler" → Dayparting Scheduler, "Crawl Task" + SOV → SOV).
+   - Normalize module labels to match `workspace.ownership.modules` where possible (e.g. "Creative Hub" → "Creative Management").
+   - Sort sections by a stable order: either by `workspace.ownership.modules` order, or alphabetically by module name; put "其他" or uncategorized at the end.
+
+4. **Build 迭代要点 per module**
+   - For each module, write one short sentence (迭代要点) summarizing the theme of the completed work (e.g. "Kroger 新版本支持、Target 活动管理与快照能力"). Keep it concise and business-readable.
+
+5. **Write markdown file**
+   - **Filename**: `Sprint<N>-Defenders-迭代总结.md` (e.g. `Sprint4-Defenders-迭代总结.md`) or `<sprint_name>-迭代总结.md`.
+   - **Structure** (follow this template):
+     - Title: `# Sprint<N> Defenders 迭代总结（<sprint_name>）` or `# <sprint_name> 迭代总结`
+     - Intro line: 已完成 Story 共 **N** 条，按功能模块汇总如下。
+     - For each module: `## <Module>`, then table `| Key | 内容 |` with rows from completed issues, then `**迭代要点**：<one-line summary>`
+     - **汇总** table: `| 模块 | 完成 Story 数 | 主要方向 |`
+     - Footer: `*数据来源：Jira <project> 项目，Sprint = <sprint_name>，statusCategory = Done。*`
+
+6. **Before calling Jira**
+   - Read the Jira MCP tool schema (e.g. `jira_search`) from the mcps folder if not already known, and use the correct parameters (e.g. `jql`, `fields`, `limit`).
+
+## Output Format
+
+- **Primary**: A markdown file in the workspace root (or a docs folder if the project has one), named as above.
+- **Reply to user**: Short confirmation with file path, total Story count, and list of modules with counts (e.g. "已生成 `Sprint4-Defenders-迭代总结.md`，共 20 条 Story，7 个模块：My Report(4), Dayparting(3), …").
+
+## Guardrails
+
+- Do not invent or guess completed issues; only include issues returned by the Jira query (Story + sprint + statusCategory = Done).
+- If the sprint name cannot be resolved (e.g. "Sprint99"), ask the user for the exact sprint name or quarter.
+- If zero issues are returned, still produce the markdown file with an empty body and a note that no completed Stories were found for that sprint.
+- Prefer Jira `components` for grouping; use summary-based inference only when components are missing or empty.
+- Keep 迭代要点 in Chinese, concise and consistent with the style in `Sprint4-Defenders-迭代总结.md`.
+
+## Reference
+
+- Example output: see workspace file `Sprint4-Defenders-迭代总结.md` for the exact section layout, table format, and 迭代要点 style.
