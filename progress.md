@@ -1,0 +1,98 @@
+# Progress Log
+
+## 2026-02-28
+
+- Created `cp-team-board.config.yaml` from provided team board JQL.
+- Resolved all listed Jira `accountId` values to user names via Atlassian MCP.
+- Added a `users` mapping section into `cp-team-board.config.yaml` for quick lookup and maintenance.
+- Restructured `cp-team-board.config.yaml` into workspace-oriented sections: `workspace` (project/modules/members) and `board_filter`.
+- Enriched member entries with `name`, `account_id`, and `email` for easier team management.
+- Created project skill `.cursor/skills/create-team-ticket/SKILL.md` for standardized CP ticket creation workflow.
+- Added `.cursor/skills/create-team-ticket/templates.md` with Bug, Task, and Story description templates.
+- Added `workspace.supported_work_types` for CP and set it to: Story, Technical Story, Bug, Epic, Sub-task, Dev Bug (Sub-task).
+- Synced `board_filter.issue_types`, JQL issue type clause, and skill validation text to use the selected six work types.
+- Added `workspace.ticket_naming` convention and supported platform list for Feature/Technical Story title formatting.
+- Updated `create-team-ticket` skill to enforce Story/Technical Story summary format: `[模块] - [平台或范围] - [动作 + 对象]`.
+- Added two official naming examples to config and skill:
+  - `[My Report] - All Platforms - SOV Report 支持 Google Sheet`
+  - `[SOV] - Amazon - Add New Metrics SB Banner`
+- Corrected JQL issue type clause back to the selected six work types.
+- Added standalone YAML `cp-ticket-issue-structures.yaml` to persist Story and Technical Story field structure, required/optional fields, and key option lists.
+- Updated `create-team-ticket` skill to consume `cp-ticket-issue-structures.yaml` for required fields and option validation (instead of hardcoded issue field details).
+- Updated `cp-ticket-issue-structures.yaml`: marked `Sprint`, `Labels`, and `Parent` as required for both Story and Technical Story.
+- Added ticket default assignee in `cp-team-board.config.yaml`: Xuanyu Liu (`account_id: 712020:56137117-3aff-4ea4-b5b5-59aae5ad5235`, role `Dev Leader`).
+- Added Labels convention to issue structures: roadmap labels use `roadmap_YYqN` and cross-team work must include `cross-team`.
+- Added Sprint convention to issue structures: `YYQn-Sprintm-Defenders`, with 6 sprints per quarter.
+- Updated skill validation/guardrails to enforce default assignee, Sprint format/range, and Labels convention.
+- Added Story defaults: `UX Review Required? = No` and `UX Review Status = Not Needed`; skill now applies these unless user explicitly asks for UX review.
+- Added `ticketing.epic_management` into `cp-team-board.config.yaml` with 20 recent epics and quarterly module parent strategy.
+- Added quarterly module default epic mapping for `26Q1` (`Dayparting Scheduler` -> `CP-44089`, `SOV` -> `CP-44087`, `My Report` -> `CP-44086`).
+- Updated skill to resolve Story/Technical Story `Parent` via quarterly module epics, with explicit special-Epic override.
+- Split quarterly epic management into standalone `cp-epic-management.yaml` for easier quarter-by-quarter maintenance.
+- Simplified `cp-team-board.config.yaml` to reference `ticketing.epic_management_file` instead of embedding epic data.
+- Updated skill to read parent-resolution conventions and epic mappings from `cp-epic-management.yaml`.
+- Removed `status` from `cp-epic-management.yaml` recent epic entries; keep only key/title/date for lightweight maintenance.
+- Added standalone `cp-sprint-management.yaml` and `cp-label-management.yaml` for independent Sprint/Label governance.
+- Added `ticketing.sprint_management_file` and `ticketing.label_management_file` references in `cp-team-board.config.yaml`.
+- Removed Sprint/Label option details from `cp-ticket-issue-structures.yaml`; issue structure now focuses on required/optional fields.
+- Updated skill to validate Sprint and Labels from the dedicated management YAML files.
+- Added `recent_labels` to `cp-label-management.yaml`.
+- Added `recent_sprints` (active quarter + sprint list) to `cp-sprint-management.yaml`.
+- Updated skill behavior: when creating tickets, prioritize Sprint/Labels/Parent selection from `recent_sprints`, `recent_labels`, and `recent_epics` lists.
+- Tightened Parent rule in skill: Parent must be resolved from `cp-epic-management.yaml` first; if unmatched, ask user before creation.
+- Added `Epic` create structure into `cp-ticket-issue-structures.yaml` (required/optional fields + `Delivery Quarter` options `Q1..Q4`).
+- Added work-type assignee default override in `cp-team-board.config.yaml`: `Epic` defaults to `Rambo Wang`.
+- Updated skill to read Epic structure and apply assignee defaults by work type (`Epic` -> Rambo, others -> global default Xuanyu).
+- Updated ticket policy: `Labels`, `Assignee`, `Parent`, and `Sprint` are now treated as required across Story, Technical Story, and Epic in `cp-ticket-issue-structures.yaml`.
+- Synced skill prompts/guardrails to enforce the same required-field policy (with assignee auto-fill defaults retained).
+- Added global default `ticketing.defaults.client_id = "0000"` in `cp-team-board.config.yaml`.
+- Added `field_defaults.Client ID = "0000"` for Story/Technical Story/Epic in `cp-ticket-issue-structures.yaml`.
+- Updated skill to auto-fill `Client ID` as `0000` when not provided.
+- Updated policy per request: `Epic` no longer requires `Sprint` and `Parent` (moved to optional in `cp-ticket-issue-structures.yaml`).
+- Synced skill guardrails to reflect: `Parent`/`Sprint` required only for Story/Technical Story, optional for Epic.
+- Queried Jira with JQL `project = CP AND issuetype = Epic AND reporter = "Rambo Wang" ORDER BY created DESC` and retrieved the latest 50 matching epics.
+- Created new Jira Epic `CP-45460` (`SOV Upgrade - 26Q2`) via `create-team-ticket` skill flow with: project `CP`, component `SOV`, assignee `Rambo Wang`, priority `Medium`, label `roadmap_26q2`, and `Delivery Quarter = Q2`.
+- Optimized `create-team-ticket` skill: added shorthand intent inference (e.g. `Q2 SOV epic`), pre-create duplicate check, mandatory custom-field-id discovery via `jira_search_fields`, Epic naming convention, and stricter markdown checklist guidance; also added an Epic description template.
+- Updated `create-team-ticket` skill policy: ticket creation no longer requires description; description is optional and should not block create flow.
+- Created Q2 module Epics for `cp-team-board.config.yaml` modules (`Bid Explorer`, `Budget Scheduler`, `Dayparting Scheduler`, `Download Center`, `My Report`, `Pacvue Copilot`, `SOV`, `Calendar Center`, `Message`) and updated `cp-epic-management.yaml` with `26Q2` default mappings plus new `recent_epics` entries.
+- Ran post-create validation for `CP-45460` to `CP-45468`: confirmed `assignee=Rambo Wang`, `priority=Medium`, `labels` include `roadmap_26q2`, `customfield_12899 (Delivery Quarter)=Q2`, and component values match module mapping in `cp-epic-management.yaml`.
+- Enhanced `create-team-ticket` skill with mandatory post-create validation: read-after-write checks for key fields, mismatch reporting, and `Validation`/`Validation Details` in output format.
+- Queried Atlassian for `Keping Meng` (`keping.meng@pacvue.com`) and added the user to `cp-team-board.config.yaml` under `team.external_members` with account id `712020:283e4a23-8798-468a-8f74-f45c357535ec` and `is_active: false`.
+- Updated `create-team-ticket` skill to enforce external-assignee verification: if assignee is outside team list, validate via Atlassian user lookup first; only verified users can be assigned and must be persisted to `team.external_members` in `cp-team-board.config.yaml`.
+- Updated `create-team-ticket` skill to require pre-create second confirmation: output `Ticket Name List` before creation and proceed only after explicit user confirmation (supports batch create with duplicate/existing markers).
+- Created Story `CP-45469` for `My Report` assigned to external member `Keping Meng` with Q1 roadmap label and Q1 parent epic (`CP-44086`), keeping Sprint empty per request; post-create validation passed for summary/type/assignee/priority/component/labels/parent/story-type/client-id/UX fields.
+- Strengthened `create-team-ticket` naming enforcement: `Story`/`Technical Story` summaries are now mandatory normalized to `[模块] - [平台或范围] - [动作 + 对象]`, with rewrite-before-create and confirmation on normalized title.
+- Started new ticket intake for Sprint 6 request: intent parsed as `Technical Story`, normalized summary candidate `[Pacvue Copilot] - All Platforms - SOV MCP开发`, duplicate check in project `CP` returned no exact duplicate, and field IDs resolved (`Sprint=customfield_10020`, `Technical Story Type=customfield_12348`, `Client ID=customfield_10043`).
+- Updated `cp-ticket-issue-structures.yaml` to add Story default: `field_defaults.Story Type = Improvement`.
+- Updated `.cursor/skills/create-team-ticket/SKILL.md` to enforce automatic Story Type fallback from YAML defaults when user does not provide Story Type.
+- Adjusted pending ticket scope from `All Platforms` to `Amazon`; normalized summary candidate updated to `[SOV] - Amazon - SOV MCP开发` and duplicate check returned no existing Story with same summary.
+- Created Story `CP-45470` (`[SOV] - Amazon - SOV MCP开发`) with component `SOV`, parent `CP-44087`, sprint `26Q1-Sprint6-Defenders`, default `Story Type=Improvement`, `Client ID=0000`, `UX Review Required?=No`, `UX Review Status=Not Needed`, priority `Medium`, label `roadmap_26q1`; post-create validation passed.
+- Started new ticket intake for Sprint6 Story request in `My Report`; normalized summary candidate `[My Report] - All Platforms - SOV Report 支持 SB Banner`, planned parent `CP-44086`, and duplicate check returned no existing Story with same summary.
+- Created Story `CP-45480` for `My Report` with sprint/parent/default story fields, but post-create validation found assignee mismatch (`Unassigned` instead of `Xuanyu Liu`); pending user confirmation for auto-fix.
+- Applied assignee fix on `CP-45480`: set assignee to `Xuanyu Liu` and re-validated successfully.
+- Queried unfinished `Sprint4` Stories using `cp-team-board.config.yaml` scope (component/assignee/reporter JQL); current result includes 17 Stories not in Done, grouped under `Open`, `In Progress`, and `Acceptance Testing`.
+- Intake for new Sprint6 Story request: normalized summary to `[My Report] - All Platforms - SOV Report 支持 Google Sheet`; duplicate check found existing `CP-45455`, and read-back validation confirmed it is already a `Story` under `My Report` with `Sprint=26Q1-Sprint6-Defenders`, `Parent=CP-44086`, `Assignee=Xuanyu Liu`, and `label=roadmap_26q1`.
+- Intake for new Story request (`My Report`): normalized summary candidate `[My Report] - Pacvue HQ - Company Board 支持 Brand List`; duplicate check returned no exact existing Story in `CP`; resolved field ids for create path (`Story Type=customfield_10085`, `Sprint=customfield_10020`, `Client ID=customfield_10043`, `UX Review Required?=customfield_13319`, `UX Review Status=customfield_13320`).
+- Created Story `CP-45647` with normalized summary `[My Report] - Pacvue HQ - Company Board 支持 Brand List`; applied defaults (`Story Type=Improvement`, `Client ID=0000`, `UX Review Required?=No`, `UX Review Status=Not Needed`), set `Sprint=26Q1-Sprint6-Defenders` (id `11448`), `Parent=CP-44086`, `Assignee=Xuanyu Liu`, `Priority=Medium`, `Component=My Report`, `label=roadmap_26q1`; post-create validation passed.
+
+## 2026-03-06
+
+- Created `pag-team-board.config.yaml` for PAG (Pacvue Agent) using CP config schema as baseline.
+- Added PAG core members: Hongjian Zhao, Tianwei Cai, Yongteng Li, Zack Shang, Kaifeng Xue (with emails).
+- Set `workspace.project.key` to `PAG`, initialized module to `Pacvue Agent`, and scaffolded ticketing defaults/board filter/JQL.
+- Verified all five members via Atlassian (`jira_get_user_profile`) and then resolved `account_id` via `confluence_search_user`; backfilled member/default/board filter account ids and updated PAG JQL assignee/reporter clauses.
+- Captured PAG Story create-screen configuration from provided screenshot and codified it in `pag-ticket-issue-structures.yaml` (required/optional/default fields for Story).
+- Added `ticketing.issue_structure_file = pag-ticket-issue-structures.yaml` in `pag-team-board.config.yaml`.
+- Added PAG supporting governance files: `pag-sprint-management.yaml`, `pag-label-management.yaml`, and `pag-epic-management.yaml` for sprint/label/parent conventions.
+- Updated PAG policy: Epic is removed from default work types; Sprint/Labels/Parent are explicitly non-required and default empty in `pag-team-board.config.yaml` and `pag-ticket-issue-structures.yaml`.
+- Confirmed and reinforced PAG default assignee as `Hongjian Zhao` by adding explicit defaults in both `pag-team-board.config.yaml` (`ticketing.policy`) and `pag-ticket-issue-structures.yaml` (`field_defaults` for Story/Technical Story).
+- Updated PAG to not require `Components`: moved `Components` from required to optional for Story/Technical Story, added `require_components: false` with `default_components: []`, and removed component-based restriction from PAG JQL.
+- Attempted to create 4 PAG Stories after user confirmation, but Jira API rejected all with: `Components field is required and the project has no components`; verified via `jira_get_project_components` that PAG currently has `[]` components, so ticket creation is blocked until Jira screen/field config or project components are fixed.
+- Retried PAG Story creation with explicit `components = Pacvue Agent`; Jira returned permission error: `You do not have permission to create new components`, indicating the component does not exist yet and creation rights are required.
+- After user added PAG component `Pacvue Agent`, successfully created 4 Stories: `PAG-1` to `PAG-4`; post-create validation confirmed expected fields (`Story`, `Assignee=Hongjian Zhao`, `Priority=Medium`, `Component=Pacvue Agent`, `Story Type=Improvement`, `Client ID=0000`, `UX Review Required?=No`, `UX Review Status=Not Needed`).
+- Created PAG Story `PAG-6` for Kaifeng Xue with summary `[Pacvue Agent] - All Platforms - 接入 Admin Whitelist Management`; post-create validation passed for key fields (type/assignee/priority/component/story-type/client-id/UX fields/status).
+
+## 2026-03-10
+
+- **踩坑记录（Jira MCP `jira_create_issue`）**：在 `additional_fields` 中设置 Story 的父任务时，`parent` 必须传 **issue key 的字符串**（例如 `"parent": "CP-45465"`），不能传对象（例如 `{"parent": {"key": "CP-45465"}}`）。传对象时 MCP/后端会报错：`expected 'key' property to be a string`。正确写法：`"parent": "CP-45465"`。
+- Created Story `CP-45818` for Minghui Chen（My Report, All Platforms, 「Company Board ETL支持」）with parent `CP-45465`, label `roadmap_26q2`, default Story Type/Client ID/UX fields; creation succeeded after correcting parent format to string.
