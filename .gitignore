@@ -1,0 +1,5 @@
+# 本地环境变量（含 API Token，勿提交）
+.env
+
+#python virtual environment
+.venv
