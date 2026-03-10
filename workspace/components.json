@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "version": "1.1",
+    "last_updated": "2026-03-11"
+  },
+  "projects": {
+    "CP": {
+      "project_full_name": "Common Platform",
+      "default_team": { "pm": "Rambo Wang", "leader": "Xuanyu Liu" },
+      "modules": [
+        { "name": "Bid Explorer", "version": "2.1" },
+        { "name": "Budget Scheduler", "version": "2.3" },
+        { "name": "Dayparting Scheduler", "version": "2.14" },
+        { "name": "Download Center", "version": "1.0.2" },
+        { "name": "My Report", "version": "1.15" },
+        { "name": "SOV", "version": "3.26" },
+        { "name": "Calendar Center", "version": "1.7" },
+        { "name": "Message", "version": "1.0.1" },
+        { "name": "Creative Hub", "version": "1.2" }
+      ]
+    },
+    "PAG": {
+      "project_full_name": "Pacvue Agent",
+      "default_team": { "pm": "Hongjian Zhao", "leader": "Hongjian Zhao" },
+      "modules": [{ "name": "Pacvue Agent", "version": "2.0" }]
+    }
+  }
+}
