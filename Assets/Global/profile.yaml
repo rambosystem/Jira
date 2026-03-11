@@ -22,3 +22,6 @@ me:
   # 可选: 常用配置
   # default_sprint: 26Q1-Sprint4-Defenders
   # locale: zh-CN
+
+  #Confluence Workspace
+  confluence_workspace: "https://pacvue-enterprise.atlassian.net/wiki/spaces/~71202095adf17bc3ec4b54a0572777a6a9cab2/folder/1263042720?atlOrigin=eyJpIjoiOGE2NGZlMzg5MDE3NDQzMGJlZDFjZGNlYWJmNTgzMmEiLCJwIjoiYyJ9"
