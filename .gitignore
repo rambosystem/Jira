@@ -2,7 +2,7 @@
 .env
 
 # 脚本生成的报告输出
-tmp/
+# tmp/
 
 #python virtual environment
 .venv
