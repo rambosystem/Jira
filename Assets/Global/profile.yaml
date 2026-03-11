@@ -23,5 +23,9 @@ me:
   # default_sprint: 26Q1-Sprint4-Defenders
   # locale: zh-CN
 
-  #Confluence Workspace
+  # Confluence Workspace（REST API v2 用下面固化值，无需再解析或请求 GET /spaces）
   confluence_workspace: "https://pacvue-enterprise.atlassian.net/wiki/spaces/~71202095adf17bc3ec4b54a0572777a6a9cab2/folder/1263042720?atlOrigin=eyJpIjoiOGE2NGZlMzg5MDE3NDQzMGJlZDFjZGNlYWJmNTgzMmEiLCJwIjoiYyJ9"
+  confluence_base_url: "https://pacvue-enterprise.atlassian.net"
+  confluence_space_key: "~71202095adf17bc3ec4b54a0572777a6a9cab2"
+  confluence_parent_id: "1263042720"
+  confluence_space_id: "32113549"  # 数字 spaceId，来自 GET /spaces?keys={space_key}

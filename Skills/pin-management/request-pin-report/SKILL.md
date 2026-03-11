@@ -41,16 +41,15 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
    - 跳过该 key，可简短提示「PIN-xxxx 未找到或无权限」；仅对 jira_search 返回的 issue 生成报告。
 
 4. **按模板生成 Request PIN Report**
-   - 使用下方 **Output Format** 将 MCP 返回的 `summary`、`priority`、`created`、`description` 填入固定格式。
-   - **需求要点**：从 `description` 中归纳为「问题、背景、业务影响、期望」四项；若 description 为一段话，按语义拆分到四项或将整段放在「需求要点」下并分条简述。
+   - 使用下方 **Output Format**：每个 PIN 一个报告块，结构为 **URL-Card（Jira 链接卡片）** + **需求要点（Heading 3）** + 四条要点（问题、背景、业务影响、期望）。从 MCP 返回的 `description` 归纳填入四项；若 description 为一段话，按语义拆分或整段放在「需求要点」下分条简述。
 
 5. **发布报告到 Confluence**
-   - 按 **`Skills/confluence-management/create-page/SKILL.md`** 执行：将本次生成的报告正文发布到 Confluence。
-   - **入参**：`title` = 报告生成日的「YYYY-MM-DD Processed」；`content` = 本次所有 PIN 报告块拼接后的 Markdown（块与块之间用分隔线 `---` 隔开）；`append` = true（若该日期页面已存在则在末尾追加，否则新建）。
+   - 使用 **`Skills/confluence-management/create-page/SKILL.md`** 与 **`scripts/confluence_create_page.py`**：报告正文须转为 **ADF**（blockCard + heading 3「需求要点」+ bulletList），按 create-page 流程发布。
+   - **入参**：`title` = 报告生成日的「YYYY-MM-DD Processed」；正文 = 本次所有 PIN 报告块的 ADF（每个块：blockCard 指向该 PIN 的 Jira browse URL，再 heading 3「需求要点」，再 bulletList 四条）；若该日期页面已存在则按 create-page 先 GET 再合并 ADF 后 PUT 追加，否则 POST 新建。
+   - **执行方式**：可调用 `python scripts/confluence_create_page.py --title "YYYY-MM-DD Processed" --body-json '<ADF>'` 创建新页（单批单页）；若需追加到已有「YYYY-MM-DD Processed」页，则按 create-page 的 REST API 流程（GET /pages?space-id=…&title=…，取得 page_id 与当前 body，合并新报告块后 PUT /pages/{id}）。
    - **对话中**：
-     - **仅一条报告时**：在聊天中**直接回复**该条报告的完整正文（按 Output Format 的 Markdown），并说明「已发布到 Confluence，目标：profile 中的 confluence_workspace」。
+     - **仅一条报告时**：在聊天中**直接回复**该条报告的完整正文（按 Output Format 的展示格式），并说明「已发布到 Confluence，目标：profile 中的 confluence_workspace」。
      - **多条报告时**：不在对话中展示报告正文，仅简短告知「已为 N 个 PIN 生成 Report，已发布到 Confluence（confluence_workspace）」。
-   - Confluence 所用 MCP 工具见 **`Skills/confluence-management/MCP-tools.md`**。
 
 ## 报告发布目标（Confluence）
 
@@ -64,29 +63,37 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 
 ## Output Format
 
-报告正文（发布到 Confluence 或供粘贴）须按以下结构（Markdown）：
+报告正文（发布到 Confluence 时转为 ADF，对话中可展示为下方 Markdown 等价形式）须按以下结构：
+
+1. **URL-Card**：该 PIN 的 Jira 链接卡片（Confluence ADF 为 `blockCard`，`attrs.url` = `https://<site>.atlassian.net/browse/<issue_key>`）。
+2. **需求要点（Heading 3）**：标题「需求要点」，ADF 为 `heading` level 3。
+3. **四条要点**（bulletList）：
+   - **问题：** \<从 description 归纳：客户/用户反馈的具体问题>
+   - **背景：** \<从 description 归纳：相关上下文、时间线、已有能力等>
+   - **业务影响：** \<从 description 归纳：对业务/团队的影响、当前替代方案等>
+   - **期望：** \<从 description 归纳：希望产品/系统如何满足需求>
+
+**展示示例（等价 Markdown，供对话中回复）：**
 
 ```markdown
-# Request PIN Report — <issue_key>
+[URL-Card: Jira 链接 <issue_key>]
 
-**标题：** （<优先级>）<summary 原文或适度润色>
+### 需求要点
 
-**PIN 创建时间：** <created 格式化为可读日期，如 2026-02-27>
-
-## 需求要点
-
-- **问题：** <从 description 归纳：客户/用户反馈的具体问题>
-- **背景：** <从 description 归纳：相关上下文、时间线、已有能力等>
-- **业务影响：** <从 description 归纳：对业务/团队的影响、当前替代方案等>
-- **期望：** <从 description 归纳：希望产品/系统如何满足需求>
+- **问题：** Campbell's 客户反馈，在报告中看不到 Target 和 Sam's Club 的 New to Brand（NTB）数据。
+- **背景：** 这两个零售商在本月初已加入跨零售商报告，但 NTB 数据尚未接入，客户对之前报告上线延迟已有不满。
+- **业务影响：** NTB 对该团队很重要，目前他们只能手工拉取这些数据，无法在报告中直接使用。
+- **期望：** 在跨零售商报告中为 Target 和 Sam's Club 增加 NTB 指标，使客户能在报告里直接看到这两家的 NTB 数据，而不用再手动导出。
 ```
 
-若 description 无法明确拆成四项，可保留整段为「需求要点」并在其下用简短分条概括；或仅填能明确对应的项，其余写「见描述」。
+**发布到 Confluence 时的 ADF 结构**（每个报告块）：`blockCard`（url = 该 PIN 的 Jira browse URL）→ `heading`（level 3，text「需求要点」）→ `bulletList`（4 个 `listItem`，每项内 `paragraph` 含「**问题：** …」等文本）。多 PIN 时多个报告块顺序拼接在同一文档的 `content` 数组中。详见 **create-page** 技能中的「内容格式（ADF）」与 **`scripts/confluence_create_page.py`**（可用 `--body-json` 传入完整 ADF 或 `--jira-url` 配合脚本内建 blockCard 结构）。
+
+若 description 无法明确拆成四项，可保留整段在「需求要点」下用简短分条概括；或仅填能明确对应的项，其余写「见描述」。
 
 ## MCP 与配置约定
 
 - **Jira**：使用 **`jira_search`** 一次性按 key 拉取所有 PIN 详情。**Server**: `user-mcp-atlassian`，**工具**: `jira_search`，**参数**: `jql`（单个用 `key = "PIN-xxx"`，多个用 `key in (PIN-xxx, PIN-yyy)`）、`fields` = `key,summary,status,priority,created,description`、`limit` 按列表长度或 50。
-- **Confluence 发布**：统一按 **`Skills/confluence-management/create-page/SKILL.md`** 执行（读取 profile 的 `confluence_workspace`，创建或更新「YYYY-MM-DD Processed」页面并追加/写入报告正文）。Confluence 相关 MCP 工具见 **`Skills/confluence-management/MCP-tools.md`**。若未配置 MCP 或 Confluence 不可用，则将完整报告正文与 `confluence_workspace` URL 一并给出，供用户手动粘贴。
+- **Confluence 发布**：使用 **`Skills/confluence-management/create-page/SKILL.md`**（REST API v2，profile 中 confluence_base_url / confluence_space_id / confluence_parent_id）与 **`scripts/confluence_create_page.py`**。报告正文转为 ADF（URL-Card + 需求要点 Heading 3 + 四条 bullet）后，按 create-page 流程创建或更新「YYYY-MM-DD Processed」并追加；新建单页时可执行 `python scripts/confluence_create_page.py --title "YYYY-MM-DD Processed" --body-json '<ADF>'`。若未配置 Confluence 或不可用，则输出完整报告正文（按上方展示格式）与 profile 中的 confluence_workspace URL，供用户手动粘贴。
 
 ## Guardrails
 
@@ -102,15 +109,12 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 
 报告**始终**发布到 Confluence（目标：profile 中的 `confluence_workspace`），页面标题为 `YYYY-MM-DD Processed`。**仅一条**时在对话中直接回复报告正文并说明已发布到 Confluence；**多条**时不在对话中展示正文，仅告知已发布即可。
 
-输出结构示例：
+输出结构示例（与 Output Format 一致：URL-Card + 需求要点 Heading 3 + 四条要点）：
 
 ```markdown
-# Request PIN Report — PIN-2677
+[URL-Card: Jira 链接 PIN-2677]
 
-**标题：** （High）能否在 Target 和 Sam's Club 的跨零售商报告中加入 NTB 指标？
-**PIN 创建时间：** 2026-02-27
-
-## 需求要点
+### 需求要点
 
 - **问题：** Campbell's 客户反馈，在报告中看不到 Target 和 Sam's Club 的 New to Brand（NTB）数据。
 - **背景：** 这两个零售商在本月初已加入跨零售商报告，但 NTB 数据尚未接入，客户对之前报告上线延迟已有不满。
