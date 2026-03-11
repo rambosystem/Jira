@@ -1,0 +1,80 @@
+version: 1
+# PAG issue field structures. Sprint: Jira/assets/PAG/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
+
+issue_structures:
+  Story:
+    required_fields:
+      - Space
+      - Work type
+      - Summary
+      - Story Type
+      - Assignee
+      - Client ID
+      - UX Review Required?
+    optional_fields:
+      - Status
+      - Components
+      - Parent
+      - Sprint
+      - Labels
+      - Priority
+      - Description
+      - UX Review Status
+      - Attachment
+    field_options:
+      Story Type:
+        - New Feature
+        - Improvement
+        - API Integration & Enablement
+      Priority:
+        - Critical
+        - Highest
+        - High
+        - Medium
+        - Low
+        - Lowest
+        - "4.0"
+        - "3.0"
+        - "2.0"
+        - "1.0"
+      UX Review Required?:
+        - "Yes"
+        - "No"
+      UX Review Status:
+        - Not Needed
+        - Pending
+        - Reviewed
+    field_defaults:
+      Assignee: Hongjian Zhao
+      Story Type: Improvement
+      Priority: Medium
+      Client ID: "0000"
+      UX Review Required?: "No"
+      UX Review Status: Not Needed
+
+  Technical Story:
+    required_fields:
+      - Space
+      - Work type
+      - Summary
+      - Technical Story Type
+      - Assignee
+      - Client ID
+    optional_fields:
+      - Status
+      - Components
+      - Parent
+      - Sprint
+      - Labels
+      - Priority
+      - Description
+      - Attachment
+    field_defaults:
+      Assignee: Hongjian Zhao
+      Priority: Medium
+      Client ID: "0000"
+
+notes:
+  - Story required/optional fields are captured from PAG Jira create-screen screenshot provided on 2026-03-06.
+  - PAG does not enforce Epic, Sprint, Labels, or Parent; these fields should remain optional and blank by default.
+  - Technical Story is initialized from current PAG conventions and should be verified against Jira create-screen required markers.

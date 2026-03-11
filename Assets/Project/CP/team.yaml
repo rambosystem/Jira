@@ -1,0 +1,80 @@
+# CP team info. Epic/Label/Sprint assets: see Jira/assets/global/ and Jira/assets/CP/sprint-list.yaml.
+# Board queries: use Jira/assets/CP/query-templates.yaml + this file to build JQL.
+
+workspace:
+  name: CP Team Workspace
+  project:
+    key: CP
+  ownership:
+    modules:
+      - Bid Explorer
+      - Budget Scheduler
+      - Dayparting Scheduler
+      - Download Center
+      - My Report
+      - Pacvue Copilot
+      - SOV
+      - Calendar Center
+      - Message
+      - Creative Management
+      - Executive Hub
+
+team:
+  members:
+    - name: Xuanyu Liu
+      account_id: "712020:56137117-3aff-4ea4-b5b5-59aae5ad5235"
+      email: xuanyu.liu@pacvue.com
+    - name: Hua Zhao
+      account_id: "712020:1b91efce-0b60-42df-80b3-d2f03c1717f6"
+      email: hua.zhao@pacvue.com
+    - name: Yaping Qu
+      account_id: "6360f70559c794184bcba349"
+      email: yapingq@pacvue.com
+    - name: Rensen Huang
+      account_id: "712020:967ac709-03da-4b9c-88a1-e2fc733b8f79"
+      email: rensen.huang@pacvue.com
+    - name: Yicheng Wen
+      account_id: "634e3cc6f7ad721e784b7e27"
+      email: yichengw@pacvue.com
+    - name: Sizhi Luo
+      account_id: "712020:bed9d4af-ced7-4d82-8dc1-85b599d88344"
+      email: sizhi.luo@pacvue.com
+    - name: Yuehua Yan
+      account_id: "712020:01f74f81-3882-4ec6-86c3-9cb593b7958e"
+      email: yuehua.yan@pacvue.com
+    - name: Li Ji
+      account_id: "712020:40b269ac-32cf-49f2-af5e-9fb98fd6b8f6"
+      email: li.ji@pacvue.com
+    - name: Rambo Wang
+      account_id: "712020:95adf17b-c3ec-4b54-a057-2777a6a9cab2"
+      email: rambo.wang@pacvue.com
+  external_members:
+    - name: Lip Jiang
+      account_id: "62730beba1de4100685099de"
+      email: lipj@pacvue.com
+    - name: Minghui Chen
+      account_id: "712020:f334afa3-bf3e-4fca-9e9a-59781a2cc8b6"
+      email: minghui.chen@pacvue.com
+    - name: Keping Meng
+      account_id: "712020:283e4a23-8798-468a-8f74-f45c357535ec"
+      email: keping.meng@pacvue.com
+
+ticketing:
+  supported_work_types:
+    - Story
+    - Technical Story
+    - Bug
+    - Epic
+    - Sub-task
+    - Dev Bug (Sub-task)
+  defaults:
+    client_id: "0000"
+    assignee:
+      name: Xuanyu Liu
+      account_id: "712020:56137117-3aff-4ea4-b5b5-59aae5ad5235"
+      role: Dev Leader
+    assignee_by_work_type:
+      Epic:
+        name: Rambo Wang
+        account_id: "712020:95adf17b-c3ec-4b54-a057-2777a6a9cab2"
+        role: Product Owner

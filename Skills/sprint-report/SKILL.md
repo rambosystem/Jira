@@ -21,25 +21,27 @@ Produce a **Sprint 迭代总结** document that:
 
 ## Configuration to Read
 
-1. **`cp-sprint-management.yaml`**
+1. **`Jira/assets/CP/sprint-list.yaml`** (for CP; use `Jira/assets/<project>/sprint-list.yaml` if supporting multiple projects)
    - `sprint_management.format.template`: `<YYQn>-Sprint<1..6>-Defenders`
    - `sprint_management.recent_sprints.active_quarter`: e.g. `26Q1`
    - `sprint_management.recent_sprints.values`: list of sprint names (e.g. `26Q1-Sprint4-Defenders`)
 
-2. **`cp-team-board.config.yaml`**
+2. **`Jira/assets/CP/team.yaml`**
    - `workspace.project.key`: e.g. `CP`
    - `workspace.ownership.modules`: canonical module list for grouping and section order
+
+When querying Jira for board/sprint data, use **`Jira/assets/CP/query-templates.yaml`** (e.g. `sprint_done_stories`) and substitute placeholders with values from `team.yaml` and the resolved sprint name.
 
 ## Resolving Sprint Name
 
 - If user says **"Sprint4"** or **"Sprint 4"**: use `active_quarter` + `-Sprint4-Defenders` (e.g. `26Q1-Sprint4-Defenders`).
 - If user gives full name (e.g. `26Q1-Sprint4-Defenders`): use as-is.
-- If quarter is ambiguous, prefer `recent_sprints.active_quarter` from `cp-sprint-management.yaml`.
+- If quarter is ambiguous, prefer `recent_sprints.active_quarter` from `Jira/assets/CP/sprint-list.yaml`.
 
 ## Workflow
 
 1. **Resolve sprint identifier**
-   - From user input (e.g. "Sprint4") derive full sprint name (e.g. `26Q1-Sprint4-Defenders`) using `cp-sprint-management.yaml`.
+   - From user input (e.g. "Sprint4") derive full sprint name (e.g. `26Q1-Sprint4-Defenders`) using `Jira/assets/CP/sprint-list.yaml`.
 
 2. **Query Jira**
    - Use `jira_search` (or equivalent) with JQL:

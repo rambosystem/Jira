@@ -1,0 +1,55 @@
+# PAG team info. Epic/Label: Jira/assets/global/. Sprint: Jira/assets/PAG/sprint-list.yaml.
+# Board queries: use Jira/assets/PAG/query-templates.yaml + this file to build JQL.
+# Issue structures: Jira/Policy/PAG/issue-structures.yaml.
+
+workspace:
+  name: PAG Team Workspace
+  project:
+    key: PAG
+  ownership:
+    modules:
+      - Pacvue Agent
+
+team:
+  members:
+    - name: Hongjian Zhao
+      email: hongjian.zhao@pacvue.com
+      account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+    - name: Tianwei Cai
+      email: tianwei.cai@helium10.com
+      account_id: "712020:c3a41fa6-5c83-460a-80ca-a50827135ce5"
+    - name: Yongteng Li
+      email: yongteng.li@helium10.com
+      account_id: "712020:4d3c5575-206d-4737-9d22-2af480cda3c7"
+    - name: Zack Shang
+      email: zack.shang@pacvue.com
+      account_id: "712020:764cf448-210c-4e4b-abd0-cfb411693cd3"
+    - name: Kaifeng Xue
+      email: kaifeng.xue@pacvue.com
+      account_id: "712020:d962cf4e-1564-429c-95d3-7a72d12b697c"
+  external_members: []
+
+ticketing:
+  supported_work_types:
+    - Story
+    - Technical Story
+    - Bug
+    - Sub-task
+    - Dev Bug (Sub-task)
+  defaults:
+    client_id: "0000"
+    assignee:
+      name: Hongjian Zhao
+      account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+      role: Team Lead
+  policy:
+    require_epic: false
+    require_sprint: false
+    require_labels: false
+    require_components: false
+    default_assignee: Hongjian Zhao
+    default_assignee_account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+    default_components: []
+    default_sprint: ""
+    default_labels: []
+    default_parent: ""

@@ -43,8 +43,8 @@ Click [here](<details_url>) for more details.
 
 - **Input**: The same data used for Sprint Report—completed (Done) Stories in a given Defenders sprint.
 - **How to get it**:
-  1. Resolve sprint name (e.g. "Sprint4" → `26Q1-Sprint4-Defenders`) using `cp-sprint-management.yaml` and `cp-team-board.config.yaml` as in the **sprint-report** skill.
-  2. Query Jira: `project = CP AND issuetype = Story AND sprint = "<sprint_name>" AND statusCategory = Done`, fields `summary`, `key`, `components`.
+  1. Resolve sprint name (e.g. "Sprint4" → `26Q1-Sprint4-Defenders`) using `Jira/assets/CP/sprint-list.yaml` and `Jira/assets/CP/team.yaml` as in the **sprint-report** skill.
+  2. Query Jira using the `sprint_done_stories` template from `Jira/assets/CP/query-templates.yaml` with `project` and `sprint_name` substituted, or use JQL: `project = CP AND issuetype = Story AND sprint = "<sprint_name>" AND statusCategory = Done`, fields `summary`, `key`, `components`.
   3. Group issues by **module** (component or inferred from summary), same as Sprint Report.
 
 Do **not** invent stories; only include issues returned by this query (or from an existing Sprint Report file if the user points to it).
@@ -122,4 +122,4 @@ For Reddit:
 Click [here](https://pacvue-enterprise.atlassian.net/wiki/x/zIJMSg) for more details.
 ```
 
-- **Data source**: Same as **sprint-report** skill (Jira query by sprint + statusCategory = Done, group by module). Optionally reuse or parse `Sprint<N>-Defenders-迭代总结.md` if it already exists.
+- **Data source**: Same as **sprint-report** skill (Jira query by sprint + statusCategory = Done, group by module; config from `Jira/assets/CP/sprint-list.yaml`, `Jira/assets/CP/team.yaml`, `Jira/assets/CP/query-templates.yaml`). Optionally reuse or parse `Sprint<N>-Defenders-迭代总结.md` if it already exists.

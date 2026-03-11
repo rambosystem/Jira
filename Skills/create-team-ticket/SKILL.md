@@ -9,15 +9,15 @@ description: Create Jira tickets for the CP team using workspace configuration, 
 
 Create Jira tickets in a consistent format using:
 
-- team configuration in `cp-team-board.config.yaml`
-- issue field structure in `cp-ticket-issue-structures.yaml`
-- quarterly epic management in `cp-epic-management.yaml`
-- sprint management in `cp-sprint-management.yaml`
-- label management in `cp-label-management.yaml`
+- team configuration in `Jira/assets/<project>/team.yaml` (project = CP, PAG, etc., from user or context)
+- issue field structure in `Jira/Policy/<project>/issue-structures.yaml`
+- quarterly epic management in `Jira/assets/global/epic-list.yaml` (use `projects.<project>` for project-specific data)
+- sprint list in `Jira/assets/<project>/sprint-list.yaml`
+- label list in `Jira/assets/global/label-list.yaml`
 
 ## Read Configuration First
 
-Read `cp-team-board.config.yaml` and use:
+Read `Jira/assets/<project>/team.yaml` and use:
 
 - `workspace.project.key`
 - `workspace.ownership.modules`
@@ -27,29 +27,26 @@ Read `cp-team-board.config.yaml` and use:
 - `ticketing.defaults.assignee`
 - `ticketing.defaults.assignee_by_work_type`
 - `ticketing.defaults.client_id`
-- `ticketing.epic_management_file`
-- `ticketing.sprint_management_file`
-- `ticketing.label_management_file`
 
-Read `cp-ticket-issue-structures.yaml` and use:
+Read `Jira/Policy/<project>/issue-structures.yaml` and use:
 
 - `issue_structures.Story`
 - `issue_structures.Technical Story`
 - `issue_structures.Epic`
 
-Read `cp-epic-management.yaml` and use:
+Read `Jira/assets/global/epic-list.yaml` and use (for the current project key):
 
-- `epic_management.module_quarter_default_epics`
-- `epic_management.recent_epics`
 - `epic_management.conventions`
+- `epic_management.projects.<project>.module_quarter_default_epics`
+- `epic_management.projects.<project>.recent_epics`
 
-Read `cp-sprint-management.yaml` and use:
+Read `Jira/assets/<project>/sprint-list.yaml` and use:
 
 - `sprint_management.format`
 - `sprint_management.rules`
 - `sprint_management.recent_sprints`
 
-Read `cp-label-management.yaml` and use:
+Read `Jira/assets/global/label-list.yaml` and use:
 
 - `label_management.roadmap`
 - `label_management.cross_team`
@@ -63,7 +60,7 @@ Collect these fields before creating a ticket:
 2. Summary
 3. Component (must be in `workspace.ownership.modules`)
 4. Assignee (required; if missing, auto-fill by default rules)
-5. Issue-type-specific required fields from `cp-ticket-issue-structures.yaml`
+5. Issue-type-specific required fields from `Jira/Policy/<project>/issue-structures.yaml`
 
 Description:
 
@@ -123,8 +120,8 @@ For `Story` and `Technical Story`, enforce title style:
      - Use Jira user lookup (`jira_get_user_profile`) with email/name/account_id.
      - Optionally cross-check via `confluence_search_user` for account id and active status.
      - If user does not exist, stop and ask user to provide a valid assignee.
-     - If user exists, record user into `cp-team-board.config.yaml` under `team.external_members` before creating ticket.
-   - All required fields for the selected issue type are present per `cp-ticket-issue-structures.yaml`.
+     - If user exists, record user into the project's `Jira/assets/<project>/team.yaml` under `team.external_members` before creating ticket.
+   - All required fields for the selected issue type are present per `Jira/Policy/<project>/issue-structures.yaml`.
    - If a provided field value has options in `field_options`, validate against the allowed options.
    - If `Client ID` is missing, default to `ticketing.defaults.client_id` (`0000`).
    - For `Story`, apply defaults from `issue_structures.Story.field_defaults` when user does not specify:
@@ -132,21 +129,21 @@ For `Story` and `Technical Story`, enforce title style:
    - `Client ID = 0000`
    - `UX Review Required? = No`
    - `UX Review Status = Not Needed`
-  - Validate sprint using `cp-sprint-management.yaml`:
+  - Validate sprint using `Jira/assets/<project>/sprint-list.yaml`:
     - For `Story` and `Technical Story`, Sprint is required by default.
     - Exception: when assignee is in `team.external_members`, Sprint can be left empty.
     - If Sprint is provided, format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
     - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
     - Prefer values from `sprint_management.recent_sprints.values` when selecting/confirming Sprint.
-   - Validate labels using `cp-label-management.yaml`:
+   - Validate labels using `Jira/assets/global/label-list.yaml`:
      - Standard roadmap label should follow `roadmap_YYqN` (for example `roadmap_26q1`, `roadmap_26q2`).
      - If the work involves cross-team collaboration, include `cross-team` label.
      - Prefer values from `label_management.recent_labels` when selecting/confirming Labels.
-   - Resolve `Parent` for Story/Technical Story using `cp-epic-management.yaml`:
-     - Always prioritize `cp-epic-management.yaml` as the source of Parent candidates.
+   - Resolve `Parent` for Story/Technical Story using `Jira/assets/global/epic-list.yaml` (projects.<project>):
+     - Always prioritize the project's section in `epic-list.yaml` as the source of Parent candidates.
      - For functional-module work, default to the module quarterly Epic when mapping exists.
      - If user specifies a special Epic, use the user-specified Epic.
-     - If no suitable Parent can be matched from `cp-epic-management.yaml`, ask user for Parent confirmation before creation.
+     - If no suitable Parent can be matched from the epic list, ask user for Parent confirmation before creation.
 2. Run duplicate check before create:
    - Search Jira for same project + issue type + summary.
    - For Epic quarterly naming, check existing `<Module> Upgrade - <YYQn>` first.
@@ -238,7 +235,7 @@ For `Story` and `Technical Story`, enforce title style:
 - If external user is verified and missing from config, append to `team.external_members`.
 - Always provide a pre-create `Ticket Name List` and require explicit user confirmation before creating ticket(s).
 - If required fields are missing, ask concise follow-up questions.
-- Do not invent issue-type fields; follow `cp-ticket-issue-structures.yaml`.
+- Do not invent issue-type fields; follow `Jira/Policy/<project>/issue-structures.yaml`.
 - Treat `Labels` and `Assignee` as required for all ticket types.
 - Treat `Parent` as required for `Story`/`Technical Story`.
 - Treat `Sprint` as required for `Story`/`Technical Story` unless assignee is in `team.external_members`.
@@ -249,7 +246,7 @@ For `Story` and `Technical Story`, enforce title style:
 - If assignee is not provided, auto-fill work-type default first, then fallback to global default assignee.
 - Enforce sprint convention when Sprint is provided: `YYQn-Sprintm-Defenders`, with `m` in `1..6`.
 - Enforce label convention: roadmap labels use `roadmap_YYqN`; cross-team work must include `cross-team`.
-- For Story/Technical Story Parent, use `cp-epic-management.yaml` first; if unmatched, ask user before creating.
+- For Story/Technical Story Parent, use `Jira/assets/global/epic-list.yaml` (projects.<project>) first; if unmatched, ask user before creating.
 - When creating tickets, prioritize selecting Sprint/Labels from the corresponding recent lists.
 - For `Story`, default `UX Review Required?` to `No`; only set `Yes` when user explicitly requests UX review.
 - For `Story` and `Technical Story`, enforce the naming format defined in this skill.

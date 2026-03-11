@@ -96,3 +96,12 @@
 
 - **踩坑记录（Jira MCP `jira_create_issue`）**：在 `additional_fields` 中设置 Story 的父任务时，`parent` 必须传 **issue key 的字符串**（例如 `"parent": "CP-45465"`），不能传对象（例如 `{"parent": {"key": "CP-45465"}}`）。传对象时 MCP/后端会报错：`expected 'key' property to be a string`。正确写法：`"parent": "CP-45465"`。
 - Created Story `CP-45818` for Minghui Chen（My Report, All Platforms, 「Company Board ETL支持」）with parent `CP-45465`, label `roadmap_26q2`, default Story Type/Client ID/UX fields; creation succeeded after correcting parent format to string.
+
+## 2026-03-11
+
+- **Jira 配置迁移至 Jira 目录**：将 workspace `config/` 下所有 Jira 相关配置迁移到 `Jira/` 目录，按 assets + Policy 拆分。
+- **assets/global/**：新增全局 `epic-list.yaml`（合并 CP/PAG，用 `projects.CP` / `projects.PAG` 区分）、`label-list.yaml`（Epic 与 Label 为全局资产）。
+- **assets/CP/**、**assets/PAG/**：每项目 `team.yaml`（团队信息、ticketing 默认值，不含 board_filter/jql）、`sprint-list.yaml`、`query-templates.yaml`（看板查询用模板 + team 数据拼 JQL，不再使用 team-board 单文件）。
+- **Policy/CP/**、**Policy/PAG/**：`issue-structures.yaml` 从 config 迁入，notes 中路径改为 Jira 下新路径。
+- **技能路径更新**：create-team-ticket、sprint-report、generate-release-note 的 SKILL.md 与 reference.md 全部改为读取 `Jira/assets/<project>/team.yaml`、`Jira/assets/global/epic-list.yaml`、`Jira/assets/global/label-list.yaml`、`Jira/assets/<project>/sprint-list.yaml`、`Jira/Policy/<project>/issue-structures.yaml`；看板查询使用 `query-templates.yaml` + team 数据。
+- 已从 `config/` 删除 10 个已迁移 YAML：cp/pag-team-board.config.yaml、cp/pag-sprint-management、cp/pag-epic-management、cp/pag-label-management、cp/pag-ticket-issue-structures。

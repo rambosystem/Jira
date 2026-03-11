@@ -1,0 +1,23 @@
+version: 1
+# Global label list: conventions and recent labels. Shared across projects.
+
+label_management:
+  roadmap:
+    pattern: "^roadmap_[0-9]{2}q[1-4]$"
+    template: "roadmap_<YYqN>"
+    examples:
+      - roadmap_26q1
+      - roadmap_26q2
+  cross_team:
+    required_label: cross-team
+    rule: Add `cross-team` when the work involves collaboration across teams.
+  recent_labels:
+    - value: roadmap_26q1
+      category: roadmap
+    - value: roadmap_26q2
+      category: roadmap
+    - value: cross-team
+      category: collaboration
+  notes:
+    - Keep roadmap label pattern quarter-based.
+    - Add additional label groups here when team conventions evolve.

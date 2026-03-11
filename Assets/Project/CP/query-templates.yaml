@@ -1,0 +1,31 @@
+# Query templates for CP board. Substitute placeholders with values from Jira/assets/CP/team.yaml.
+# Placeholders: {{project}}, {{components}}, {{assignee_ids}}, {{reporter_id}}, {{issue_types}}, {{order}}
+
+team_board:
+  description: "Defenders team board: project components OR assignee OR reporter"
+  jql_template: |
+    (
+      project = {{project}}
+      AND component IN ({{components}})
+    )
+    OR
+    (
+      issuetype IN ({{issue_types}})
+      AND assignee IN ({{assignee_ids}})
+    )
+    OR reporter = {{reporter_id}}
+    {{order}}
+  defaults:
+    order: "ORDER BY created DESC"
+  # Values come from team.yaml: workspace.project.key, workspace.ownership.modules,
+  # team.members[].account_id (and external_members), ticketing.supported_work_types.
+  # Reporter typically = board owner (e.g. Rambo Wang account_id).
+
+sprint_done_stories:
+  description: "Done Stories in a given sprint (for sprint report / release note)"
+  jql_template: |
+    project = {{project}}
+    AND issuetype = Story
+    AND sprint = "{{sprint_name}}"
+    AND statusCategory = Done
+    ORDER BY key ASC

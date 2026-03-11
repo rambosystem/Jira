@@ -20,7 +20,7 @@
 
 ## 模块名与配置对齐
 
-- 分组后的模块名尽量与 `cp-team-board.config.yaml` 中 `workspace.ownership.modules` 一致（如 Creative Hub → Creative Management）。
+- 分组后的模块名尽量与 `Jira/assets/CP/team.yaml` 中 `workspace.ownership.modules` 一致（如 Creative Hub → Creative Management）。
 - 无法归入已知模块的 issue 可归为「其他」或单独成节。
 
 ## 模板文件
