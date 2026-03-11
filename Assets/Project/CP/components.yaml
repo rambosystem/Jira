@@ -1,0 +1,23 @@
+# CP project components. Referenced by team.yaml (workspace.ownership.components_file).
+# Used by query-templates, create-team-ticket, sprint-report, generate-release-note.
+# Edit this file to add/remove components; optional last_version for reference.
+
+components:
+  - name: Bid Explorer
+    last_version: "2.1"
+  - name: Budget Scheduler
+    last_version: "2.3"
+  - name: Dayparting Scheduler
+    last_version: "2.14"
+  - name: Download Center
+    last_version: "1.1"
+  - name: My Report
+    last_version: "1.16"
+  - name: SOV
+    last_version: "3.27"
+  - name: Calendar Center
+    last_version: "1.10"
+  - name: Message
+    last_version: "1.1"
+  - name: Creative Hub
+    last_version: "1.2"

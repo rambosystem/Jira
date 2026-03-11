@@ -23,13 +23,15 @@ Follow this structure for each product section:
 #### <Product Name> V<version>
 
 For <Platform>：
+
 - Update: <short description>
 - New: <short description>
 
 For <Other Platform>:
+
 - Update: <short description>
 
-Click [here](<details_url>) for more details.
+Click [here](details_url) for more details.
 ```
 
 **Rules:**
@@ -80,7 +82,7 @@ Do **not** invent stories; only include issues returned by this query (or from a
 5. **Build the document**
    - One `#### Product V<version>` section per product.
    - Under each product: "For <Platform>:" blocks, then bullets, then `Click [here](<url>) for more details.`
-   - Order sections by product (e.g. follow `workspace.ownership.modules` order or alphabetically).
+   - Order sections by product (e.g. follow the project's component list order from team/components or alphabetically).
 
 6. **Output**
    - Write to a file, e.g. `Release-Note-Sprint<N>-Vx.xx.md` or `Release-Note-<sprint_name>.md`.
@@ -88,13 +90,13 @@ Do **not** invent stories; only include issues returned by this query (or from a
 
 ## New vs Update (Guidelines)
 
-| Signal in summary / title | Prefer |
-|---------------------------|--------|
-| Rollout, 接入, 支持 &lt;Platform&gt; (first time) | New |
-| New Version Support (for a new platform) | New |
-| 新增, Add new &lt;X&gt; (new feature) | New (or Update if minor) |
-| Update, 优化, 修复, Allow users to..., Add &lt;field&gt> | Update |
-| 交互优化, 补偿机制, 埋点 | Update |
+| Signal in summary / title                                | Prefer                   |
+| -------------------------------------------------------- | ------------------------ |
+| Rollout, 接入, 支持 &lt;Platform&gt; (first time)        | New                      |
+| New Version Support (for a new platform)                 | New                      |
+| 新增, Add new &lt;X&gt; (new feature)                    | New (or Update if minor) |
+| Update, 优化, 修复, Allow users to..., Add &lt;field&gt> | Update                   |
+| 交互优化, 补偿机制, 埋点                                 | Update                   |
 
 When in doubt, use **Update**.
 
@@ -113,10 +115,12 @@ When in doubt, use **Update**.
 #### Budget Manager V3.29
 
 For Amazon：
+
 - Update: Allow users to save the filter
 - Update: Add a notification when the client saves 0 budget in BM
 
 For Reddit:
+
 - New: Rollout Budget Manager to Reddit
 
 Click [here](https://pacvue-enterprise.atlassian.net/wiki/x/zIJMSg) for more details.

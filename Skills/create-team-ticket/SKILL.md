@@ -20,7 +20,7 @@ Create Jira tickets in a consistent format using:
 Read `Jira/assets/<project>/team.yaml` and use:
 
 - `workspace.project.key`
-- `workspace.ownership.modules`
+- **Component list**: If `workspace.ownership.components_file` is set (e.g. `components.yaml`), load the list from that file (same directory as team.yaml). The file has top-level `components`: array of `{ name: string, last_version?: string }` or plain strings—use `name` or the string as the component name. Otherwise use `workspace.ownership.components` if present.
 - `team.members`
 - `team.external_members` (if present)
 - `ticketing.supported_work_types`
@@ -58,7 +58,7 @@ Collect these fields before creating a ticket:
 
 1. Issue type (must be in `ticketing.supported_work_types`)
 2. Summary
-3. Component (must be in `workspace.ownership.modules`)
+3. Component (must be in the project's component list: from `ownership.components_file` or `ownership.components`)
 4. Assignee (required; if missing, auto-fill by default rules)
 5. Issue-type-specific required fields from `Jira/Policy/<project>/issue-structures.yaml`
 
@@ -228,7 +228,7 @@ For `Story` and `Technical Story`, enforce title style:
 
 ## Guardrails
 
-- Do not use components outside `workspace.ownership.modules`.
+- Do not use components outside the project's component list (from `ownership.components_file` or `ownership.components`).
 - If assignee is ambiguous, ask for confirmation.
 - If assignee appears external (not in `team.members`), verify existence via Atlassian user tools before use.
 - Never assign to an unverified external user.

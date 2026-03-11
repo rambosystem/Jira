@@ -7,7 +7,7 @@
 
 ## 建议请求字段
 
-- `summary`, `status`, `assignee`, `key`, `components`  
+- `summary`, `status`, `assignee`, `key`, `components`
 - 若有自定义「模块」字段，可一并请求用于分组。
 
 ## 输出模板结构
@@ -20,7 +20,7 @@
 
 ## 模块名与配置对齐
 
-- 分组后的模块名尽量与 `Jira/assets/CP/team.yaml` 中 `workspace.ownership.modules` 一致（如 Creative Hub → Creative Management）。
+- 分组后的模块名尽量与项目 component 列表一致（来自 `Jira/assets/CP/components.yaml` 或 `team.yaml` 的 `workspace.ownership.components`，如 Creative Hub → Creative Management）。
 - 无法归入已知模块的 issue 可归为「其他」或单独成节。
 
 ## 模板文件

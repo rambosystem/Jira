@@ -1,4 +1,5 @@
-# Query templates for CP board. Substitute placeholders with values from Jira/assets/CP/team.yaml.
+# Query templates for CP board. Substitute placeholders with values from Jira/assets/CP/team.yaml
+# and, for {{components}}, from Jira/assets/CP/components.yaml when team.yaml has ownership.components_file.
 # Placeholders: {{project}}, {{components}}, {{assignee_ids}}, {{reporter_id}}, {{issue_types}}, {{order}}
 
 team_board:
@@ -17,8 +18,8 @@ team_board:
     {{order}}
   defaults:
     order: "ORDER BY created DESC"
-  # Values come from team.yaml: workspace.project.key, workspace.ownership.modules,
-  # team.members[].account_id (and external_members), ticketing.supported_work_types.
+  # Values: team.yaml (workspace.project.key, team.members, ticketing.*); components from
+  # team.yaml ownership.components or from the file in ownership.components_file (e.g. components.yaml).
   # Reporter typically = board owner (e.g. Rambo Wang account_id).
 
 sprint_done_stories:

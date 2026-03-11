@@ -26,9 +26,9 @@ Produce a **Sprint 迭代总结** document that:
    - `sprint_management.recent_sprints.active_quarter`: e.g. `26Q1`
    - `sprint_management.recent_sprints.values`: list of sprint names (e.g. `26Q1-Sprint4-Defenders`)
 
-2. **`Jira/assets/CP/team.yaml`**
+2. **`Jira/assets/CP/team.yaml`** (and optionally **`Jira/assets/CP/components.yaml`**)
    - `workspace.project.key`: e.g. `CP`
-   - `workspace.ownership.modules`: canonical module list for grouping and section order
+   - **Canonical module list**: If `workspace.ownership.components_file` is set (e.g. `components.yaml`), read the list from that file (same dir as team.yaml); file has `components`: array of `{ name, last_version? }` or strings—use `name` or the string. Otherwise use `workspace.ownership.components`.
 
 When querying Jira for board/sprint data, use **`Jira/assets/CP/query-templates.yaml`** (e.g. `sprint_done_stories`) and substitute placeholders with values from `team.yaml` and the resolved sprint name.
 
@@ -53,8 +53,8 @@ When querying Jira for board/sprint data, use **`Jira/assets/CP/query-templates.
    - **Fallback**: infer module from summary:
      - Match pattern `[Module Name]` at the start (e.g. `[My Report]`, `[SOV]`, `[Calendar Center]`).
      - Or map known prefixes (e.g. "Creative Hub" / "Creative HUb" → Creative Management, "Dayparting" / "Dayparting Scheduler" → Dayparting Scheduler, "Crawl Task" + SOV → SOV).
-   - Normalize module labels to match `workspace.ownership.modules` where possible (e.g. "Creative Hub" → "Creative Management").
-   - Sort sections by a stable order: either by `workspace.ownership.modules` order, or alphabetically by module name; put "其他" or uncategorized at the end.
+   - Normalize module labels to match the project's component list (from components file or `workspace.ownership.components`) where possible (e.g. "Creative Hub" → "Creative Management").
+   - Sort sections by a stable order: either by the project's component list order, or alphabetically by module name; put "其他" or uncategorized at the end.
 
 4. **Build 迭代要点 per module**
    - For each module, write one short sentence (迭代要点) summarizing the theme of the completed work (e.g. "Kroger 新版本支持、Target 活动管理与快照能力"). Keep it concise and business-readable.
@@ -74,7 +74,7 @@ When querying Jira for board/sprint data, use **`Jira/assets/CP/query-templates.
 ## Output Format
 
 - **Primary**: A markdown file in the workspace root (or a docs folder if the project has one), named as above.
-- **Reply to user**: Short confirmation with file path, total Story count, and list of modules with counts (e.g. "已生成 `Sprint4-Defenders-迭代总结.md`，共 20 条 Story，7 个模块：My Report(4), Dayparting(3), …").
+- **Reply to user**: Short confirmation with file path, total Story count, and list of components with counts (e.g. "已生成 `Sprint4-Defenders-迭代总结.md`，共 20 条 Story，7 个模块：My Report(4), Dayparting(3), …").
 
 ## Guardrails
 

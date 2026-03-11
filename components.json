@@ -11,7 +11,7 @@
         {
           "pm": "Rambo Wang",
           "dev_leader": "Xuanyu Liu",
-          "modules": [
+          "components": [
             { "name": "Bid Explorer", "last_version": "2.1" },
             { "name": "Budget Scheduler", "last_version": "2.3" },
             { "name": "Dayparting Scheduler", "last_version": "2.14" },
@@ -25,7 +25,7 @@
         {
           "pm": "Spencer Zhang",
           "dev_leader": "Xuanyu Liu",
-          "modules": [{ "name": "Creative Hub", "last_version": "1.2" }]
+          "components": [{ "name": "Creative Hub", "last_version": "1.2" }]
         }
       ]
     },
@@ -36,7 +36,7 @@
         {
           "pm": "Rambo Wang",
           "dev_leader": "Hongjian Zhao",
-          "modules": [{ "name": "Pacvue Agent", "last_version": "2.0" }]
+          "components": [{ "name": "Pacvue Agent", "last_version": "2.0" }]
         }
       ]
     }

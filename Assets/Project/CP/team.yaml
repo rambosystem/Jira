@@ -1,23 +1,13 @@
 # CP team info. Epic/Label/Sprint assets: see Jira/assets/global/ and Jira/assets/CP/sprint-list.yaml.
 # Board queries: use Jira/assets/CP/query-templates.yaml + this file to build JQL.
+# Components: maintained in Jira/assets/CP/components.yaml (ownership.components_file).
 
 workspace:
   name: CP Team Workspace
   project:
     key: CP
   ownership:
-    modules:
-      - Bid Explorer
-      - Budget Scheduler
-      - Dayparting Scheduler
-      - Download Center
-      - My Report
-      - Pacvue Copilot
-      - SOV
-      - Calendar Center
-      - Message
-      - Creative Management
-      - Executive Hub
+    components_file: components.yaml
 
 team:
   members:

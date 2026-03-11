@@ -1,4 +1,5 @@
-# Query templates for PAG board. Substitute placeholders with values from Jira/assets/PAG/team.yaml.
+# Query templates for PAG board. Substitute placeholders from Jira/assets/PAG/team.yaml;
+# component list (if needed) from team.yaml or Jira/assets/PAG/components.yaml (when ownership.components_file is set).
 
 team_board:
   description: "PAG team board: project OR assignee OR reporter"
