@@ -198,7 +198,7 @@ def normalize_json(text: str) -> dict[str, str]:
     for key in ("problem", "background", "impact", "expectation"):
         value = obj.get(key)
         if not isinstance(value, str) or not value.strip():
-            fields[key] = "见描述。"
+            fields[key] = "暂无描述"
         else:
             fields[key] = value.strip()
     return fields
@@ -312,7 +312,7 @@ def run() -> int:
         "你是产品需求分析助手。"
         "请基于 Jira issue 的 description 提炼四项字段，并只输出 JSON 对象："
         '{"problem":"...","background":"...","impact":"...","expectation":"..."}。'
-        "字段内容用中文，简洁准确，不杜撰。缺失信息填写“见描述。”。"
+        "字段内容用中文，简洁准确，不杜撰。缺失信息填写“暂无描述”。"
     )
 
     analyses: dict[str, dict[str, str]] = {}
@@ -346,10 +346,10 @@ def run() -> int:
             except Exception as exc:
                 print(f"Warning: LLM analysis failed for {key}: {exc}", file=sys.stderr)
                 analyses[key] = {
-                    "problem": "见描述。",
-                    "background": "见描述。",
-                    "impact": "见描述。",
-                    "expectation": "见描述。",
+                    "problem": "暂无描述",
+                    "background": "暂无描述",
+                    "impact": "暂无描述",
+                    "expectation": "暂无描述",
                 }
 
     content: list[dict[str, Any]] = []
