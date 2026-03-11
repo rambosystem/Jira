@@ -1,4 +1,3 @@
-version: 1
 # PAG issue field structures. Sprint: Jira/assets/PAG/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
 
 issue_structures:

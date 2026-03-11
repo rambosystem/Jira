@@ -1,4 +1,4 @@
-version: 1
+
 # CP issue field structures. Sprint: Jira/assets/CP/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
 
 issue_structures:

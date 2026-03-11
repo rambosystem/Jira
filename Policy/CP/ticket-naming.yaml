@@ -1,4 +1,3 @@
-version: 1
 # CP ticket summary/title naming rules. Used by create-team-ticket and related skills.
 # Edit this file to change naming conventions; do not duplicate rules in SKILL.md.
 

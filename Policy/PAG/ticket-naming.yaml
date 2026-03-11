@@ -1,4 +1,3 @@
-version: 1
 # PAG ticket summary/title naming rules. Used by create-team-ticket and related skills.
 
 naming:
