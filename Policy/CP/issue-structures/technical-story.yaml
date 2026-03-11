@@ -1,0 +1,47 @@
+# CP Technical Story issue field structure.
+# Sprint: Jira/assets/<project>/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
+
+issue_type: Technical Story
+required_fields:
+  - Space
+  - Work type
+  - Summary
+  - Technical Story Type
+  - Sprint
+  - Assignee
+  - Priority
+  - Components
+  - Labels
+  - Client ID
+  - Parent
+optional_fields:
+  - Status
+  - Story Points
+  - Due date
+field_options:
+  Technical Story Type:
+    - Code Quality
+    - Architecture
+    - Performance & Scalability
+    - Security & Compliance
+    - Testing & Automation
+    - Operations & Configuration
+    - Cross-Platform Support / Integration
+    - Spike
+    - CS Support - Investigation
+    - CS Support - Offline Migration
+    - UX-Driven
+    - Others
+  Priority:
+    - Critical
+    - Highest
+    - High
+    - Medium
+    - Low
+    - Lowest
+    - "4.0"
+    - "3.0"
+    - "2.0"
+    - "1.0"
+field_defaults:
+  Client ID: "0000"

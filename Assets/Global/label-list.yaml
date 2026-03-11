@@ -7,6 +7,8 @@ label_management:
     examples:
       - roadmap_26q1
       - roadmap_26q2
+      - roadmap_26q3
+      - roadmap_26q4
   cross_team:
     required_label: cross-team
     rule: Add `cross-team` when the work involves collaboration across teams.
@@ -14,6 +16,10 @@ label_management:
     - value: roadmap_26q1
       category: roadmap
     - value: roadmap_26q2
+      category: roadmap
+    - value: roadmap_26q3
+      category: roadmap
+    - value: roadmap_26q4
       category: roadmap
     - value: cross-team
       category: collaboration

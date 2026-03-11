@@ -1,0 +1,51 @@
+# CP Story issue field structure.
+# Sprint: Jira/assets/<project>/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
+
+issue_type: Story
+required_fields:
+  - Space
+  - Work type
+  - Summary
+  - Story Type
+  - Sprint
+  - Assignee
+  - Priority
+  - Components
+  - Labels
+  - Client ID
+  - Parent
+  - UX Review Required?
+optional_fields:
+  - Status
+  - UX Review Status
+  - Story Points
+  - Last Response Date
+  - Due date
+field_options:
+  Story Type:
+    - New Feature
+    - Improvement
+    - API Integration & Enablement
+  Priority:
+    - Critical
+    - Highest
+    - High
+    - Medium
+    - Low
+    - Lowest
+    - "4.0"
+    - "3.0"
+    - "2.0"
+    - "1.0"
+  UX Review Required?:
+    - "Yes"
+    - "No"
+  UX Review Status:
+    - Not Needed
+    - Pending
+    - Reviewed
+field_defaults:
+  Story Type: Improvement
+  Client ID: "0000"
+  UX Review Required?: "No"
+  UX Review Status: Not Needed

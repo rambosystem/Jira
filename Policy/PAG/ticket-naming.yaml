@@ -1,4 +1,4 @@
-# PAG ticket summary/title naming rules. Used by create-team-ticket and related skills.
+# PAG ticket summary/title naming rules. Used by create-story, create-technical-story, create-epic.
 
 naming:
   Epic:

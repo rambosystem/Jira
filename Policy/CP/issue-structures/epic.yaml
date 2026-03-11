@@ -1,0 +1,39 @@
+# CP Epic issue field structure.
+# Label: Jira/assets/global/label-list.yaml.
+
+issue_type: Epic
+required_fields:
+  - Space
+  - Work type
+  - Summary
+  - Assignee
+  - Priority
+  - Components
+  - Labels
+  - Delivery Quarter
+optional_fields:
+  - Status
+  - Sprint
+  - Parent
+  - Epic Name
+  - Story Points
+  - Due date
+field_options:
+  Priority:
+    - Critical
+    - Highest
+    - High
+    - Medium
+    - Low
+    - Lowest
+    - "4.0"
+    - "3.0"
+    - "2.0"
+    - "1.0"
+  Delivery Quarter:
+    - Q1
+    - Q2
+    - Q3
+    - Q4
+field_defaults:
+  Client ID: "0000"

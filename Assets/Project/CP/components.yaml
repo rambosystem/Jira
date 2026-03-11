@@ -1,5 +1,5 @@
 # CP project components. Referenced by team.yaml (workspace.ownership.components_file).
-# Used by query-templates, create-team-ticket, sprint-report, generate-release-note.
+# Used by query-templates, create-story/create-technical-story/create-epic, sprint-report, generate-release-note.
 # Edit this file to add/remove components; optional last_version for reference.
 
 components:
@@ -21,3 +21,5 @@ components:
     last_version: "1.1"
   - name: Creative Hub
     last_version: "1.2"
+  - name: Company Board
+    last_version: "1.0"
