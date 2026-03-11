@@ -52,7 +52,6 @@ Query and list **unprocessed Pin tickets** in the **PIN** project (Product Intak
      - **仅当用户明确指定**某一或若干 PIN Key（如「只生成 PIN-1234」「只要 PIN-2677 和 PIN-2680」）时，仅对用户指定的工单生成报告。
    - **If the user says no or does not answer affirmatively**：结束，不再调用 request-pin-report。
 
-
 ## Output Format
 
 - **Reply**: Group results **by status**; under each status heading, show a table with key, summary, **priority**, updated. Then total count and one-line summary in Chinese.
@@ -64,3 +63,4 @@ Query and list **unprocessed Pin tickets** in the **PIN** project (Product Intak
 - Only include issues returned by the Jira query; do not invent tickets.
 - For this skill, use the inline MCP params above; no need to read schema from mcps folder.
 - Project key is **PIN** (Product Intake Service Desk). Do not substitute other keys.
+- If the ID obtained from profile.me is assigned to me by default, please do not ask again whether to only query the ID assigned to me.
