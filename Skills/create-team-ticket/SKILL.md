@@ -1,6 +1,6 @@
 ---
 name: create-team-ticket
-description: Create Jira tickets for the CP team using workspace configuration, including project key, supported work types, owned modules, and team members. Use when user asks to create tickets, assign owners, choose components, or generate ticket drafts.
+description: Create Jira tickets for the CP team using workspace configuration, including project key, supported work types, owned components, and team members. Use when user asks to create tickets, assign owners, choose components, or generate ticket drafts.
 ---
 
 # Create Team Ticket
@@ -9,18 +9,24 @@ description: Create Jira tickets for the CP team using workspace configuration, 
 
 Create Jira tickets in a consistent format using:
 
+- current user profile in `Jira/Assets/Global/profile.yaml` (for default project when user does not specify)
 - team configuration in `Jira/assets/<project>/team.yaml` (project = CP, PAG, etc., from user or context)
 - issue field structure in `Jira/Policy/<project>/issue-structures.yaml`
-- quarterly epic management in `Jira/assets/global/epic-list.yaml` (use `projects.<project>` for project-specific data)
+- quarterly epic management in `Jira/Assets/Global/epic-list.yaml` (`recent_epics`; project from issue key prefix)
 - sprint list in `Jira/assets/<project>/sprint-list.yaml`
 - label list in `Jira/assets/global/label-list.yaml`
 
 ## Read Configuration First
 
+Read `Jira/Assets/Global/profile.yaml` and use:
+
+- `me.default_project`: when user does not specify a project, use this as the project key.
+- `me.projects_responsible`: allowed project keys for the current user (optional validation).
+
 Read `Jira/assets/<project>/team.yaml` and use:
 
 - `workspace.project.key`
-- **Component list**: If `workspace.ownership.components_file` is set (e.g. `components.yaml`), load the list from that file (same directory as team.yaml). The file has top-level `components`: array of `{ name: string, last_version?: string }` or plain strings—use `name` or the string as the component name. Otherwise use `workspace.ownership.components` if present.
+- `workspace.ownership.components`
 - `team.members`
 - `team.external_members` (if present)
 - `ticketing.supported_work_types`
@@ -34,11 +40,10 @@ Read `Jira/Policy/<project>/issue-structures.yaml` and use:
 - `issue_structures.Technical Story`
 - `issue_structures.Epic`
 
-Read `Jira/assets/global/epic-list.yaml` and use (for the current project key):
+Read `Jira/Assets/Global/epic-list.yaml` and use:
 
 - `epic_management.conventions`
-- `epic_management.projects.<project>.module_quarter_default_epics`
-- `epic_management.projects.<project>.recent_epics`
+- `epic_management.recent_epics`: flat list; filter by key prefix (e.g. CP-) when resolving Parent for current project; match by component/quarter from title or ask user.
 
 Read `Jira/assets/<project>/sprint-list.yaml` and use:
 
@@ -58,7 +63,7 @@ Collect these fields before creating a ticket:
 
 1. Issue type (must be in `ticketing.supported_work_types`)
 2. Summary
-3. Component (must be in the project's component list: from `ownership.components_file` or `ownership.components`)
+3. Component (must be in `workspace.ownership.components`)
 4. Assignee (required; if missing, auto-fill by default rules)
 5. Issue-type-specific required fields from `Jira/Policy/<project>/issue-structures.yaml`
 
@@ -103,7 +108,8 @@ For `Story` and `Technical Story`, enforce title style:
 
 ## Creation Workflow
 
-0. Infer defaults from concise user intent (when possible):
+0. Resolve project and infer defaults:
+   - **Project**: If user does not specify a project, use `me.default_project` from `Jira/Assets/Global/profile.yaml`. All subsequent config paths use this project key (`Jira/assets/<project>/...`).
    - If user mentions `epic`, set Issue type = `Epic`.
    - If user input contains `<Qn> <Module>` pattern (e.g. `Q2 SOV`), derive:
      - `Component` from module token.
@@ -114,7 +120,7 @@ For `Story` and `Technical Story`, enforce title style:
 1. Validate required fields:
    - `workspace.project.key` exists.
    - Issue type is in `ticketing.supported_work_types`.
-   - Component is in `workspace.ownership.modules`.
+   - Component is in `workspace.ownership.components`.
    - Assignee exists in `team.members` or `team.external_members`.
    - If assignee is not in either list, treat as potential external assignee and run identity verification before creation:
      - Use Jira user lookup (`jira_get_user_profile`) with email/name/account_id.
@@ -129,21 +135,23 @@ For `Story` and `Technical Story`, enforce title style:
    - `Client ID = 0000`
    - `UX Review Required? = No`
    - `UX Review Status = Not Needed`
-  - Validate sprint using `Jira/assets/<project>/sprint-list.yaml`:
-    - For `Story` and `Technical Story`, Sprint is required by default.
-    - Exception: when assignee is in `team.external_members`, Sprint can be left empty.
-    - If Sprint is provided, format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
-    - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
-    - Prefer values from `sprint_management.recent_sprints.values` when selecting/confirming Sprint.
-   - Validate labels using `Jira/assets/global/label-list.yaml`:
-     - Standard roadmap label should follow `roadmap_YYqN` (for example `roadmap_26q1`, `roadmap_26q2`).
-     - If the work involves cross-team collaboration, include `cross-team` label.
-     - Prefer values from `label_management.recent_labels` when selecting/confirming Labels.
-   - Resolve `Parent` for Story/Technical Story using `Jira/assets/global/epic-list.yaml` (projects.<project>):
-     - Always prioritize the project's section in `epic-list.yaml` as the source of Parent candidates.
-     - For functional-module work, default to the module quarterly Epic when mapping exists.
-     - If user specifies a special Epic, use the user-specified Epic.
-     - If no suitable Parent can be matched from the epic list, ask user for Parent confirmation before creation.
+
+- Validate sprint using `Jira/assets/<project>/sprint-list.yaml`:
+  - For `Story` and `Technical Story`, Sprint is required by default.
+  - Exception: when assignee is in `team.external_members`, Sprint can be left empty.
+  - If Sprint is provided, format should follow `YYQn-Sprintm-Defenders` (for example `26Q1-Sprint6-Defenders`).
+  - Default rule: each quarter has 6 sprints (`Sprint1` to `Sprint6`).
+  - Prefer values from `sprint_management.recent_sprints.values` when selecting/confirming Sprint.
+- Validate labels using `Jira/assets/global/label-list.yaml`:
+  - Standard roadmap label should follow `roadmap_YYqN` (for example `roadmap_26q1`, `roadmap_26q2`).
+  - If the work involves cross-team collaboration, include `cross-team` label.
+  - Prefer values from `label_management.recent_labels` when selecting/confirming Labels.
+- Resolve `Parent` for Story/Technical Story using `Jira/Assets/Global/epic-list.yaml`:
+  - Use `recent_epics` filtered by project key prefix; match Epic by component and quarter (from title, e.g. `<Module> Upgrade - 26Q2`). If no match, ask user for Parent.
+  - For functional-module work, default to the module quarterly Epic when mapping exists.
+  - If user specifies a special Epic, use the user-specified Epic.
+  - If no suitable Parent can be matched from the epic list, ask user for Parent confirmation before creation.
+
 2. Run duplicate check before create:
    - Search Jira for same project + issue type + summary.
    - For Epic quarterly naming, check existing `<Module> Upgrade - <YYQn>` first.
@@ -228,7 +236,7 @@ For `Story` and `Technical Story`, enforce title style:
 
 ## Guardrails
 
-- Do not use components outside the project's component list (from `ownership.components_file` or `ownership.components`).
+- Do not use components outside `workspace.ownership.components`.
 - If assignee is ambiguous, ask for confirmation.
 - If assignee appears external (not in `team.members`), verify existence via Atlassian user tools before use.
 - Never assign to an unverified external user.
@@ -246,7 +254,7 @@ For `Story` and `Technical Story`, enforce title style:
 - If assignee is not provided, auto-fill work-type default first, then fallback to global default assignee.
 - Enforce sprint convention when Sprint is provided: `YYQn-Sprintm-Defenders`, with `m` in `1..6`.
 - Enforce label convention: roadmap labels use `roadmap_YYqN`; cross-team work must include `cross-team`.
-- For Story/Technical Story Parent, use `Jira/assets/global/epic-list.yaml` (projects.<project>) first; if unmatched, ask user before creating.
+- For Story/Technical Story Parent, use `Jira/Assets/Global/epic-list.yaml` (`recent_epics`, filter by project key prefix, match by component/quarter); if unmatched, ask user before creating.
 - When creating tickets, prioritize selecting Sprint/Labels from the corresponding recent lists.
 - For `Story`, default `UX Review Required?` to `No`; only set `Yes` when user explicitly requests UX review.
 - For `Story` and `Technical Story`, enforce the naming format defined in this skill.
