@@ -44,24 +44,23 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
    - 使用下方 **Output Format** 将 MCP 返回的 `summary`、`priority`、`created`、`description` 填入固定格式。
    - **需求要点**：从 `description` 中归纳为「问题、背景、业务影响、期望」四项；若 description 为一段话，按语义拆分到四项或将整段放在「需求要点」下并分条简述。
 
-5. **读取 Confluence 目标并发布报告**
-   - **Confluence 目标**：从 **`Assets/Global/profile.yaml`** 读取 **`confluence_workspace`**（Confluence 空间/文件夹 URL），作为报告发布目标；若未配置则提示用户并结束。
-   - **发布规则**（无论一条还是多条，报告都发布到该 Confluence 文件夹下）：
-     - **页面标题**：按报告生成日命名为「YYYY-MM-DD Processed」。
-     - **同一天多批**：若该日期页面已存在，在页面**末尾**增量追加本次报告（先加分隔线再追加新报告块）；若不存在则创建新页面，内容为本次报告。多个 PIN 时，每个 PIN 一个报告块，块与块之间用分隔线隔开。
+5. **发布报告到 Confluence**
+   - 按 **`Skills/confluence-management/create-page/SKILL.md`** 执行：将本次生成的报告正文发布到 Confluence。
+   - **入参**：`title` = 报告生成日的「YYYY-MM-DD Processed」；`content` = 本次所有 PIN 报告块拼接后的 Markdown（块与块之间用分隔线 `---` 隔开）；`append` = true（若该日期页面已存在则在末尾追加，否则新建）。
    - **对话中**：
-     - **仅一条报告时**：在聊天中**直接回复**该条报告的完整正文（按 Output Format 的 Markdown），并说明「已发布到 Confluence，目标：confluence_workspace」。
+     - **仅一条报告时**：在聊天中**直接回复**该条报告的完整正文（按 Output Format 的 Markdown），并说明「已发布到 Confluence，目标：profile 中的 confluence_workspace」。
      - **多条报告时**：不在对话中展示报告正文，仅简短告知「已为 N 个 PIN 生成 Report，已发布到 Confluence（confluence_workspace）」。
+   - Confluence 所用 MCP 工具见 **`Skills/confluence-management/MCP-tools.md`**。
 
 ## 报告发布目标（Confluence）
 
-| 项     | 说明 |
-|--------|------|
-| 目标来源 | **`Assets/Global/profile.yaml`** 中的 **`confluence_workspace`**（Confluence 空间/文件夹 URL） |
-| 页面标题 | **`YYYY-MM-DD Processed`**（按报告生成日） |
-| 新建   | 该日期页面不存在时，在 confluence_workspace 下创建新页面，内容为本次报告 |
-| 追加   | 该日期页面已存在时，在页面末尾追加本次报告，用分隔线与前文区分 |
-| 展示   | **仅一条**：在对话中直接回复报告正文，并说明已发布到 Confluence；**多条**：不在对话中展示正文，仅告知「已为 N 个 PIN 生成 Report，已发布到 Confluence」 |
+| 项       | 说明                                                                                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 目标来源 | **`Assets/Global/profile.yaml`** 中的 **`confluence_workspace`**（Confluence 空间/文件夹 URL）                                                          |
+| 页面标题 | **`YYYY-MM-DD Processed`**（按报告生成日）                                                                                                              |
+| 新建     | 该日期页面不存在时，在 confluence_workspace 下创建新页面，内容为本次报告                                                                                |
+| 追加     | 该日期页面已存在时，在页面末尾追加本次报告，用分隔线与前文区分                                                                                          |
+| 展示     | **仅一条**：在对话中直接回复报告正文，并说明已发布到 Confluence；**多条**：不在对话中展示正文，仅告知「已为 N 个 PIN 生成 Report，已发布到 Confluence」 |
 
 ## Output Format
 
@@ -87,7 +86,7 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 ## MCP 与配置约定
 
 - **Jira**：使用 **`jira_search`** 一次性按 key 拉取所有 PIN 详情。**Server**: `user-mcp-atlassian`，**工具**: `jira_search`，**参数**: `jql`（单个用 `key = "PIN-xxx"`，多个用 `key in (PIN-xxx, PIN-yyy)`）、`fields` = `key,summary,status,priority,created,description`、`limit` 按列表长度或 50。
-- **Confluence 目标**：从 **`Assets/Global/profile.yaml`** 读取 **`confluence_workspace`** 作为发布目标（空间/文件夹 URL）。若 MCP 提供 Confluence 创建/更新页面能力，则在该文件夹下创建或更新标题为「YYYY-MM-DD Processed」的页面；否则将完整报告正文与 `confluence_workspace` URL 一并给出，供用户手动粘贴到该 Confluence 文件夹。
+- **Confluence 发布**：统一按 **`Skills/confluence-management/create-page/SKILL.md`** 执行（读取 profile 的 `confluence_workspace`，创建或更新「YYYY-MM-DD Processed」页面并追加/写入报告正文）。Confluence 相关 MCP 工具见 **`Skills/confluence-management/MCP-tools.md`**。若未配置 MCP 或 Confluence 不可用，则将完整报告正文与 `confluence_workspace` URL 一并给出，供用户手动粘贴。
 
 ## Guardrails
 
@@ -109,7 +108,6 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 # Request PIN Report — PIN-2677
 
 **标题：** （High）能否在 Target 和 Sam's Club 的跨零售商报告中加入 NTB 指标？
-
 **PIN 创建时间：** 2026-02-27
 
 ## 需求要点

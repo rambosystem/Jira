@@ -2,6 +2,8 @@
 
 创建与校验 Story、Technical Story、Epic 时用到的 Jira/Atlassian MCP 工具。实际工具名以当前启用的 MCP server（如 user-mcp-atlassian）提供的为准；若与下表不同，请以 MCP 描述为准并在此文档中维护对应关系。
 
+- **Confluence 页面创建/更新、搜索、附件等**：见 **`Skills/confluence-management/MCP-tools.md`**。
+
 ## 工具与流程对应
 
 | 流程环节 | 用途 | MCP 工具 | 说明 |
