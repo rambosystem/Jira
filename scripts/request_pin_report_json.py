@@ -212,6 +212,11 @@ def adf_paragraph(parts: list[dict[str, Any]]) -> dict[str, Any]:
     return {"type": "paragraph", "content": parts}
 
 
+def adf_empty_paragraph() -> dict[str, Any]:
+    """Empty paragraph for vertical spacing between PIN blocks."""
+    return {"type": "paragraph", "content": []}
+
+
 def adf_bullet_item(label: str, value: str) -> dict[str, Any]:
     return {
         "type": "listItem",
@@ -286,8 +291,10 @@ def run() -> int:
             print("Error: no pin_ids in analysis file.", file=sys.stderr)
             return 1
         content = []
-        for key in ordered_keys:
+        for i, key in enumerate(ordered_keys):
             content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
+            if i < len(ordered_keys) - 1:
+                content.append(adf_empty_paragraph())
         adf_doc = {"version": 1, "type": "doc", "content": content}
         output_text = json.dumps(adf_doc, ensure_ascii=False)
         if args.output:
@@ -393,8 +400,10 @@ def run() -> int:
                 }
 
     content: list[dict[str, Any]] = []
-    for key in ordered_keys:
+    for i, key in enumerate(ordered_keys):
         content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
+        if i < len(ordered_keys) - 1:
+            content.append(adf_empty_paragraph())
 
     adf_doc = {"version": 1, "type": "doc", "content": content}
 

@@ -28,8 +28,18 @@ python scripts/confluence_create_page.py --title "2026-03-12 Processed" --body-f
 # 不解除 PIN 与本页关联：加 --no-unlink
 ```
 
+## tmp/ 状态（防止用错页面 ID）
+
+- **生成**：`request_pin_report_json.py` 写入 `tmp/pin_report_adf.json`、`tmp/pin_analysis.json`。
+- **发布**：`confluence_create_page.py` 从 `tmp/` 读 body，发布后**写入** `tmp/confluence_page_latest.json`（含 `page_id`、`url`、`title`），后续解除关联一律使用该文件中的 `page_id`，避免幻觉或手填 ID。
+- **再解除**：使用 `scripts/unlink_pins_from_latest_page.py`，自动读 `tmp/confluence_page_latest.json`（页面 ID）和 `tmp/pin_analysis.json`（PIN 列表），无需传页面 ID。
+
+```bash
+python scripts/unlink_pins_from_latest_page.py
+```
+
 ## 约定
 
-- 脚本：`request_pin_report_json.py`（`--pin-ids` 或 `--latest`）→ 一次 Jira 查询 + 并发 LLM → 写入 `tmp/`；`confluence_create_page.py` 从 `tmp/` 读 body，只覆盖不删除。
-- 输出：ADF doc，每 PIN 一块 blockCard + 需求要点（问题 / 背景 / 业务影响 / 期望），多 PIN 用 rule 分隔。
+- 脚本：`request_pin_report_json.py`（`--pin-ids` 或 `--latest`）→ 一次 Jira 查询 + 并发 LLM → 写入 `tmp/`；`confluence_create_page.py` 从 `tmp/` 读 body，发布后写入 `tmp/confluence_page_latest.json`。
+- 输出：ADF doc，每 PIN 一块 blockCard + 需求要点（问题 / 背景 / 业务影响 / 期望），多 PIN 用空行分隔。
 - 描述归纳忠于 Jira，不杜撰；PIN key 为 `PIN-<number>`。

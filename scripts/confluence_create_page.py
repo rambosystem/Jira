@@ -229,6 +229,7 @@ def main() -> None:
 
     existing = find_page_by_title(base_url, auth, space_id, args.title)
     page_id = None
+    page_url_out = ""
     if existing:
         page_id = existing["id"]
         current_adf, version = get_page_body(base_url, auth, page_id)
@@ -246,9 +247,12 @@ def main() -> None:
             print(f"Error {e.code}: {e.read().decode() if e.fp else ''}", file=sys.stderr)
             sys.exit(1)
         webui = (out.get("_links") or {}).get("webui", "") or ""
-        page_url = (base_url + webui) if webui.startswith("/") else (base_url + "/" + webui) if webui else ""
+        path = webui if webui.startswith("/") else ("/" + webui) if webui else ""
+        if path.startswith("/spaces/") and not path.startswith("/wiki/"):
+            path = "/wiki" + path
+        page_url_out = (base_url.rstrip("/") + path) if path else ""
         print(f"Page updated (appended): id={page_id}")
-        print(f"URL: {page_url}")
+        print(f"URL: {page_url_out}")
     else:
         payload = {
             "spaceId": space_id,
@@ -264,9 +268,19 @@ def main() -> None:
             sys.exit(1)
         page_id = out.get("id")
         webui = (out.get("_links") or {}).get("webui", "") or ""
-        page_url = (base_url + webui) if webui.startswith("/") else (base_url + "/" + webui) if webui else ""
+        path = webui if webui.startswith("/") else ("/" + webui) if webui else ""
+        if path.startswith("/spaces/") and not path.startswith("/wiki/"):
+            path = "/wiki" + path
+        page_url_out = (base_url.rstrip("/") + path) if path else ""
         print(f"Page created: id={page_id}")
-        print(f"URL: {page_url}")
+        print(f"URL: {page_url_out}")
+
+    if page_id is not None:
+        page_info = {"page_id": str(page_id), "url": page_url_out, "title": args.title}
+        page_info_path = TMP_DIR / "confluence_page_latest.json"
+        with open(page_info_path, "w", encoding="utf-8") as f:
+            json.dump(page_info, f, ensure_ascii=False, indent=2)
+        print(f"Saved page info to tmp/confluence_page_latest.json", file=sys.stderr)
 
     unlink_list = args.unlink_issues if args.unlink_issues else (
         ",".join(extract_pin_keys_from_adf(new_adf)) if not args.no_unlink else ""
