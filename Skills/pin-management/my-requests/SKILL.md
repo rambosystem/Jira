@@ -31,21 +31,22 @@ Query and list **unprocessed Pin tickets** in the **PIN** project (Product Intak
 2. **JQL (My Requested)**
    - Build JQL by substituting **`<me.account_id>`** with the value from `profile.yaml` → `me.account_id`:
    ```
-   project = PIN AND statusCategory != Done AND assignee in ("<me.account_id>") AND "Request Type" in ("API Scope Request", "New Feature Integration", "New RMN Request", "Partnership Request", "Product Feedback Request", "Suggest a new feature/Improvement - H10", "Suggest a new feature/improvement - Pacvue") ORDER BY created ASC, priority
+   project = PIN AND statusCategory != Done AND assignee in ("<me.account_id>") AND "Request Type" in ("API Scope Request", "New Feature Integration", "New RMN Request", "Partnership Request", "Product Feedback Request", "Suggest a new feature/Improvement - H10", "Suggest a new feature/improvement - Pacvue") ORDER BY priority DESC, created ASC
    ```
+   - **Sort**: **priority DESC** (高到低), then **created ASC** (同优先级按创建时间升序). Ensure **`priority`** is requested in `fields` so results and display reflect this order.
    - **Request Type** values: API Scope Request, New Feature Integration, New RMN Request, Partnership Request, Product Feedback Request, Suggest a new feature/Improvement - H10, Suggest a new feature/improvement - Pacvue. Do not change unless the user requests it.
 
 3. **Call Jira MCP**
    - Use **`jira_search`** (or equivalent JQL search tool) from the Atlassian MCP server. **Read the tool's schema/descriptor first** (see `skills/ticket-management/MCP-tools.md`) and pass the built JQL (with `me.account_id` substituted), `fields`, `limit`.
-   - Request useful fields: `key`, `summary`, `status`, `assignee`, `updated`, `priority`, `created` (and `Request Type` if needed).
+   - Request useful fields: `key`, `summary`, `status`, `assignee`, `updated`, `priority`, `created` (and `Request Type` if needed). **Include `priority`** so results are sorted and displayed by priority (high to low).
 
 4. **Present results**
-   - List each ticket: key, summary, status, updated (and optionally priority).
+   - List each ticket: key, summary, status, **priority**, updated. Show **priority** in the table (results are ordered by priority DESC).
    - Include total count and a short line like "以上为你在 PIN (Product Intake) 项目中未处理的 Pin 工单。"
 
 ## Output Format
 
-- **Reply**: Table or list of unprocessed pin tickets with key, summary, status, updated; total count; one-line summary in Chinese.
+- **Reply**: Table or list of unprocessed pin tickets with key, summary, status, **priority**, updated (ordered by priority high to low); total count; one-line summary in Chinese.
 - If no issues found: "当前没有未处理的 Pin ticket。" or "No unprocessed pin tickets found."
 
 ## Guardrails
