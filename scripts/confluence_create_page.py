@@ -7,10 +7,14 @@ Flow: Look up page by title → if exists, append (merge ADF) and PUT; else POST
 Body from: --body-stdin, --body-file (relative path → repo tmp/), --body-json, --jira-url.
 Temp files live under repo tmp/; we only overwrite, never delete.
 
+By default, PIN issue keys are auto-detected from blockCard URLs in the body and their
+remotelink to this Confluence page is removed after publish. Use --no-unlink to skip; use
+--unlink-issues to override the list.
+
 Usage:
   set ATLASSIAN_API_TOKEN=your_token
   python scripts/confluence_create_page.py --title "My Page" --body-file pin_report_adf.json
-  python scripts/confluence_create_page.py -t "My Page" --jira-url "https://.../browse/PIN-123"
+  python scripts/confluence_create_page.py -t "My Page" --body-file pin_report_adf.json --no-unlink
 """
 
 import argparse
@@ -134,6 +138,22 @@ def get_page_body(base_url: str, auth: str, page_id: str) -> tuple[Optional[dict
         return None, 1
 
 
+def extract_pin_keys_from_adf(adf_doc: dict) -> list[str]:
+    """Extract PIN-* issue keys from blockCard URLs in ADF content (e.g. .../browse/PIN-2805)."""
+    content = adf_doc.get("content") or []
+    seen: set[str] = set()
+    keys: list[str] = []
+    for node in content:
+        if node.get("type") != "blockCard":
+            continue
+        url = (node.get("attrs") or {}).get("url") or ""
+        m = re.search(r"/browse/(PIN-\d+)", url, re.IGNORECASE)
+        if m and m.group(1).upper() not in seen:
+            seen.add(m.group(1).upper())
+            keys.append(m.group(1).upper())
+    return keys
+
+
 def merge_adf_content(existing: Optional[dict], new_content: list) -> dict:
     base = existing if existing and existing.get("type") == "doc" else {"version": 1, "type": "doc", "content": []}
     prev = base.get("content") or []
@@ -175,6 +195,16 @@ def main() -> None:
     parser.add_argument("--body-json", "-b", default="", help="Full ADF JSON string")
     parser.add_argument("--body-file", default="", help="Path to ADF JSON file (relative → repo tmp/)")
     parser.add_argument("--body-stdin", action="store_true", help="Read ADF JSON from stdin")
+    parser.add_argument(
+        "--unlink-issues",
+        default="",
+        help="Jira issue keys to unlink from this page (comma-separated). Default: auto-detect PIN-* from body blockCards.",
+    )
+    parser.add_argument(
+        "--no-unlink",
+        action="store_true",
+        help="Do not remove remotelink from PINs after publish (disable default unlink).",
+    )
     args = parser.parse_args()
 
     token = os.environ.get("ATLASSIAN_API_TOKEN")
@@ -198,6 +228,7 @@ def main() -> None:
     new_content = new_adf.get("content") or []
 
     existing = find_page_by_title(base_url, auth, space_id, args.title)
+    page_id = None
     if existing:
         page_id = existing["id"]
         current_adf, version = get_page_body(base_url, auth, page_id)
@@ -236,6 +267,24 @@ def main() -> None:
         page_url = (base_url + webui) if webui.startswith("/") else (base_url + "/" + webui) if webui else ""
         print(f"Page created: id={page_id}")
         print(f"URL: {page_url}")
+
+    unlink_list = args.unlink_issues if args.unlink_issues else (
+        ",".join(extract_pin_keys_from_adf(new_adf)) if not args.no_unlink else ""
+    )
+    if page_id and unlink_list:
+        issue_keys = [k.strip() for k in unlink_list.split(",") if k.strip()]
+        if issue_keys:
+            sys.path.insert(0, str(SCRIPT_DIR))
+            import delete_issue_remotelink as del_remotelink
+            for key in issue_keys:
+                try:
+                    deleted = del_remotelink.delete_remotelink_for_confluence_page(
+                        base_url, auth, key, str(page_id)
+                    )
+                    if deleted:
+                        print(f"Unlinked {key} from this page (remotelink removed).")
+                except Exception as e:
+                    print(f"Warning: could not unlink {key}: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":

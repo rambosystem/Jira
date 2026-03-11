@@ -253,7 +253,53 @@ def run() -> int:
     parser.add_argument("--concurrency", type=int, default=5, help="LLM concurrent workers")
     parser.add_argument("--output", default="", help="Write final ADF JSON to file (optional)")
     parser.add_argument("--analysis-output", default="", help="Write per-PIN analysis JSON to file (optional)")
+    parser.add_argument("--from-analysis", default="", help="Build ADF from existing pin_analysis.json (no Jira/LLM)")
     args = parser.parse_args()
+
+    try:
+        profile = load_profile()
+    except RuntimeError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+    if args.from_analysis:
+        # Build ADF from existing analysis file only (no Jira, no LLM)
+        analysis_path = Path(args.from_analysis)
+        if not analysis_path.is_absolute():
+            analysis_path = REPO_ROOT / "tmp" / analysis_path
+        if not analysis_path.is_file():
+            print(f"Error: analysis file not found: {analysis_path}", file=sys.stderr)
+            return 1
+        data = json.loads(analysis_path.read_text(encoding="utf-8"))
+        ordered_keys = list(data.get("pin_ids") or [])
+        raw_analyses = data.get("analyses") or {}
+        analyses = {}
+        for key in ordered_keys:
+            a = raw_analyses.get(key) or {}
+            analyses[key] = {
+                "problem": (a.get("problem") or "").strip() or "暂无描述",
+                "background": (a.get("background") or "").strip() or "暂无描述",
+                "impact": (a.get("impact") or "").strip() or "暂无描述",
+                "expectation": (a.get("expectation") or "").strip() or "暂无描述",
+            }
+        if not ordered_keys:
+            print("Error: no pin_ids in analysis file.", file=sys.stderr)
+            return 1
+        content = []
+        for key in ordered_keys:
+            content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
+        adf_doc = {"version": 1, "type": "doc", "content": content}
+        output_text = json.dumps(adf_doc, ensure_ascii=False)
+        if args.output:
+            output_path = Path(args.output)
+            if not output_path.is_absolute():
+                output_path = REPO_ROOT / "tmp" / output_path
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(output_text, encoding="utf-8")
+            print(f"Wrote ADF to {output_path}", file=sys.stderr)
+        else:
+            print(output_text)
+        return 0
 
     api_key = os.environ.get("DEEPSEEK_KEY")
     if not api_key:
@@ -262,12 +308,6 @@ def run() -> int:
     token = os.environ.get("ATLASSIAN_API_TOKEN")
     if not token:
         print("Error: ATLASSIAN_API_TOKEN is required.", file=sys.stderr)
-        return 1
-
-    try:
-        profile = load_profile()
-    except RuntimeError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
         return 1
     if not profile.get("email"):
         print("Error: profile email is required for Jira auth.", file=sys.stderr)

@@ -21,10 +21,11 @@ python scripts/request_pin_report_json.py --pin-ids "PIN-2677,PIN-2680" --output
 # 或：--latest 5 --output pin_report_adf.json --analysis-output pin_analysis.json
 ```
 
-3. **发布**：用 create-page，body 来自 tmp：
+3. **发布**：用 create-page，body 来自 tmp。**默认**会从 body 中识别 PIN（blockCard URL），发布后删除这些 PIN 与本页的 remotelink；不需再传 `--unlink-issues`。若不要删除关联则加 `--no-unlink`：
 
 ```bash
 python scripts/confluence_create_page.py --title "2026-03-12 Processed" --body-file pin_report_adf.json
+# 不解除 PIN 与本页关联：加 --no-unlink
 ```
 
 ## 约定
