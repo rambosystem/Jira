@@ -7,7 +7,7 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 
 ## Purpose
 
-根据 **PIN 工单 Key**（如 `PIN-2677`）调用 Jira MCP 获取 issue 详情，并输出固定格式的 **Request PIN Report**，便于对外或对内沟通客户需求。
+根据 **PIN 工单 Key**（如 `PIN-2677`）调用 Jira MCP 获取 issue 详情，生成固定格式的 **Request PIN Report** 并**仅写入文件**，不在对话中展示报告正文。
 
 ## When to Use
 
@@ -38,12 +38,13 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
    - 使用下方 **Output Format** 将 MCP 返回的 `summary`、`priority`、`created`、`description` 填入固定格式。
    - **需求要点**：从 `description` 中归纳为「问题、背景、业务影响、期望」四项；若 description 为一段话，按语义拆分到四项或将整段放在「需求要点」下并分条简述。
 
-5. **持久化到 Workspace**
+5. **持久化到 Workspace（不展示正文）**
    - **路径**：工作区根目录下的 `Workspace` 文件夹；若不存在则创建该目录。
    - **文件名**：`YYYY-MM-DD-Processed.md`（按**当前日期**，即报告生成日）。
    - **写入规则**：
      - 若该日期文件**不存在**：创建 `Workspace/YYYY-MM-DD-Processed.md`，内容为本次生成的报告（可含一级标题如「# YYYY-MM-DD Processed」再接报告正文）。
      - 若该日期文件**已存在**：在文件**末尾**增量追加本次报告（先加分隔线如 `---` 或 `## ---` 再追加新报告块），不覆盖原有内容。
+   - **对话中**：不粘贴报告正文，仅简短告知「已生成 Report，路径：Workspace/YYYY-MM-DD-Processed.md」。
 
 ## 报告输出路径（持久化）
 
@@ -53,10 +54,11 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 | 文件名 | **`YYYY-MM-DD-Processed.md`**（按报告生成日） |
 | 新建   | 文件不存在时创建，内容为本次报告 |
 | 追加   | 文件已存在时在文件末尾追加本次报告，用分隔线与前文区分 |
+| 展示   | **不在对话中展示**报告正文；完成后仅简短告知「已生成 Report，路径：Workspace/YYYY-MM-DD-Processed.md」即可 |
 
 ## Output Format
 
-报告必须按以下结构输出（Markdown）：
+写入文件时，报告正文须按以下结构（Markdown）：
 
 ```markdown
 # Request PIN Report — <issue_key>
@@ -84,7 +86,7 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 ## Guardrails
 
 - **获取 PIN ID**：用户未指定工单时，必须通过 **my-requests** 技能获取工单列表并据此确定目标；不假设用户会提供链接。
-- **报告持久化**：报告必须写入 `Workspace/YYYY-MM-DD-Processed.md`（工作区根目录即当前仓库根）；若 `Workspace` 目录不存在则先创建再写文件；追加时仅在末尾追加，不覆盖已有内容。
+- **报告持久化**：报告必须写入 `Workspace/YYYY-MM-DD-Processed.md`（工作区根目录即当前仓库根）；若 `Workspace` 目录不存在则先创建再写文件；追加时仅在末尾追加，不覆盖已有内容。**不在对话中展示报告正文**，仅写文件并简短确认路径。
 - PIN Key 必须为 `PIN-` 开头的合法 issue key，且项目为 PIN（Product Intake）。
 - 不捏造 description 中未出现的内容；归纳时保持与原文一致。
 - 输出语言与用户一致（用户用中文则报告用中文，英文同理）；summary 可保留原文。
@@ -93,7 +95,7 @@ description: 根据 PIN 工单 ID 拉取 Jira 详情并生成「Request PIN Repo
 
 输入：用户指定时可为 `PIN-2677` 或「帮我把 PIN-2677 生成 Request PIN Report」；未指定时先执行 my-requests 列出未处理工单，再选一个生成报告。
 
-报告除在对话中展示外，须按「报告输出路径」写入或追加到 `Workspace/YYYY-MM-DD-Processed.md`。
+报告**仅**写入或追加到 `Workspace/YYYY-MM-DD-Processed.md`，**不在对话中展示**报告正文；完成后可简短告知用户已生成及文件路径即可。
 
 输出结构示例：
 
