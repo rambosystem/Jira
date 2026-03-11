@@ -4,13 +4,13 @@ Create or update a Confluence page with ADF body via REST API v2.
 Reads confluence_* from Assets/Global/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
 
 Flow: Look up page by title → if exists, append (merge ADF) and PUT; else POST new page.
-Supports --body-stdin, --body-file (optional --body-file-delete-after to remove temp file after use), --body-json, --jira-url.
+Body from: --body-stdin, --body-file (relative path → repo tmp/), --body-json, --jira-url.
+Temp files live under repo tmp/; we only overwrite, never delete.
 
 Usage:
   set ATLASSIAN_API_TOKEN=your_token
-  python scripts/confluence_create_page.py --title "2026-03-11 Processed" --body-file report_adf.json --body-file-delete-after
-  python scripts/confluence_create_page.py -t "My Page" --body-file /tmp/adf.json --body-file-delete-after
-  python scripts/confluence_create_page.py --title "My Page" --jira-url "https://.../browse/PIN-123"
+  python scripts/confluence_create_page.py --title "My Page" --body-file pin_report_adf.json
+  python scripts/confluence_create_page.py -t "My Page" --jira-url "https://.../browse/PIN-123"
 """
 
 import argparse
@@ -27,6 +27,7 @@ from urllib.parse import quote
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
+TMP_DIR = REPO_ROOT / "tmp"
 PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
 ENV_PATH = REPO_ROOT / ".env"
 
@@ -122,32 +123,30 @@ def merge_adf_content(existing: Optional[dict], new_content: list) -> dict:
     return {**base, "content": merged}
 
 
-def build_adf_from_args(args: argparse.Namespace, repo_root: Path) -> tuple[str, Optional[Path]]:
-    """Returns (adf_string, path_to_delete_if_requested)."""
+def build_adf_from_args(args: argparse.Namespace, tmp_dir: Path) -> str:
+    """Returns ADF JSON string. Body file: relative path → tmp_dir."""
     if args.body_stdin:
-        return sys.stdin.read(), None
+        return sys.stdin.read()
     if args.body_file:
         path = Path(args.body_file)
         if not path.is_absolute():
-            path = repo_root / path
-        content = path.read_text(encoding="utf-8")
-        to_delete = path if args.body_file_delete_after else None
-        return content, to_delete
+            path = tmp_dir / path
+        return path.read_text(encoding="utf-8")
     if args.body_json:
-        return args.body_json, None
+        return args.body_json
     if args.jira_url:
         doc = {
             "version": 1,
             "type": "doc",
             "content": [{"type": "blockCard", "attrs": {"url": args.jira_url}}],
         }
-        return json.dumps(doc, ensure_ascii=False), None
+        return json.dumps(doc, ensure_ascii=False)
     doc = {
         "version": 1,
         "type": "doc",
         "content": [{"type": "paragraph", "content": [{"type": "text", "text": args.title}]}],
     }
-    return json.dumps(doc, ensure_ascii=False), None
+    return json.dumps(doc, ensure_ascii=False)
 
 
 def main() -> None:
@@ -156,8 +155,7 @@ def main() -> None:
     parser.add_argument("--title", "-t", required=True, help="Page title")
     parser.add_argument("--jira-url", "-j", default="", help="Jira issue URL for blockCard (optional)")
     parser.add_argument("--body-json", "-b", default="", help="Full ADF JSON string")
-    parser.add_argument("--body-file", default="", help="Path to ADF JSON file")
-    parser.add_argument("--body-file-delete-after", action="store_true", help="Delete --body-file after reading (for temp ADF files)")
+    parser.add_argument("--body-file", default="", help="Path to ADF JSON file (relative → repo tmp/)")
     parser.add_argument("--body-stdin", action="store_true", help="Read ADF JSON from stdin")
     args = parser.parse_args()
 
@@ -176,56 +174,50 @@ def main() -> None:
         sys.exit(1)
 
     auth = base64.b64encode(f"{email}:{token}".encode()).decode()
-    new_adf_raw, body_file_to_delete = build_adf_from_args(args, REPO_ROOT)
-    try:
-        new_adf = json.loads(new_adf_raw) if isinstance(new_adf_raw, str) else new_adf_raw
-        new_content = new_adf.get("content") or []
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    new_adf_raw = build_adf_from_args(args, TMP_DIR)
+    new_adf = json.loads(new_adf_raw) if isinstance(new_adf_raw, str) else new_adf_raw
+    new_content = new_adf.get("content") or []
 
-        existing = find_page_by_title(base_url, auth, space_id, args.title)
-        if existing:
-            page_id = existing["id"]
-            current_adf, version = get_page_body(base_url, auth, page_id)
-            merged = merge_adf_content(current_adf, new_content)
-            payload = {
-                "id": page_id,
-                "status": "current",
-                "title": args.title,
-                "version": {"number": version + 1},
-                "body": {"representation": "atlas_doc_format", "value": json.dumps(merged, ensure_ascii=False)},
-            }
-            try:
-                out = api_request(base_url, auth, "PUT", f"/pages/{page_id}", payload)
-            except HTTPError as e:
-                print(f"Error {e.code}: {e.read().decode() if e.fp else ''}", file=sys.stderr)
-                sys.exit(1)
-            webui = (out.get("_links") or {}).get("webui", "") or ""
-            page_url = (base_url + webui) if webui.startswith("/") else (base_url + "/" + webui) if webui else ""
-            print(f"Page updated (appended): id={page_id}")
-            print(f"URL: {page_url}")
-        else:
-            payload = {
-                "spaceId": space_id,
-                "status": "current",
-                "title": args.title,
-                "parentId": parent_id,
-                "body": {"representation": "atlas_doc_format", "value": new_adf_raw},
-            }
-            try:
-                out = api_request(base_url, auth, "POST", "/pages", payload)
-            except HTTPError as e:
-                print(f"Error {e.code}: {e.read().decode() if e.fp else ''}", file=sys.stderr)
-                sys.exit(1)
-            page_id = out.get("id")
-            webui = (out.get("_links") or {}).get("webui", "") or ""
-            page_url = (base_url + webui) if webui.startswith("/") else (base_url + "/" + webui) if webui else ""
-            print(f"Page created: id={page_id}")
-            print(f"URL: {page_url}")
-    finally:
-        if body_file_to_delete and body_file_to_delete.is_file():
-            try:
-                body_file_to_delete.unlink()
-            except OSError:
-                pass
+    existing = find_page_by_title(base_url, auth, space_id, args.title)
+    if existing:
+        page_id = existing["id"]
+        current_adf, version = get_page_body(base_url, auth, page_id)
+        merged = merge_adf_content(current_adf, new_content)
+        payload = {
+            "id": page_id,
+            "status": "current",
+            "title": args.title,
+            "version": {"number": version + 1},
+            "body": {"representation": "atlas_doc_format", "value": json.dumps(merged, ensure_ascii=False)},
+        }
+        try:
+            out = api_request(base_url, auth, "PUT", f"/pages/{page_id}", payload)
+        except HTTPError as e:
+            print(f"Error {e.code}: {e.read().decode() if e.fp else ''}", file=sys.stderr)
+            sys.exit(1)
+        webui = (out.get("_links") or {}).get("webui", "") or ""
+        page_url = (base_url + webui) if webui.startswith("/") else (base_url + "/" + webui) if webui else ""
+        print(f"Page updated (appended): id={page_id}")
+        print(f"URL: {page_url}")
+    else:
+        payload = {
+            "spaceId": space_id,
+            "status": "current",
+            "title": args.title,
+            "parentId": parent_id,
+            "body": {"representation": "atlas_doc_format", "value": new_adf_raw},
+        }
+        try:
+            out = api_request(base_url, auth, "POST", "/pages", payload)
+        except HTTPError as e:
+            print(f"Error {e.code}: {e.read().decode() if e.fp else ''}", file=sys.stderr)
+            sys.exit(1)
+        page_id = out.get("id")
+        webui = (out.get("_links") or {}).get("webui", "") or ""
+        page_url = (base_url + webui) if webui.startswith("/") else (base_url + "/" + webui) if webui else ""
+        print(f"Page created: id={page_id}")
+        print(f"URL: {page_url}")
 
 
 if __name__ == "__main__":

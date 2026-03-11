@@ -16,13 +16,29 @@ import base64
 import json
 import os
 import re
+import ssl
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError
-from urllib.parse import quote
 from urllib.request import Request, urlopen
+
+# Use certifi CA bundle so HTTPS works on macOS (Python.org installs often miss system certs).
+# Set PIN_REPORT_INSECURE_SSL=1 only for local testing to skip verification.
+def _ssl_context() -> ssl.SSLContext:
+    if os.environ.get("PIN_REPORT_INSECURE_SSL") == "1":
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+    ctx = ssl.create_default_context()
+    try:
+        import certifi
+        ctx.load_verify_locations(certifi.where())
+    except ImportError:
+        pass
+    return ctx
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
@@ -78,16 +94,17 @@ def load_profile() -> dict[str, str]:
 
 
 def jira_request(base_url: str, auth: str, jql: str, fields: list[str], limit: int = 100) -> dict[str, Any]:
-    path = (
-        "/rest/api/3/search"
-        f"?jql={quote(jql)}"
-        f"&fields={quote(','.join(fields))}"
-        f"&maxResults={limit}"
-    )
-    url = f"{base_url}{path}"
-    headers = {"Accept": "application/json", "Authorization": f"Basic {auth}"}
-    req = Request(url, headers=headers, method="GET")
-    with urlopen(req) as resp:
+    # Use /rest/api/3/search/jql (old /rest/api/3/search returns 410 Gone)
+    url = f"{base_url.rstrip('/')}/rest/api/3/search/jql"
+    payload = {"jql": jql, "maxResults": limit, "fields": list(fields)}
+    body = json.dumps(payload).encode("utf-8")
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Basic {auth}",
+    }
+    req = Request(url, data=body, headers=headers, method="POST")
+    with urlopen(req, context=_ssl_context()) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -161,7 +178,7 @@ def openai_chat_completion(
         },
         method="POST",
     )
-    with urlopen(req) as resp:
+    with urlopen(req, context=_ssl_context()) as resp:
         data = json.loads(resp.read().decode("utf-8"))
     choices = data.get("choices") or []
     if not choices:
@@ -257,7 +274,12 @@ def run() -> int:
         return 1
 
     jira_auth = base64.b64encode(f'{profile["email"]}:{token}'.encode("utf-8")).decode("utf-8")
-    pin_ids = resolve_pin_ids(args, profile, jira_auth)
+    try:
+        pin_ids = resolve_pin_ids(args, profile, jira_auth)
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8") if exc.fp else ""
+        print(f"Error: Jira request failed ({exc.code}). Response: {detail}", file=sys.stderr)
+        return 1
     if not pin_ids:
         print("Error: no PIN IDs resolved. Provide --pin-ids or --latest N (>0).", file=sys.stderr)
         return 1
@@ -341,7 +363,7 @@ def run() -> int:
     if args.analysis_output:
         analysis_path = Path(args.analysis_output)
         if not analysis_path.is_absolute():
-            analysis_path = REPO_ROOT / analysis_path
+            analysis_path = REPO_ROOT / "tmp" / analysis_path
         analysis_path.parent.mkdir(parents=True, exist_ok=True)
         analysis_path.write_text(
             json.dumps(
@@ -356,7 +378,7 @@ def run() -> int:
     if args.output:
         output_path = Path(args.output)
         if not output_path.is_absolute():
-            output_path = REPO_ROOT / output_path
+            output_path = REPO_ROOT / "tmp" / output_path
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(output_text, encoding="utf-8")
     else:
