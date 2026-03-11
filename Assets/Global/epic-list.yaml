@@ -8,6 +8,16 @@ epic_management:
     story_parent_default_rule: "For functional-module Story, default Parent to module quarterly Epic."
     special_epic_override_rule: "Use a special Epic when user explicitly specifies one or the work is non-quarterly."
 
+  # JQL template to fetch recent epics (assignee = me, not Done/Won't Do, last 36w). Substitute {{assignee_account_id}} from Jira/Assets/Global/profile.yaml me.account_id.
+  recent_epics_query:
+    description: "Epics assigned to me, open, created in last 36 weeks"
+    jql_template: |
+      type = Epic
+      AND assignee = {{assignee_account_id}}
+      AND status NOT IN (Done, "Won't Do")
+      AND created >= -36w
+      ORDER BY created DESC
+
   recent_epics:
     - key: CP-45468
       title: Message Upgrade - 26Q2
