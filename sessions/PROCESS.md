@@ -5,7 +5,7 @@
 - Created `cp-team-board.config.yaml` from provided team board JQL.
 - Resolved all listed Jira `accountId` values to user names via Atlassian MCP.
 - Added a `users` mapping section into `cp-team-board.config.yaml` for quick lookup and maintenance.
-- Restructured `cp-team-board.config.yaml` into workspace-oriented sections: `workspace` (project/modules/members) and `board_filter`.
+- Restructured `cp-team-board.config.yaml` into workspace-oriented sections: `workspace` (project/components/members) and `board_filter`.
 - Enriched member entries with `name`, `account_id`, and `email` for easier team management.
 - Created project skill `.cursor/skills/create-team-ticket/SKILL.md` for standardized CP ticket creation workflow.
 - Added `.cursor/skills/create-team-ticket/templates.md` with Bug, Task, and Story description templates.
@@ -54,7 +54,7 @@
 - Created new Jira Epic `CP-45460` (`SOV Upgrade - 26Q2`) via `create-team-ticket` skill flow with: project `CP`, component `SOV`, assignee `Rambo Wang`, priority `Medium`, label `roadmap_26q2`, and `Delivery Quarter = Q2`.
 - Optimized `create-team-ticket` skill: added shorthand intent inference (e.g. `Q2 SOV epic`), pre-create duplicate check, mandatory custom-field-id discovery via `jira_search_fields`, Epic naming convention, and stricter markdown checklist guidance; also added an Epic description template.
 - Updated `create-team-ticket` skill policy: ticket creation no longer requires description; description is optional and should not block create flow.
-- Created Q2 module Epics for `cp-team-board.config.yaml` modules (`Bid Explorer`, `Budget Scheduler`, `Dayparting Scheduler`, `Download Center`, `My Report`, `Pacvue Copilot`, `SOV`, `Calendar Center`, `Message`) and updated `cp-epic-management.yaml` with `26Q2` default mappings plus new `recent_epics` entries.
+- Created Q2 module Epics for `cp-team-board.config.yaml` components (`Bid Explorer`, `Budget Scheduler`, `Dayparting Scheduler`, `Download Center`, `My Report`, `Pacvue Copilot`, `SOV`, `Calendar Center`, `Message`) and updated `cp-epic-management.yaml` with `26Q2` default mappings plus new `recent_epics` entries.
 - Ran post-create validation for `CP-45460` to `CP-45468`: confirmed `assignee=Rambo Wang`, `priority=Medium`, `labels` include `roadmap_26q2`, `customfield_12899 (Delivery Quarter)=Q2`, and component values match module mapping in `cp-epic-management.yaml`.
 - Enhanced `create-team-ticket` skill with mandatory post-create validation: read-after-write checks for key fields, mismatch reporting, and `Validation`/`Validation Details` in output format.
 - Queried Atlassian for `Keping Meng` (`keping.meng@pacvue.com`) and added the user to `cp-team-board.config.yaml` under `team.external_members` with account id `712020:283e4a23-8798-468a-8f74-f45c357535ec` and `is_active: false`.
