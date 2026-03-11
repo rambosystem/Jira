@@ -45,6 +45,14 @@ Query and list **unprocessed Pin tickets** in the **PIN** project (Product Intak
    - Use headings like `### Accepted for Development`, `### Ready for Technical Review`, `### Backlog`, `### Waiting on Reporter`, etc., one per status that appears in the result set.
    - Include total count and a short line like "以上为你在 PIN (Product Intake) 项目中未处理的 Pin 工单。"
 
+5. **Ask whether to generate Summary Report (Optional)**
+   - After presenting results, **ask the user**: "是否要生成 Summary Report？"（或英文："Would you like to generate a Summary Report?"）
+   - **If the user says yes**（如回答「要」「是」「生成」「yes」「generate」等）：按 **`Skills/pin-management/request-pin-report/SKILL.md`** 执行 Request PIN Report 工作流。
+     - **默认**：对**当前展示的列表中的全部** PIN 工单生成报告（传入本步骤 3 返回的所有 issue 的 key 列表）。
+     - **仅当用户明确指定**某一或若干 PIN Key（如「只生成 PIN-1234」「只要 PIN-2677 和 PIN-2680」）时，仅对用户指定的工单生成报告。
+   - **If the user says no or does not answer affirmatively**：结束，不再调用 request-pin-report。
+
+
 ## Output Format
 
 - **Reply**: Group results **by status**; under each status heading, show a table with key, summary, **priority**, updated. Then total count and one-line summary in Chinese.
