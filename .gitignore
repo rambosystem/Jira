@@ -6,3 +6,14 @@
 
 # Sessions
 *Processed.md
+
+#discarded files
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+*.pyzw
+*.pyzwz
+__pycache__

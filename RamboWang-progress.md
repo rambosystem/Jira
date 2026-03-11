@@ -25,5 +25,5 @@
 
 ## 2026-03-11 — Confluence ADF blockCard 创建脚本（历史）
 
-- **实现**: `scripts/confluence_create_page.py`（Python）；profile 固化 confluence_*；先查后建/追加。
-- **认证**: CONFLUENCE_EMAIL + CONFLUENCE_API_TOKEN（环境变量或 .env）。
+- **实现**: `scripts/confluence_create_page.py`（Python）；profile 固化 confluence\_\*；先查后建/追加。
+- **认证**: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN（环境变量或 .env）。

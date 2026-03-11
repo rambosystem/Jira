@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 Create or update a Confluence page with ADF body via REST API v2.
-Reads confluence_* from Assets/Global/profile.yaml. Auth: CONFLUENCE_EMAIL + CONFLUENCE_API_TOKEN.
+Reads confluence_* from Assets/Global/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
 
 Flow: Look up page by title → if exists, append (merge ADF) and PUT; else POST new page.
 Supports --body-stdin, --body-file (optional --body-file-delete-after to remove temp file after use), --body-json, --jira-url.
 
 Usage:
-  set CONFLUENCE_API_TOKEN=your_token
+  set ATLASSIAN_API_TOKEN=your_token
   python scripts/confluence_create_page.py --title "2026-03-11 Processed" --body-file report_adf.json --body-file-delete-after
   python scripts/confluence_create_page.py -t "My Page" --body-file /tmp/adf.json --body-file-delete-after
   python scripts/confluence_create_page.py --title "My Page" --jira-url "https://.../browse/PIN-123"
@@ -161,9 +161,9 @@ def main() -> None:
     parser.add_argument("--body-stdin", action="store_true", help="Read ADF JSON from stdin")
     args = parser.parse_args()
 
-    token = os.environ.get("CONFLUENCE_API_TOKEN")
+    token = os.environ.get("ATLASSIAN_API_TOKEN")
     if not token:
-        print("Error: Set CONFLUENCE_API_TOKEN.", file=sys.stderr)
+        print("Error: Set ATLASSIAN_API_TOKEN.", file=sys.stderr)
         sys.exit(1)
 
     profile = load_profile()
