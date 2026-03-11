@@ -20,7 +20,7 @@ Create Jira **Epic** tickets using workspace config and **Epic-only** field stru
 
 ## MCP 工具链
 
-创建与校验 Epic 时用到的 Jira/Atlassian MCP 工具见 **`skills/ticket-management/MCP-tools.md`**（重复检查、用户校验、自定义字段、创建工单、创建后校验）。调用前必读该工具的 schema。
+创建与校验 Epic 时用到的 Jira/Atlassian MCP 工具见 **`skills/ticket-management/MCP-tools.md`**（重复检查、用户校验、自定义字段、创建工单、创建后校验）。**直接按 MCP-tools.md 的「快捷参数」表传参即可，无需再读 mcps 下 descriptor。**
 
 ## Required inputs
 
@@ -55,7 +55,7 @@ Prefer format from `ticket-naming.yaml`: **`<Module> Upgrade - <YYQn>`** (e.g. `
 - Only components in `workspace.ownership.components`. Validate and verify external assignee.
 - Pre-create Ticket Name List and explicit confirmation.
 - Follow `issue-structures/epic.yaml`; do not invent fields. Default Priority Medium, Client ID 0000.
-- Read Jira MCP tool schema before calling. Duplicate check and post-create validation required.
+- Use MCP-tools.md 快捷参数调用 MCP；无需读 schema。Duplicate check and post-create validation required.
 - Use `<Module> Upgrade - <YYQn>` unless user explicitly requests different naming.
 
 ## Output

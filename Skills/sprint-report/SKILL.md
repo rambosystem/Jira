@@ -47,10 +47,11 @@ When querying Jira for board/sprint data, use **`Jira/assets/<project>/query-tem
    - Determine project: from user input or `me.default_project` in `Jira/Assets/Global/profile.yaml`.
    - From user input (e.g. "Sprint4") derive full sprint name (e.g. `26Q1-Sprint4-Defenders`) using `Jira/assets/<project>/sprint-list.yaml`.
 
-2. **Query Jira**
-   - Use `jira_search` (or equivalent) with JQL:
-     - `project = <workspace.project.key> AND issuetype = Story AND sprint = "<sprint_name>" AND statusCategory = Done ORDER BY key ASC`
-   - Request fields: `summary`, `status`, `assignee`, `key`, `components` (if available). Include `components` so grouping is by Jira component; if the API does not return components, infer module from summary (see below).
+2. **Query Jira**（无需读 schema，直接按下列参数调用）
+   - **Server**: `user-mcp-atlassian` · **Tool**: `jira_search`
+   - **JQL**: `project = <workspace.project.key> AND issuetype = Story AND sprint = "<sprint_name>" AND statusCategory = Done ORDER BY key ASC`（代入已解析的 project key 与 sprint 名称）
+   - **Arguments**: `jql` = 上式；`fields` = `key,summary,status,assignee,components`；`limit` = `50`（或更大，按需）
+   - 直接调用 `call_mcp_tool(server="user-mcp-atlassian", toolName="jira_search", arguments={...})` 即可。
 
 3. **Group by module**
    - **Preferred**: group by issue `components` (use first component or primary component if multiple).
@@ -72,8 +73,8 @@ When querying Jira for board/sprint data, use **`Jira/assets/<project>/query-tem
      - **汇总** table: `| 模块 | 完成 Story 数 | 主要方向 |`
      - Footer: `*数据来源：Jira <project> 项目，Sprint = <sprint_name>，statusCategory = Done。*`
 
-6. **Before calling Jira**
-   - Read the Jira MCP tool schema (e.g. `jira_search`) from the mcps folder if not already known, and use the correct parameters (e.g. `jql`, `fields`, `limit`).
+6. **Calling Jira**
+   - For this skill, use the inline MCP params in step 2; no need to read schema from mcps folder.
 
 ## Output Format
 

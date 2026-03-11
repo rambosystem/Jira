@@ -21,7 +21,7 @@ Create Jira **Story** tickets using workspace config and **Story-only** field st
 
 ## MCP 工具链
 
-创建与校验 Story 时用到的 Jira/Atlassian MCP 工具见 **`skills/ticket-management/MCP-tools.md`**（重复检查、用户校验、自定义字段、创建工单、创建后校验）。调用前必读该工具的 schema。
+创建与校验 Story 时用到的 Jira/Atlassian MCP 工具见 **`skills/ticket-management/MCP-tools.md`**（重复检查、用户校验、自定义字段、创建工单、创建后校验）。**直接按 MCP-tools.md 的「快捷参数」表传参即可，无需再读 mcps 下 descriptor。**
 
 ## Required inputs
 
@@ -61,7 +61,7 @@ Enforce format from `ticket-naming.yaml`: **`[模块] - [平台或范围] - [动
 - Only components in `workspace.ownership.components`. Validate assignee; verify external before use.
 - Pre-create Ticket Name List and explicit confirmation. No raw summary; always normalized title.
 - Follow `issue-structures/story.yaml`; do not invent fields. Default Priority Medium, Client ID 0000.
-- Read Jira MCP tool schema before calling. Duplicate check before create; post-create validation required.
+- Use MCP-tools.md 快捷参数调用 MCP；无需读 schema。Duplicate check before create; post-create validation required.
 
 ## Output
 

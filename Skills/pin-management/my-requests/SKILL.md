@@ -1,6 +1,6 @@
 ---
 name: my-requests
-description: Query unprocessed Pin tickets assigned to me (from Jira/Assets/Global/profile.yaml) in the PIN/Product Intake project. Use when the user asks for "my pin tickets", "未处理的 pin ticket", "my requests", or to list open/outstanding pin requests in Product Intake.
+description: Query unprocessed Pin tickets assigned to me (from Jira/Assets/Global/profile.yaml) in the PIN/Product Intake project; present results grouped by status. Use when the user asks for "my pin tickets", "未处理的 pin ticket", "my requests", or to list open/outstanding pin requests in Product Intake.
 ---
 
 # My Requests（未处理的 Pin Ticket）
@@ -30,28 +30,29 @@ Query and list **unprocessed Pin tickets** in the **PIN** project (Product Intak
 
 2. **JQL (My Requested)**
    - Build JQL by substituting **`<me.account_id>`** with the value from `profile.yaml` → `me.account_id`:
-   ```
-   project = PIN AND statusCategory != Done AND assignee in ("<me.account_id>") AND "Request Type" in ("API Scope Request", "New Feature Integration", "New RMN Request", "Partnership Request", "Product Feedback Request", "Suggest a new feature/Improvement - H10", "Suggest a new feature/improvement - Pacvue") ORDER BY priority DESC, created ASC
-   ```
-   - **Sort**: **priority DESC** (高到低), then **created ASC** (同优先级按创建时间升序). Ensure **`priority`** is requested in `fields` so results and display reflect this order.
-   - **Request Type** values: API Scope Request, New Feature Integration, New RMN Request, Partnership Request, Product Feedback Request, Suggest a new feature/Improvement - H10, Suggest a new feature/improvement - Pacvue. Do not change unless the user requests it.
 
-3. **Call Jira MCP**
-   - Use **`jira_search`** (or equivalent JQL search tool) from the Atlassian MCP server. **Read the tool's schema/descriptor first** (see `skills/ticket-management/MCP-tools.md`) and pass the built JQL (with `me.account_id` substituted), `fields`, `limit`.
-   - Request useful fields: `key`, `summary`, `status`, `assignee`, `updated`, `priority`, `created` (and `Request Type` if needed). **Include `priority`** so results are sorted and displayed by priority (high to low).
+   ```
+   project = PIN AND assignee in ("<me.account_id>") AND status IN ("Backlog", "Ready for Technical Review") ORDER BY priority DESC, created DESC
+   ```
+
+3. **Call Jira MCP**（无需再读 schema，直接按下列参数调用）
+   - **Server**: `user-mcp-atlassian` · **Tool**: `jira_search`
+   - **Arguments**: `jql` = 上一步拼好的 JQL（已代入 `me.account_id`）；`fields` = `key,summary,status,assignee,updated,priority,created`；`limit` = `50`（可选，默认 10）。
+   - 直接调用 `call_mcp_tool(server="user-mcp-atlassian", toolName="jira_search", arguments={...})` 即可。
 
 4. **Present results**
-   - List each ticket: key, summary, status, **priority**, updated. Show **priority** in the table (results are ordered by priority DESC).
+   - **Group by status**: Present issues grouped by **status** (status name as section heading). Within each group, keep the order as returned by JQL. Each group shows a table: key, summary, priority, updated.
+   - Use headings like `### Accepted for Development`, `### Ready for Technical Review`, `### Backlog`, `### Waiting on Reporter`, etc., one per status that appears in the result set.
    - Include total count and a short line like "以上为你在 PIN (Product Intake) 项目中未处理的 Pin 工单。"
 
 ## Output Format
 
-- **Reply**: Table or list of unprocessed pin tickets with key, summary, status, **priority**, updated (ordered by priority high to low); total count; one-line summary in Chinese.
+- **Reply**: Group results **by status**; under each status heading, show a table with key, summary, **priority**, updated. Then total count and one-line summary in Chinese.
 - If no issues found: "当前没有未处理的 Pin ticket。" or "No unprocessed pin tickets found."
 
 ## Guardrails
 
 - **Assignee**: Always use **`me.account_id`** from `Jira/Assets/Global/profile.yaml` in the JQL; do not use `currentUser()` so that "my requests" is the workspace user (profile me).
 - Only include issues returned by the Jira query; do not invent tickets.
-- Call Jira MCP tool only after reading its schema for correct parameters.
+- For this skill, use the inline MCP params above; no need to read schema from mcps folder.
 - Project key is **PIN** (Product Intake Service Desk). Do not substitute other keys.
