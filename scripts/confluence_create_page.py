@@ -18,12 +18,30 @@ import base64
 import json
 import os
 import re
+import ssl
 import sys
 from pathlib import Path
 from typing import Any, Optional
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from urllib.parse import quote
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """Use certifi CA bundle so HTTPS works on macOS (Python.org installs often miss system certs)."""
+    if os.environ.get("CONFLUENCE_INSECURE_SSL") == "1":
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+    ctx = ssl.create_default_context()
+    try:
+        import certifi
+        ctx.load_verify_locations(certifi.where())
+    except ImportError:
+        pass
+    return ctx
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
@@ -87,7 +105,7 @@ def api_request(
     if data is not None:
         headers["Content-Type"] = "application/json"
     req = Request(url, data=json.dumps(data).encode("utf-8") if data else None, method=method, headers=headers)
-    with urlopen(req) as resp:
+    with urlopen(req, context=_ssl_context()) as resp:
         return json.loads(resp.read().decode())
 
 

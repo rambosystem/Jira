@@ -353,10 +353,8 @@ def run() -> int:
                 }
 
     content: list[dict[str, Any]] = []
-    for idx, key in enumerate(ordered_keys):
+    for key in ordered_keys:
         content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
-        if idx < len(ordered_keys) - 1:
-            content.append({"type": "rule"})
 
     adf_doc = {"version": 1, "type": "doc", "content": content}
 
