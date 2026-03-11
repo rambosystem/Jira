@@ -1,5 +1,17 @@
 # Progress
 
+## 2026-03-11 — 50 条未处理 PIN 查询与报告发布
+
+- **查询**：JQL `project = PIN AND assignee = me AND status IN (Backlog, Ready for Technical Review)`，limit 50，得到 50 条工单。
+- **报告**：按 request-pin-report 流程逐条 jira_search 拉取 description，生成 50 个 Request PIN Report 块（blockCard + 需求要点 + 四要点），合并为 ADF 写入 `report_adf.json`。
+- **发布**：`confluence_create_page.py --title "2026-03-11 Processed" --body-file report_adf.json`，新建 Confluence 页面并发布。
+
+## 2026-03-11 — request-pin-report 逐条处理 + Todo
+
+- **SKILL 优化**：多条 PIN 时改为**一条 PIN 一条 PIN 处理**，避免一次性拉取/生成过多导致遗漏或偷懒。
+- **强制 Todo 列表**：先为每个 PIN 建一条 todo（如「处理 PIN-xxx：拉取详情并生成报告块」），按顺序逐条执行并更新 todo 状态。
+- **每轮单条**：每轮只对**当前** PIN 调用一次 `jira_search`（`key = "PIN-xxx"`，禁止 `key in (...)`），生成该条报告块并追加到 content，勾选 todo 后再处理下一条；全部完成后合并 ADF、一次发布到 Confluence。
+
 ## 2026-03-11 — 整体流程优化
 
 - **confluence_create_page.py 重构**

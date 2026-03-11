@@ -1,0 +1,3918 @@
+{
+"version": 1,
+"type": "doc",
+"content": [
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2677"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Campbell's 客户反馈跨零售商报告中缺少 Target 和 Sam's Club 的 NTB 数据。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：两零售商本月已加入跨零售商报告，NTB 尚未接入。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：团队需手工拉取 NTB 数据，报告上线延迟已引发不满。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在跨零售商报告中为 Target 和 Sam's Club 增加 NTB 指标。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2432"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：L'Oreal 需要单一视图查看经 Pacvue 的零售媒体总投入。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：不限 shell 或 server，需能按国家、事业部、品牌筛选。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：解决客户全球分散化问题，是核心价值主张。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：单一视图展示总投入，支持国家/事业部/品牌筛选。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2382"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：CyberAgent 希望按小时获取 SOV 数据。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：目前用内部工具收集类似数据；若 Pacvue 支持则希望迁移到 Pacvue。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：需在平台内实现小时级 SOV 拉取。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持 SOV 数据按小时获取。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2804"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：HP 反馈打开 SOV 模块时路径不友好，不利于使用。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：当前以设置页为首页，新用户或非执行团队难以找到 SOV 仪表盘入口。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：难以找到带图表与数据的 SOV 仪表盘按钮。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：将 SOV Dashboard 设为打开 SOV 模块时的默认视图。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2712"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：报告可自动投递到 Google Sheets，但无法投递到 OneDrive/SharePoint 的 Excel。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：部分客户重度依赖 Excel 报表，在 Google Sheets 中受限。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：需手动下载上传或重新排版，效率低。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持自动投递到 OneDrive/SharePoint 的 Excel 工作簿。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2698"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：SOV 中无法按月份排序，仅能按字母排序。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户需要按月查看 SOV。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持 SOV 的 Month View / 按月排序。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2676"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户希望在 Brand SOV 中按关键词筛选，其他模块已有该能力。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：Brand SOV 目前无关键词级筛选。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 Brand SOV 中增加关键词级筛选，与各零售商一致。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2668"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Walmart 周报按周六至周五，My Report 中「上周」日期范围不匹配。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：Walmart 周报结构为周六到周五。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：无法在 My Report 中选择与 Walmart 一致的周范围。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 My Report 的 Date Range 中支持 Walmart 的周六-周五「上周」。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2667"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：大客户多区域 SOV 跟踪下无法批量修改跟踪关键词。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：例如 Lego 要在多个 Brand/Category 文件夹下加 15 个词，3 文件夹 × 6 区域 = 18 次手工操作。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：批量变更成本高。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持 Keyword SOV 跟踪的批量编辑。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2655"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Sam's Club 暂不支持「按小时数据自动调优」的 Dayparting，Walmart 已支持。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户常同时管 Walmart 和 Sam's Club，希望用自动调优 Dayparting 统一策略。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：Sam's 缺失导致无法在跨零售商一致测试与采用。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：为 Sam's Club 启用 Auto-Tune Hourly Dayparting。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2621"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户需要按固定百分比（如 +20%）批量增加 ToS 出价调整，且不覆盖现有 ToS 值。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：Dayparting 中需跨多 campaign 调整 Top of Search。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 Dayparting 中增加 ToS「按百分比增减」选项。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2608"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Walmart New Buyer Report 无日期范围与时间分段，且缺少部分指标。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：其他报告可自定义日期与时间分段；Walmart 原生 UI 也有。客户列出需增加的指标。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：客户困惑为何该报告不可配置。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：增加日期范围、时间分段及 Impressions/Clicks/Spend/Sales/Units 等指标。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2535"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Publicis Molson Coors 希望在 Instacart 的 SOV 跟踪中增加 Uber Eats 店铺选项。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：Instacart 与 Uber Eats 整合多，VP 提出该需求，预计会越来越多。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 Instacart SOV 跟踪的店铺选择中增加 Uber Eats。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2525"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：使用预算计划器「按百分比增量」时，用户仍需对 campaign 预算做手动优化。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Amazon 支持「修改原始 campaign 预算」选项。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2472"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Amazon Ads MCP Server 将于 2026-02-02 进入 Open Beta。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：封闭测试参与者提前通知；材料通过 Partner Network 提供。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：需在公开宣布前保密。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：见描述（产品公告类）。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2426"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：SOV 仪表盘上的 widget 对比指标不生效。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户反馈 SOV dashboard 的 widget 无法使用对比功能。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持 SOV 仪表盘 widget 的对比指标。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2383"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户希望创建按关键词标签划分 SOV 的 recurring 报告。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：当前可下载关键词级数据，无法按关键词标签下载。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 My Report > SOV report 中支持 SOV 关键词标签作为筛选。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2357"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：需要将 DSP 广告纳入 Cross-Retailer Ads，形成统一视图。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：目前 DSP 在 Cross-Retailer 视图外，需手工合并。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：无法在一个视图中评估总投入、表现与效率。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 Cross-Retailer Ads 中整合 DSP 广告。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2339"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Sam's Club 是客户（Henkel）管理的零售商中唯一无法开启 auto-tuned dayparting 的。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：仅支持手动 scheduler。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：为 Sam's Club 增加 auto-tuned dayparting。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2335"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户在跨零售商拉 SOV 报告时发现「aggregation level」未统一，Target 缺失。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户常用 aggregation level 筛选 SOV。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：多零售商报告不一致。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 My Report - SOV report 中所有零售商（含 Target）提供 aggregation level。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2316"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：需为 Criteo 上的 Marionnaud 和 Citrus 上的 My Origines 启用 SOV。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户期望作为标准能力提供。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：SOV enablement: Marionnaud on Criteo, My Origines on Citrus。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2219"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：My Report 中许多模板的日期列是文本格式而非日期格式。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户无法按日期排序列，只能按字母序。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：所有 Amazon My Report 模块的日期列改为日期格式。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2215"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Sam's Club 的 SOV 数据无法加入 Custom Dashboards。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：Competitor Analytics (SOV) 在 Pacvue 已有，但 Custom Dashboards 不支持。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 Custom Dashboards 中支持 Sam's Club SOV 数据。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2162"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Calendar center：Black Friday 受单任务 ASIN 数限制，需建多任务；任务中的 ASIN 若不在 campaign 中不会自动加入。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户反馈两点限制。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：影响工具价值。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Calendar center 改进：提高 ASIN 上限、任务 ASIN 与 campaign 联动。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2141"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：当前无法访问 HyVee 直营官网的 SOV（非 Instacart 上的 HyVee）。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：需要 HyVee SOV 评估自身与竞品表现；广告经 carrot ads 在 Instacart 投放。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：增加 HyVee 直营官网 SOV。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2102"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Dayparting 调度页有多页时，暂停或未激活项混在一起，难以快速看到正在运行的。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：客户 dayparting 很多且部分暂停/未激活。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Dayparting 增加 State 筛选。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2100"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：使用「按百分比计划增量预算」时，无法手动或自动 refill 预算。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：手动修改会被每小时增量覆盖；自动 refill 规则与每小时增量不叠加。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在使用计划增量预算时支持手动与自动编辑预算。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2091"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：用户不清楚：Dayparting 开启且未关「More Settings」时，在 ad console 改的 placement bid 会被还原。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：导致用户以为未保存或系统故障。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在产品内明确提示：Dayparting 开启时，在 Pacvue 外修改的 placement bid 会被还原。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2059"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Wiltec 反馈 Dayparting Scheduler 的运行状态与时间显示有问题。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：欧洲市场显示有问题；模板默认运行时间为 PST，导致状态显示异常。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：修复 Dayparting Scheduler 状态与时间显示（含时区）。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2805"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：品牌无法跟踪 B2B SOV on-site。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：品牌需证明 B2B 投入价值并了解竞品。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持 B2B SOV 跟踪。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2769"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：DSP Dayparting 仅在高价时段加价可能恶化表现；客户希望推荐考虑流量、CPM、转化率（DPV/Clicks/Purchases）。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：例如 CPM 高但 DPVR 低时应降出价。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：DSP Dayparting 按优化目标提供建议策略。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2693"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Cross Retailer SOV 中 Criteo/Citrus 仅在 Market=US 时可选，其他市场（如 UK/EU）不可选。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：这些平台在 Pacvue 中支持这些区域。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：限制非美国市场的跨平台 SOV 分析。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：扩展 Cross Retailer SOV 市场支持（尤其 Criteo、Citrus）。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2563"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：导出到 Google Sheet 时 Pacvue 新建 tab，导致客户已有自动化被破坏。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Google Sheet 导出时支持更新而非仅新建 tab。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2543"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户需大量时间逐个修改多个 dayparting 配置（如从 ROAS 改为 CVR）。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持批量编辑 Autotune Dayparting 配置。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2538"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Chewy My Report 的 Targeting Report 仅能下载 .XLSX，其他报告可下载 .CSV。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Spectrum - Chewy Targeting Report 增加 .CSV 下载选项。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2488"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：当前报告与 Copilot 在历史上下文、灵活性与高级分析上有限。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：高级用户需要更深度洞察和可编程方式使用 Pacvue 数据。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：允许 Pacvue 客户使用 MCP Server。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2430"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户想暂停 dayparting 稍后再开启，但只能删除，无暂停选项。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Dayparting 增加 Pause 按钮。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2340"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：若要对 dayparting 做细粒度修改，需逐个点击每个小时、每天、整周的格子。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：手动 scheduler 编辑成本高。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持复制 auto-tuned dayparting 并在此基础上编辑。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2331"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户难以快速看到某品牌在报告中排第几（如第 5、第 12）。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：SOV 排名 - Brand SOV 中支持排名展示。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2303"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户需导出 2025 年全年、按国家、按 campaign 的每日广告花费历史报告。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：当前难以一次性获取。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Daily Campaign Spend Report 支持按国家、历史导出。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2296"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：客户用 My Report 对接第三方 Google Sheet 时，报告含 summary row，导致公式出问题。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：允许 Google Sheet 集成时不做 summary row。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2244"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：My Report 每日导出到 Google Sheet 时每天新建一个 tab，客户需手工合并或复杂方案才能给 Looker Studio 用。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：Looker Studio 需要稳定单一数据源。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：自动化报表困难、耗时。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：支持将每日导出追加到同一现有 Google Sheet tab。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2197"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：希望 Dayparting 与 Budget Scheduler 在同一模块使用，便于对齐 Campaign Bid 与 Budget 脉冲。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：在 Budget Scheduler 中增加 Dayparting Calendar。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-2042"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：Calendar center 任务是否可支持 product tag 级别（除 campaign/campaign tag 外）。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：Calendar center 任务支持 product tag 级别。",
+"marks": []
+}
+]
+}
+]
+}
+]
+},
+{
+"type": "rule"
+},
+{
+"type": "blockCard",
+"attrs": {
+"url": "https://pacvue-enterprise.atlassian.net/browse/PIN-1803"
+}
+},
+{
+"type": "heading",
+"attrs": {
+"level": 3
+},
+"content": [
+{
+"type": "text",
+"text": "需求要点",
+"marks": []
+}
+]
+},
+{
+"type": "bulletList",
+"content": [
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "问题：需要明确：Dayparting 计划结束后 campaign 状态是恢复为应用前状态，还是保持最后一小时的状态。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "背景：若最后一小时有 20% bid modifier，结束后 modifier 不再适用，但 campaign 状态（paused/enabled）目前显示为最后一小时状态，易混淆。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "业务影响：见描述。",
+"marks": []
+}
+]
+}
+]
+},
+{
+"type": "listItem",
+"content": [
+{
+"type": "paragraph",
+"content": [
+{
+"type": "text",
+"text": "期望：澄清 Dayparting 结束后的 campaign 状态变更逻辑。",
+"marks": []
+}
+]
+}
+]
+}
+]
+}
+]
+}
