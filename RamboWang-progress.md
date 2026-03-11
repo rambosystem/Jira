@@ -1,5 +1,16 @@
 # Progress
 
+## 2026-03-12 — Q2 My Report Story + create-story Backlog 优化
+
+- **新建 Story**：CP-45995 `[My Report] - All Platforms - 支持 OneDrive/SharePoint 中的 Excel 工作簿`，Parent CP-45465 (My Report Upgrade - 26Q2)，Backlog（未设 Sprint），已与 PIN-2712 建立 Relates 链接。
+- **create-story 技能**：若用户提到 Backlog（如「加到 Backlog」「放到 Backlog」），则**不要求、不设置 Sprint**；description 与 Required inputs/Workflow/Post-create 已同步更新。
+
+## 2026-03-12 — PIN Ticket 关联能力补全
+
+- **create-story**：新增可选输入「PIN 关联」、Workflow 步骤「PIN 关联」、独立小节「PIN Ticket 关联能力」、Guardrails 与 Output 说明；创建后若用户指定 PIN key，调用 `jira_create_issue_link`（link_type **"Relates"**），inward=Story key，outward=PIN key。
+- **create-technical-story**：同步补充 PIN 关联（可选输入、Workflow 步骤、Guardrails、小节「PIN Ticket 关联能力」、Output）；细节引用 create-story 与 MCP-tools。
+- **MCP-tools.md**：流程表新增「PIN 关联」行（`jira_create_issue_link`）；快捷参数表新增 `jira_create_issue_link` 行及「PIN 关联」调用说明（link_type 为 "Relates"，可用 `jira_get_link_types` 查询）。
+
 ## 2026-03-11 — 50 条未处理 PIN 查询与报告发布
 
 - **查询**：JQL `project = PIN AND assignee = me AND status IN (Backlog, Ready for Technical Review)`，limit 50，得到 50 条工单。

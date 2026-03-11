@@ -13,6 +13,7 @@
 | 自定义字段 | 解析 customfield_xxxxx 以写入 Parent、Client ID、Delivery Quarter 等 | `jira_search_fields`                             | 需解析的字段名：Parent、Client ID、Delivery Quarter、Epic Name、UX Review Required?、UX Review Status 等（按 issue 类型）   |
 | 创建工单   | 创建 Story / Technical Story / Epic                                  | `jira_create_issue`                              | 入参：projectKey、issueType、summary、assignee、description、additional_fields（含 parent、customfield_xxx）等              |
 | 创建后校验 | 读取刚创建的 issue 核对字段                                          | `jira_get_issue` / `jira_get_issue_by_key`       | 用返回的 issue key 拉取详情，核对 Summary、Type、Assignee、Priority、Components、Labels、Parent、Sprint 或 Delivery Quarter |
+| **PIN 关联** | 将新建的 CP Story 与 PIN 工单建立「关联」                           | `jira_create_issue_link`                         | 创建后若用户指定「关联到 PIN-xxx」，用 link_type **"Relates"**（Jira 中名称是 Relates，不是 "Relates to"）；inward=Story key，outward=PIN key |
 
 ## 快捷参数（免读 schema）
 
@@ -25,7 +26,8 @@
 | **jira_search_fields**    | —                                             | `keyword`（模糊搜字段名）, `limit`（默认 10）, `refresh`                                                                                          |
 | **jira_create_issue**     | `project_key`, `summary`, `issue_type`        | `assignee`, `description`, `components`（逗号分隔）, `additional_fields`（**JSON 字符串**，如 `"{\"parent\": \"CP-123\", \"labels\": [\"x\"]}"`） |
 | **jira_get_issue**        | `issue_key`                                   | `fields`, `expand`, `comment_limit`（默认 10）                                                                                                    |
-
+| **jira_create_issue_link** | `link_type`, `inward_issue_key`, `outward_issue_key` | `comment`, `comment_visibility`                                                                                                                                 |
+- **PIN 关联**：与 PIN 工单建立「关联」时，`link_type` 填 **"Relates"**；`inward_issue_key` = 刚创建的 Story key（如 CP-45995），`outward_issue_key` = PIN key（如 PIN-2712）。可用 **`jira_get_link_types`** 查询当前实例支持的 link type 列表。
 - **重复检查**：用 **jira_search** + JQL（如 `project = CP AND issuetype = Story AND summary ~ "..."`），无需 `jira_search_issues`。
 - **Parent 格式**：`additional_fields` 中 `parent` 必须为 issue key 字符串，例如 `"parent": "CP-123"`，不要传对象。
 

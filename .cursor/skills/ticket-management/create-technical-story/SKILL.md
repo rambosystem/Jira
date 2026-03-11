@@ -1,6 +1,6 @@
 ---
 name: create-technical-story
-description: Create Jira Technical Story tickets for the CP team. Use when user asks to create a Technical Story or tech story. Reads structure from issue-structures/technical-story.yaml; uses team, epic-list, sprint-list, label-list.
+description: Create Jira Technical Story tickets for the CP team. Use when user asks to create a Technical Story or tech story. Reads structure from issue-structures/technical-story.yaml; uses team, epic-list, sprint-list, label-list. Supports linking to a PIN ticket (关联到 PIN-xxx) via issue link "Relates"; see create-story SKILL for PIN 关联细节，MCP-tools.md 含 jira_create_issue_link 用法。
 ---
 
 # Create Technical Story
@@ -30,6 +30,7 @@ Create Jira **Technical Story** tickets using workspace config and **Technical S
 3. Assignee (required; default from `ticketing.defaults.assignee` if missing)
 4. All required fields from `issue-structures/technical-story.yaml`: Technical Story Type, Sprint, Priority, Components, Labels, Client ID, Parent.
 5. Description: optional; if provided use Story template in `skills/ticket-management/ticket-templates/templates.md`.
+6. **PIN 关联**（可选）：用户说「关联到 PIN-xxx」时，创建后为该 Technical Story 与指定 PIN 建立 **Relates** 链接；用法同 create-story，见 MCP-tools.md 的 jira_create_issue_link。
 
 Apply `field_defaults` from technical-story.yaml (Client ID = 0000) when user does not specify.
 
@@ -52,7 +53,8 @@ Same as Story (from `ticket-naming.yaml`): **`[模块] - [平台或范围] - [�
 8. **Assignee**: Prefer email → name → account_id. Persist external as name, account_id, email.
 9. **Custom fields** (**`jira_search_fields`**): Resolve Parent, Client ID; set via `additional_fields`. Parent as string: `"parent": "CP-123"`.
 10. **Create** (**`jira_create_issue`**): Project, type Technical Story, Summary, Assignee, Component, optional Description.
-11. **Post-create** (**`jira_get_issue`** / **`jira_get_issue_by_key`**): Verify Summary, Type, Assignee, Priority, Components, Labels, Parent, Sprint; report PASS/FAIL.
+11. **PIN 关联**（若用户指定 PIN key）：创建成功后调用 **`jira_create_issue_link`**，link_type = **"Relates"**，inward = 新 Technical Story key，outward = PIN key；详见 create-story 的「PIN Ticket 关联能力」与 MCP-tools.md。
+12. **Post-create** (**`jira_get_issue`** / **`jira_get_issue_by_key`**): Verify Summary, Type, Assignee, Priority, Components, Labels, Parent, Sprint; report PASS/FAIL. 若已做 PIN 关联，输出中注明「已与 PIN-xxx 建立 Relates 链接」。
 
 ## Guardrails
 
@@ -60,9 +62,14 @@ Same as Story (from `ticket-naming.yaml`): **`[模块] - [平台或范围] - [�
 - Pre-create Ticket Name List and explicit confirmation. Always normalized title.
 - Follow `issue-structures/technical-story.yaml`; do not invent fields. Default Priority Medium, Client ID 0000.
 - Use MCP-tools.md 快捷参数调用 MCP；无需读 schema。Duplicate check and post-create validation required.
+- **PIN 关联**：用户指定 PIN key 时，创建后调用 `jira_create_issue_link`，link_type = **"Relates"**；inward = 新工单 key，outward = PIN key。
+
+## PIN Ticket 关联能力
+
+与 create-story 一致：用户说「关联到 PIN-xxx」时，创建后调用 **`jira_create_issue_link`**（link_type **"Relates"**）。详见 **create-story/SKILL.md** 的「PIN Ticket 关联能力」与 **MCP-tools.md** 的 jira_create_issue_link 表。
 
 ## Output
 
 Before create: **Ticket Name List**, **Confirmation Needed: Yes**.
 
-After create: **Issue**, **URL**, **Type: Technical Story**, **Component**, **Assignee**, **Project**, **Validation**, **Validation Details**.
+After create: **Issue**, **URL**, **Type: Technical Story**, **Component**, **Assignee**, **Project**, **Validation**, **Validation Details**. 若指定了 PIN 关联，输出 **PIN Link**: 已与 PIN-xxx 建立 Relates 链接。
