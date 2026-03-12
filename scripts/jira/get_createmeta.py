@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Fetch Jira create metadata for a project: issue types and required/optional fields.
+Fetch Jira create metadata for a project: issue types, required/optional fields, and field options.
 
 Usage:
-  get_createmeta.py [project_key]
-  get_createmeta.py PACID
+  get_createmeta.py [project_key]              # fields only
+  get_createmeta.py [project_key] --options     # include allowedValues for option-type fields
 
 Calls:
   GET /rest/api/3/issue/createmeta/{projectKey}/issuetypes
@@ -53,7 +53,9 @@ def main() -> None:
         print("Error: ATLASSIAN_API_TOKEN not set in .env", file=sys.stderr)
         sys.exit(1)
     auth = basic_auth(email, token)
-    project_key = (sys.argv[1] if len(sys.argv) > 1 else "PACID").strip()
+    args = [a for a in sys.argv[1:] if a.strip()]
+    with_options = "--options" in args or "-o" in args
+    project_key = next((a for a in args if not a.startswith("-")), "PACID").strip()
 
     # 1) List issue types for project
     path_itypes = f"/issue/createmeta/{project_key}/issuetypes"
@@ -93,27 +95,32 @@ def main() -> None:
 
         required = [f for f in fields_page if f.get("required")]
         optional = [f for f in fields_page if not f.get("required")]
+
+        def _fmt_field(f: dict, show_options: bool) -> str:
+            key = f.get("key") or f.get("fieldId") or "?"
+            name = f.get("name", key)
+            schema = f.get("schema", {})
+            schema_type = schema.get("type", "")
+            line = f"  - {name} (key={key}, type={schema_type})"
+            if show_options and f.get("allowedValues"):
+                vals = [str(o.get("value") or o.get("name") or o.get("id", "")) for o in f["allowedValues"]]
+                line += f"\n      options: {vals}"
+            return line
+
         print(f"--- {it_name} (id={it_id}) ---")
         print("Required fields:")
         for f in required:
-            key = f.get("key") or f.get("fieldId") or "?"
-            name = f.get("name", key)
-            schema = f.get("schema", {})
-            schema_type = schema.get("type", "")
-            print(f"  - {name} (key={key}, type={schema_type})")
+            print(_fmt_field(f, with_options))
         print("Optional fields:")
         for f in optional:
-            key = f.get("key") or f.get("fieldId") or "?"
-            name = f.get("name", key)
-            schema = f.get("schema", {})
-            schema_type = schema.get("type", "")
-            print(f"  - {name} (key={key}, type={schema_type})")
+            print(_fmt_field(f, with_options))
         print()
 
     # Optional: dump raw JSON for one issue type (e.g. Idea)
-    if len(sys.argv) > 2 and sys.argv[2] == "--json":
+    if "--json" in args:
+        it_name_arg = next((args[i + 1] for i, a in enumerate(args) if a == "--json" and i + 1 < len(args) and not args[i + 1].startswith("-")), "Idea")
         for it in itypes:
-            if it.get("name") == (sys.argv[3] if len(sys.argv) > 3 else "Idea"):
+            if it.get("name") == it_name_arg:
                 path_fields = f"/issue/createmeta/{project_key}/issuetypes/{it.get('id')}"
                 print(json.dumps(_get(base_url, auth, path_fields), indent=2))
                 break

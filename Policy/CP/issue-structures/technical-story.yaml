@@ -1,23 +1,23 @@
-# CP Technical Story issue field structure.
+# CP Technical Story issue field structure. Source: get_createmeta.py CP (+ docs/cp-createmeta-fields.md).
 # Sprint: Jira/assets/<project>/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
 
 issue_type: Technical Story
 required_fields:
-  - Space
-  - Work type
   - Summary
-  - Technical Story Type
-  - Sprint
-  - Assignee
   - Priority
   - Components
-  - Labels
   - Client ID
-  - Parent
+  - Technical Story Type
 optional_fields:
-  - Status
+  - Assignee
+  - Parent
+  - Epic Link
+  - Sprint
   - Story Points
+  - Description
   - Due date
+  - Fix versions
+  - Labels
 field_options:
   Technical Story Type:
     - Code Quality
@@ -26,14 +26,15 @@ field_options:
     - Security & Compliance
     - Testing & Automation
     - Operations & Configuration
-    - Cross-Platform Support / Integration
     - Spike
-    - CS Support - Investigation
-    - CS Support - Offline Migration
+    - APM Optimization
+    - Cross-Platform Support / Integration
+    - "CS Support – Investigation"
+    - "CS Support – Offline Migration"
     - UX-Driven
     - Others
   Priority:
-    - Critical
+    - "Critical ⚠️️"
     - Highest
     - High
     - Medium

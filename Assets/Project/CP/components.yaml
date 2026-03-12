@@ -1,25 +1,61 @@
-# CP project components. Referenced by team.yaml (workspace.ownership.components_file).
-# Used by query-templates, create-story/create-technical-story/create-epic, sprint-report, generate-release-note.
-# Edit this file to add/remove components; optional last_version for reference.
+# CP project components. Source: get_createmeta.py CP --options (Components allowedValues).
+# Referenced by team.yaml (workspace.ownership.components_file). Used by query-templates, create-story, create-technical-story, create-epic, sprint-report, generate-release-note.
 
 components:
+  - name: Account&Role
+  - name: Activity Analysis
+  - name: Admin
+  - name: Agency Center
+  - name: AI
+  - name: All
+  - name: Anomaly Alert
+  - name: Asset Mapping
+  - name: Audit
+  - name: Automation Health
+  - name: Automation Priority
+  - name: Automation Value
   - name: Bid Explorer
     last_version: "2.1"
+  - name: Budget Manager
+  - name: Budget Plan
   - name: Budget Scheduler
     last_version: "2.3"
+  - name: Calendar Center
+    last_version: "1.10"
+  - name: Campaign AI
+  - name: Campaign Mapping
+  - name: Company Board
+    last_version: "1.0"
+  - name: Creative Management
+    last_version: "1.2"
+  - name: Cross Retailer Dashboard
+  - name: Cross Retailer Share Tag
+  - name: Custom Dashboard
+  - name: Custom Metric
   - name: Dayparting Scheduler
     last_version: "2.14"
+  - name: default report
   - name: Download Center
+    last_version: "1.1"
+  - name: Event
+  - name: Executive Hub
+  - name: Home
+  - name: Incremental Integration
+  - name: Incrementality console
+  - name: Keyword Opportunity
+  - name: Message
     last_version: "1.1"
   - name: My Report
     last_version: "1.16"
+  - name: Other
+  - name: Pacvue Copilot
+  - name: Product AI
+  - name: Rule
   - name: SOV
     last_version: "3.27"
-  - name: Calendar Center
-    last_version: "1.10"
-  - name: Message
-    last_version: "1.1"
-  - name: Creative Hub
-    last_version: "1.2"
-  - name: Company Board
-    last_version: "1.0"
+  - name: Super Wizard
+  - name: Tag
+  - name: Top Bar
+  - name: Unified Data
+  - name: User Feedback
+  - name: User Management

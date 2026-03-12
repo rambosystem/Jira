@@ -1,33 +1,41 @@
-# CP Story issue field structure.
-# Sprint: Jira/assets/<project>/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
+# CP Story issue field structure. Source: get_createmeta.py CP (+ docs/cp-createmeta-fields.md).
+# Sprint: optional when creating for Backlog. Label: Jira/assets/global/label-list.yaml.
 
 issue_type: Story
 required_fields:
-  - Space
-  - Work type
   - Summary
-  - Story Type
-  - Sprint
-  - Assignee
   - Priority
   - Components
-  - Labels
   - Client ID
-  - Parent
+  - Story Type
   - UX Review Required?
 optional_fields:
-  - Status
-  - UX Review Status
+  - Assignee
+  - Parent
+  - Epic Link
+  - Sprint
   - Story Points
+  - Feature Tier
   - Last Response Date
+  - UX Review Status
+  - Description
   - Due date
+  - Fix versions
+  - Labels
 field_options:
   Story Type:
     - New Feature
     - Improvement
     - API Integration & Enablement
+  UX Review Required?:
+    - "Yes"
+    - "No"
+  UX Review Status:
+    - Not Needed
+    - Pending
+    - Reviewed
   Priority:
-    - Critical
+    - "Critical ⚠️️"
     - Highest
     - High
     - Medium
@@ -37,13 +45,10 @@ field_options:
     - "3.0"
     - "2.0"
     - "1.0"
-  UX Review Required?:
-    - "Yes"
-    - "No"
-  UX Review Status:
-    - Not Needed
-    - Pending
-    - Reviewed
+  Feature Tier:
+    - Tier 1
+    - Tier 2
+    - Tier 3
 field_defaults:
   Story Type: Improvement
   Client ID: "0000"
