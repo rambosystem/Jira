@@ -21,8 +21,12 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.common.atlassian import basic_auth, jira_api_v3_url
 from scripts.common.env import load_dotenv
 from scripts.common.http import request_json
-from scripts.common.policy_bundle import load_policy_bundle
-from scripts.common.ticket_config import load_jira_runtime_profile
+from scripts.common.ticket_config import (
+    load_jira_runtime_profile,
+    load_recent_epics,
+    load_team_defaults,
+)
+from scripts.common.ticket_policy import load_issue_field_mapping
 
 ENV_PATH = REPO_ROOT / ".env"
 
@@ -87,15 +91,19 @@ def _auto_parent(
     project_key: str,
     components: list[str],
     quarter: str,
-    epic_index: dict[str, dict[str, dict[str, str]]],
 ) -> str:
+    project_prefix = f"{project_key.upper()}-"
     lookup = {c.strip().lower() for c in components if c.strip()}
     quarter_upper = quarter.upper()
-    project_map = epic_index.get(project_key.upper(), {})
-    quarter_map = project_map.get(quarter_upper, {})
-    for comp in lookup:
-        key = quarter_map.get(comp)
-        if key:
+    for epic in load_recent_epics(REPO_ROOT):
+        key = str(epic.get("key", ""))
+        title = str(epic.get("title", ""))
+        epic_components = [str(c).strip().lower() for c in (epic.get("components") or [])]
+        if not key.startswith(project_prefix):
+            continue
+        if quarter_upper not in title.upper():
+            continue
+        if lookup.intersection(epic_components):
             return key
     return ""
 
@@ -192,14 +200,8 @@ def run() -> int:
     except RuntimeError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
-    try:
-        policy_bundle = load_policy_bundle(REPO_ROOT)
-    except RuntimeError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 1
 
-    bundle_default_project = (policy_bundle.get("profile") or {}).get("default_project") or ""
-    args.project = (args.project or bundle_default_project or profile["default_project"]).upper()
+    args.project = (args.project or profile["default_project"]).upper()
     args.components = [c.strip() for c in args.components.split(",") if c.strip()]
     if not args.components:
         print("Error: --components must include at least one component.", file=sys.stderr)
@@ -224,14 +226,8 @@ def run() -> int:
     auth = basic_auth(profile["email"], token)
 
     try:
-        defaults = ((policy_bundle.get("team_defaults") or {}).get(args.project)) or {}
-        if not defaults:
-            raise RuntimeError(f"No team defaults for project {args.project} in policy bundle.")
-        field_map = (((policy_bundle.get("field_mappings") or {}).get(args.project) or {}).get(args.issue_type)) or {}
-        if not field_map:
-            raise RuntimeError(
-                f"No field mapping for {args.project}/{args.issue_type} in policy bundle."
-            )
+        defaults = load_team_defaults(REPO_ROOT, args.project)
+        field_map = load_issue_field_mapping(REPO_ROOT, args.project, args.issue_type)
         _validate_field_map(args.issue_type, field_map)
     except RuntimeError as exc:
         print(f"Error: {exc}", file=sys.stderr)
@@ -249,8 +245,7 @@ def run() -> int:
 
     auto_parent_key = ""
     if not args.parent:
-        epic_index = policy_bundle.get("epic_index") or {}
-        auto_parent_key = _auto_parent(args.project, args.components, args.quarter, epic_index)
+        auto_parent_key = _auto_parent(args.project, args.components, args.quarter)
 
     fields = _assemble_fields(args, defaults, auto_parent_key, field_map)
     duplicate_brief = [
