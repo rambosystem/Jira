@@ -2,6 +2,8 @@
 
 创建与校验 Story、Technical Story、Epic 时用到的 Jira/Atlassian MCP 工具。实际工具名以当前启用的 MCP server（如 user-mcp-atlassian）提供的为准；若与下表不同，请以 MCP 描述为准并在此文档中维护对应关系。
 
+> 执行优先级：当可用时，先用脚本 `scripts/jira/create_story.py`（含 preflight + create + post-check）；MCP 表用于脚本不可用时的 fallback 或补充操作。
+
 - **Confluence 页面创建/更新、搜索、附件等**：见 **`skills/confluence-management/MCP-tools.md`**。
 
 ## 工具与流程对应
@@ -37,3 +39,41 @@
 - **创建/校验流程**：直接使用上表快捷参数调用 MCP，无需读 mcps 下 descriptor。
 - **Parent 格式**：在 `jira_create_issue` 的 `additional_fields` 中，`parent` 必须为 issue key **字符串**，例如 `"parent": "CP-123"`。不要传对象（如 `{"key": "CP-123"}`），否则会报错。
 - **jira_create_issue_link**：每次调用必须显式传入 `link_type`、`inward_issue_key`、`outward_issue_key` 三个参数，不得传空对象或省略，否则会触发 Pydantic 校验错误（Missing required argument）。
+
+## CP/PAG 创建工单 additional_fields 参考（一次拼好、避免重试）
+
+创建前按本表拼好 `additional_fields` JSON 字符串，**必填自定义字段一次带齐**，避免「Story Type is required」「Client ID」等报错。
+
+### Story（CP / PAG）
+
+| 显示名 | key | 传参格式 | 示例/默认 |
+|--------|-----|----------|-----------|
+| Priority | priority | `{"name": "Medium"}` | 必填 |
+| Parent (Epic) | parent | 字符串 issue key | `"CP-45460"` |
+| Client ID | customfield_10043 | **字符串数组** | `["0000"]` |
+| Story Type | customfield_10085 | `{"value": "Improvement"}` | 必填，默认 Improvement |
+| UX Review Required? | customfield_13319 | `{"value": "No"}` | 默认 No |
+| UX Review Status | customfield_13320 | `{"value": "Not Needed"}` | 默认 Not Needed |
+
+**示例（Backlog、默认值）**：  
+`{"priority": {"name": "Medium"}, "parent": "CP-45460", "customfield_10043": ["0000"], "customfield_10085": {"value": "Improvement"}, "customfield_13319": {"value": "No"}, "customfield_13320": {"value": "Not Needed"}}`  
+Sprint 放 Backlog 时不传 Sprint；要进 Sprint 时再在 additional_fields 中加 customfield_10020（格式以 jira_search_fields 或 createmeta 为准）。
+
+### Technical Story（CP / PAG）
+
+| 显示名 | key | 传参格式 |
+|--------|-----|----------|
+| Priority | priority | `{"name": "Medium"}` |
+| Parent | parent | issue key 字符串 |
+| Client ID | customfield_10043 | `["0000"]` |
+| Technical Story Type | customfield_12348 | `{"value": "Code Quality"}` 等（见 issue-structures/technical-story.yaml field_options） |
+
+### Epic（CP / PAG）
+
+| 显示名 | key | 传参格式 |
+|--------|-----|----------|
+| Priority | priority | `{"name": "Medium"}` |
+| Delivery Quarter | customfield_12899 | `{"value": "Q1"}` 等 |
+| Components | 用 jira_create_issue 的 components 参数 | 逗号分隔名称 |
+
+**流程优化要点**：① 先做重复检查（jira_search）② Parent 从 epic-list 按 component/quarter 解析 ③ 按上表拼齐 additional_fields 再调 jira_create_issue ④ 创建后 jira_get_issue 校验。
