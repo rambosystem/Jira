@@ -38,6 +38,8 @@ DEFAULT_LLM_MODEL = "deepseek-chat"
 DEFAULT_LLM_BASE_URL = "https://api.deepseek.com/"
 DEFAULT_STATUSES = ("Backlog", "Ready for Technical Review")
 DEFAULT_FIELDS = ("key", "summary", "status", "priority", "created", "description")
+DEFAULT_ADF_OUTPUT = REPO_ROOT / "tmp" / "pin_report_adf.json"
+DEFAULT_ANALYSIS_OUTPUT = REPO_ROOT / "tmp" / "pin_analysis.json"
 
 def load_profile() -> dict[str, str]:
     profile = load_atlassian_profile(PROFILE_PATH)
@@ -257,15 +259,12 @@ def run() -> int:
                 content.append(adf_empty_paragraph())
         adf_doc = {"version": 1, "type": "doc", "content": content}
         output_text = json.dumps(adf_doc, ensure_ascii=False)
-        if args.output:
-            output_path = Path(args.output)
-            if not output_path.is_absolute():
-                output_path = REPO_ROOT / "tmp" / output_path
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(output_text, encoding="utf-8")
-            print(f"Wrote ADF to {output_path}", file=sys.stderr)
-        else:
-            print(output_text)
+        output_path = Path(args.output) if args.output else DEFAULT_ADF_OUTPUT
+        if not output_path.is_absolute():
+            output_path = REPO_ROOT / output_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(output_text, encoding="utf-8")
+        print(f"DONE request_pin_report from_analysis=true output={output_path}")
         return 0
 
     api_key = os.environ.get("DEEPSEEK_KEY")
@@ -367,29 +366,28 @@ def run() -> int:
 
     adf_doc = {"version": 1, "type": "doc", "content": content}
 
-    if args.analysis_output:
-        analysis_path = Path(args.analysis_output)
-        if not analysis_path.is_absolute():
-            analysis_path = REPO_ROOT / "tmp" / analysis_path
-        analysis_path.parent.mkdir(parents=True, exist_ok=True)
-        analysis_path.write_text(
-            json.dumps(
-                {"pin_ids": ordered_keys, "missing": missing, "analyses": analyses},
-                ensure_ascii=False,
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
+    analysis_path = Path(args.analysis_output) if args.analysis_output else DEFAULT_ANALYSIS_OUTPUT
+    if not analysis_path.is_absolute():
+        analysis_path = REPO_ROOT / analysis_path
+    analysis_path.parent.mkdir(parents=True, exist_ok=True)
+    analysis_path.write_text(
+        json.dumps(
+            {"pin_ids": ordered_keys, "missing": missing, "analyses": analyses},
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
 
     output_text = json.dumps(adf_doc, ensure_ascii=False)
-    if args.output:
-        output_path = Path(args.output)
-        if not output_path.is_absolute():
-            output_path = REPO_ROOT / "tmp" / output_path
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(output_text, encoding="utf-8")
-    else:
-        print(output_text)
+    output_path = Path(args.output) if args.output else DEFAULT_ADF_OUTPUT
+    if not output_path.is_absolute():
+        output_path = REPO_ROOT / output_path
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(output_text, encoding="utf-8")
+    print(
+        f"DONE request_pin_report total={len(ordered_keys)} output={output_path} analysis={analysis_path}"
+    )
     return 0
 
 

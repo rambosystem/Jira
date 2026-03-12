@@ -16,7 +16,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -69,10 +69,13 @@ def main() -> int:
         body = e.read().decode("utf-8") if e.fp else ""
         print(f"Error {e.code}: {body}", file=sys.stderr)
         return 1
-    if deleted:
-        print(f"Deleted remotelink for {args.issue} → Confluence page {args.confluence_page_id}")
-    else:
-        print(f"No Confluence remotelink found for {args.issue} pointing to page {args.confluence_page_id}")
+    except URLError as e:
+        print(f"Error: network request failed: {e}", file=sys.stderr)
+        return 1
+    print(
+        "DONE delete_issue_remotelink "
+        f"issue={args.issue} page_id={args.confluence_page_id} deleted={'true' if deleted else 'false'}"
+    )
     return 0
 
 

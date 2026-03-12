@@ -156,6 +156,11 @@ def main() -> None:
         action="store_true",
         help="Do not remove remotelink from PINs after publish (disable default unlink).",
     )
+    parser.add_argument(
+        "--output-file",
+        default="",
+        help="Optional: write operation summary JSON to file.",
+    )
     args = parser.parse_args()
 
     token = os.environ.get("ATLASSIAN_API_TOKEN")
@@ -188,7 +193,9 @@ def main() -> None:
     existing = find_page_by_title(base_url, auth, space_id, args.title)
     page_id = None
     page_url_out = ""
+    action = "created"
     if existing:
+        action = "updated"
         page_id = existing["id"]
         current_adf, version = get_page_body(base_url, auth, page_id)
         merged = merge_adf_content(current_adf, new_content)
@@ -209,8 +216,6 @@ def main() -> None:
         if path.startswith("/spaces/") and not path.startswith("/wiki/"):
             path = "/wiki" + path
         page_url_out = (base_url.rstrip("/") + path) if path else ""
-        print(f"Page updated (appended): id={page_id}")
-        print(f"URL: {page_url_out}")
     else:
         payload = {
             "spaceId": space_id,
@@ -230,29 +235,68 @@ def main() -> None:
         if path.startswith("/spaces/") and not path.startswith("/wiki/"):
             path = "/wiki" + path
         page_url_out = (base_url.rstrip("/") + path) if path else ""
-        print(f"Page created: id={page_id}")
-        print(f"URL: {page_url_out}")
 
     if page_id is not None:
         page_info = {"page_id": str(page_id), "url": page_url_out, "title": args.title}
         page_info_path = TMP_DIR / "confluence_page_latest.json"
         with open(page_info_path, "w", encoding="utf-8") as f:
             json.dump(page_info, f, ensure_ascii=False, indent=2)
-        print(f"Saved page info to tmp/confluence_page_latest.json", file=sys.stderr)
 
     unlink_list = args.unlink_issues if args.unlink_issues else (
         ",".join(extract_pin_keys_from_adf(new_adf)) if not args.no_unlink else ""
     )
+    unlink_total = 0
+    unlink_deleted = 0
+    unlink_errors = 0
+    unlink_detail: list[dict[str, str]] = []
     if page_id and unlink_list:
         issue_keys = [k.strip() for k in unlink_list.split(",") if k.strip()]
         if issue_keys:
+            unlink_total = len(issue_keys)
             for key in issue_keys:
                 try:
                     deleted = delete_remotelink_for_confluence_page(base_url, auth, key, str(page_id))
                     if deleted:
-                        print(f"Unlinked {key} from this page (remotelink removed).")
+                        unlink_deleted += 1
+                        unlink_detail.append({"key": key, "status": "unlinked"})
+                    else:
+                        unlink_detail.append({"key": key, "status": "no_link"})
                 except Exception as e:
-                    print(f"Warning: could not unlink {key}: {e}", file=sys.stderr)
+                    unlink_errors += 1
+                    unlink_detail.append({"key": key, "status": "error", "message": str(e)})
+
+    op_summary = {
+        "ok": unlink_errors == 0,
+        "action": action,
+        "page_id": str(page_id) if page_id is not None else "",
+        "url": page_url_out,
+        "title": args.title,
+        "unlink_total": unlink_total,
+        "unlink_deleted": unlink_deleted,
+        "unlink_errors": unlink_errors,
+        "unlink_detail": unlink_detail,
+    }
+    op_path = None
+    if args.output_file:
+        op_path = Path(args.output_file)
+        if not op_path.is_absolute():
+            op_path = REPO_ROOT / op_path
+        op_path.parent.mkdir(parents=True, exist_ok=True)
+        op_path.write_text(json.dumps(op_summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    if op_path:
+        print(
+            "DONE confluence_create_page "
+            f"action={action} page_id={op_summary['page_id']} unlink_deleted={unlink_deleted} "
+            f"unlink_errors={unlink_errors} output={op_path}"
+        )
+    else:
+        print(
+            "DONE confluence_create_page "
+            f"action={action} page_id={op_summary['page_id']} unlink_deleted={unlink_deleted} "
+            f"unlink_errors={unlink_errors}"
+        )
+    if unlink_errors:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

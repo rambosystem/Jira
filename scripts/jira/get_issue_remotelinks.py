@@ -5,7 +5,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
@@ -25,6 +25,11 @@ def main():
     load_dotenv(ENV_PATH)
     parser = argparse.ArgumentParser(description="Get remote links for a Jira issue")
     parser.add_argument("issue", nargs="?", default="PIN-2805", help="Issue key, e.g. PIN-2805")
+    parser.add_argument(
+        "--output-file",
+        default="",
+        help="Optional: write full remotelinks JSON to file.",
+    )
     args = parser.parse_args()
 
     try:
@@ -54,7 +59,21 @@ def main():
         body = e.read().decode("utf-8") if e.fp else ""
         print(f"Error {e.code}: {body}", file=sys.stderr)
         return 1
-    print(json.dumps(data, indent=2, ensure_ascii=False))
+    except URLError as e:
+        print(f"Error: network request failed: {e}", file=sys.stderr)
+        return 1
+    output_path = None
+    if args.output_file:
+        output_path = Path(args.output_file)
+        if not output_path.is_absolute():
+            output_path = REPO_ROOT / output_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    count = len(data) if isinstance(data, list) else len((data or {}).get("values", []))
+    if output_path:
+        print(f"DONE get_issue_remotelinks issue={args.issue} count={count} output={output_path}")
+    else:
+        print(f"DONE get_issue_remotelinks issue={args.issue} count={count}")
     return 0
 
 

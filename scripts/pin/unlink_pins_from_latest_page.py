@@ -8,6 +8,7 @@ Usage:
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -33,6 +34,10 @@ ENV_PATH = REPO_ROOT / ".env"
 
 def main() -> int:
     load_dotenv(ENV_PATH)
+    parser = argparse.ArgumentParser(description="Unlink PIN remotelinks from latest Confluence page.")
+    parser.add_argument("--output-file", default="", help="Optional: write unlink summary JSON to file.")
+    args = parser.parse_args()
+
     if not PAGE_INFO_FILE.is_file():
         print(
             f"Error: {PAGE_INFO_FILE} not found. Publish a Confluence page first (scripts/confluence/confluence_create_page.py).",
@@ -75,7 +80,6 @@ def main() -> int:
         return 1
 
     max_workers = min(10, max(1, len(pin_ids)))
-    print(f"Unlinking {len(pin_ids)} PINs from Confluence page {page_id} (concurrent, max_workers={max_workers})", file=sys.stderr)
 
     def unlink_one(key: str) -> tuple[str, bool, str]:
         try:
@@ -86,18 +90,48 @@ def main() -> int:
 
     ok = 0
     err = 0
+    no_link = 0
+    details: list[dict[str, str]] = []
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(unlink_one, key): key for key in pin_ids}
         for fut in as_completed(futures):
             key, deleted, msg = fut.result()
             if deleted:
-                print(f"Unlinked {key} from page {page_id}")
                 ok += 1
+                details.append({"key": key, "status": "unlinked"})
             elif msg:
-                print(f"Warning: {key}: {msg}", file=sys.stderr)
                 err += 1
+                details.append({"key": key, "status": "error", "message": msg})
+            else:
+                no_link += 1
+                details.append({"key": key, "status": "no_link"})
 
-    print(f"Done: {ok} unlinked, {len(pin_ids) - ok - err} had no link, {err} errors.", file=sys.stderr)
+    summary = {
+        "ok": err == 0,
+        "page_id": str(page_id),
+        "total": len(pin_ids),
+        "unlinked": ok,
+        "no_link": no_link,
+        "errors": err,
+        "details": details,
+    }
+    output_path = None
+    if args.output_file:
+        output_path = Path(args.output_file)
+        if not output_path.is_absolute():
+            output_path = REPO_ROOT / output_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    if output_path:
+        print(
+            "DONE unlink_pins_from_latest_page "
+            f"page_id={page_id} unlinked={ok} no_link={no_link} errors={err} output={output_path}"
+        )
+    else:
+        print(
+            "DONE unlink_pins_from_latest_page "
+            f"page_id={page_id} unlinked={ok} no_link={no_link} errors={err}"
+        )
     return 0 if err == 0 else 1
 
 

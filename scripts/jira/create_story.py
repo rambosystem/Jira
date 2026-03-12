@@ -29,6 +29,20 @@ from scripts.common.ticket_config import (
 from scripts.common.ticket_policy import load_issue_field_mapping
 
 ENV_PATH = REPO_ROOT / ".env"
+def _resolve_output_path(output_file: str) -> Path | None:
+    if not output_file:
+        return None
+    out_path = Path(output_file)
+    if not out_path.is_absolute():
+        out_path = REPO_ROOT / out_path
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    return out_path
+
+
+def _write_output(path: Path | None, payload: dict[str, Any]) -> None:
+    if path is None:
+        return
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _current_quarter_tag() -> str:
@@ -193,6 +207,11 @@ def run() -> int:
         help="PIN issue keys to link after create, comma-separated allowed, e.g. PIN-2712,PIN-2805",
     )
     parser.add_argument("--dry-run", action="store_true", help="Only run preflight and print payload")
+    parser.add_argument(
+        "--output-file",
+        default="",
+        help="Optional: write full result JSON to file.",
+    )
     args = parser.parse_args()
 
     try:
@@ -268,8 +287,13 @@ def run() -> int:
     }
 
     if duplicates and not args.allow_duplicate:
-        print(json.dumps({"preflight": preflight, "blocked": "duplicate_detected"}, ensure_ascii=False, indent=2))
-        print("Hint: pass --allow-duplicate to continue.", file=sys.stderr)
+        out = {"preflight": preflight, "blocked": "duplicate_detected", "hint": "pass --allow-duplicate to continue"}
+        out_path = _resolve_output_path(args.output_file)
+        _write_output(out_path, out)
+        if out_path:
+            print(f"DONE create_story blocked=duplicate_detected output={out_path}")
+        else:
+            print("DONE create_story blocked=duplicate_detected")
         return 2
 
     if args.dry_run:
@@ -280,7 +304,12 @@ def run() -> int:
                 "inward_issue": "(new issue key after create)",
                 "outward_issues": link_pins,
             }
-        print(json.dumps(dry, ensure_ascii=False, indent=2))
+        out_path = _resolve_output_path(args.output_file)
+        _write_output(out_path, dry)
+        if out_path:
+            print(f"DONE create_story dry_run=true output={out_path}")
+        else:
+            print("DONE create_story dry_run=true")
         return 0
 
     try:
@@ -293,39 +322,42 @@ def run() -> int:
         )
     except HTTPError as exc:
         body = exc.read().decode("utf-8") if exc.fp else ""
-        print(
-            json.dumps(
-                {
-                    "preflight": preflight,
-                    "payload": {"fields": fields},
-                    "error_code": exc.code,
-                    "error_body": body,
-                },
-                ensure_ascii=False,
-                indent=2,
-            ),
-            file=sys.stderr,
-        )
+        out = {
+            "preflight": preflight,
+            "payload": {"fields": fields},
+            "error_code": exc.code,
+            "error_body": body,
+        }
+        out_path = _resolve_output_path(args.output_file)
+        _write_output(out_path, out)
+        if out_path:
+            print(f"Error: create_story create_failed code={exc.code} output={out_path}", file=sys.stderr)
+        else:
+            print(f"Error: create_story create_failed code={exc.code}", file=sys.stderr)
         return 1
     except URLError as exc:
-        print(
-            json.dumps(
-                {
-                    "preflight": preflight,
-                    "payload": {"fields": fields},
-                    "error": f"create failed (network): {exc}",
-                },
-                ensure_ascii=False,
-                indent=2,
-            ),
-            file=sys.stderr,
-        )
+        out = {
+            "preflight": preflight,
+            "payload": {"fields": fields},
+            "error": f"create failed (network): {exc}",
+        }
+        out_path = _resolve_output_path(args.output_file)
+        _write_output(out_path, out)
+        if out_path:
+            print(f"Error: create_story create_failed_network output={out_path}", file=sys.stderr)
+        else:
+            print("Error: create_story create_failed_network", file=sys.stderr)
         return 1
 
     issue_key = created.get("key", "")
     if not issue_key:
-        print(json.dumps({"preflight": preflight, "created": created}, ensure_ascii=False, indent=2))
-        print("Error: Jira create response has no issue key.", file=sys.stderr)
+        out = {"preflight": preflight, "created": created, "error": "Jira create response has no issue key."}
+        out_path = _resolve_output_path(args.output_file)
+        _write_output(out_path, out)
+        if out_path:
+            print(f"Error: create_story missing_issue_key output={out_path}", file=sys.stderr)
+        else:
+            print("Error: create_story missing_issue_key", file=sys.stderr)
         return 1
 
     try:
@@ -348,31 +380,31 @@ def run() -> int:
         )
     except HTTPError as exc:
         body = exc.read().decode("utf-8") if exc.fp else ""
-        print(
-            json.dumps(
-                {
-                    "preflight": preflight,
-                    "created": created,
-                    "post_check_error_code": exc.code,
-                    "post_check_error_body": body,
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        out = {
+            "preflight": preflight,
+            "created": created,
+            "post_check_error_code": exc.code,
+            "post_check_error_body": body,
+        }
+        out_path = _resolve_output_path(args.output_file)
+        _write_output(out_path, out)
+        if out_path:
+            print(f"Error: create_story post_check_failed code={exc.code} output={out_path}", file=sys.stderr)
+        else:
+            print(f"Error: create_story post_check_failed code={exc.code}", file=sys.stderr)
         return 1
     except URLError as exc:
-        print(
-            json.dumps(
-                {
-                    "preflight": preflight,
-                    "created": created,
-                    "post_check_error": f"network error: {exc}",
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        out = {
+            "preflight": preflight,
+            "created": created,
+            "post_check_error": f"network error: {exc}",
+        }
+        out_path = _resolve_output_path(args.output_file)
+        _write_output(out_path, out)
+        if out_path:
+            print(f"Error: create_story post_check_failed_network output={out_path}", file=sys.stderr)
+        else:
+            print("Error: create_story post_check_failed_network", file=sys.stderr)
         return 1
 
     out = {
@@ -437,10 +469,20 @@ def run() -> int:
                 has_failures = True
         out["pin_links"] = link_results
         if has_failures:
-            print(json.dumps(out, ensure_ascii=False, indent=2))
+            out_path = _resolve_output_path(args.output_file)
+            _write_output(out_path, out)
+            if out_path:
+                print(f"Error: create succeeded but pin link failed. output={out_path}", file=sys.stderr)
+            else:
+                print("Error: create succeeded but pin link failed.", file=sys.stderr)
             return 1
 
-    print(json.dumps(out, ensure_ascii=False, indent=2))
+    out_path = _resolve_output_path(args.output_file)
+    _write_output(out_path, out)
+    if out_path:
+        print(f"DONE create_story key={issue_key} output={out_path}")
+    else:
+        print(f"DONE create_story key={issue_key}")
     return 0
 
 

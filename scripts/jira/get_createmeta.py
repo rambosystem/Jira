@@ -12,10 +12,12 @@ Calls:
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
 from pathlib import Path
+from urllib.error import URLError
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
@@ -43,23 +45,41 @@ def _get(base_url: str, auth: str, path: str) -> dict | list:
     )
 
 
-def main() -> None:
+def main() -> int:
     load_dotenv(ENV_PATH)
+    parser = argparse.ArgumentParser(description="Fetch Jira createmeta and write result to JSON file.")
+    parser.add_argument("project_key", nargs="?", default="PACID")
+    parser.add_argument("--options", "-o", action="store_true", help="Include allowedValues for option fields.")
+    parser.add_argument(
+        "--json",
+        dest="json_issue_type",
+        default="",
+        help="Also include raw createmeta for specified issue type name.",
+    )
+    parser.add_argument(
+        "--output-file",
+        default="",
+        help="Optional: write full result JSON to file.",
+    )
+    args = parser.parse_args()
+
     profile = load_atlassian_profile(PROFILE_PATH)
     base_url = profile["base_url"]
     email = profile["email"]
     token = os.environ.get("ATLASSIAN_API_TOKEN", "").strip()
     if not token:
         print("Error: ATLASSIAN_API_TOKEN not set in .env", file=sys.stderr)
-        sys.exit(1)
+        return 1
     auth = basic_auth(email, token)
-    args = [a for a in sys.argv[1:] if a.strip()]
-    with_options = "--options" in args or "-o" in args
-    project_key = next((a for a in args if not a.startswith("-")), "PACID").strip()
+    with_options = args.options
+    project_key = args.project_key.strip()
 
-    # 1) List issue types for project
     path_itypes = f"/issue/createmeta/{project_key}/issuetypes"
-    itypes_data = _get(base_url, auth, path_itypes)
+    try:
+        itypes_data = _get(base_url, auth, path_itypes)
+    except URLError as exc:
+        print(f"Error: network request failed: {exc}", file=sys.stderr)
+        return 1
     if isinstance(itypes_data, dict) and "issueTypes" in itypes_data:
         itypes = itypes_data["issueTypes"]
     elif isinstance(itypes_data, dict) and "values" in itypes_data:
@@ -67,15 +87,27 @@ def main() -> None:
     elif isinstance(itypes_data, list):
         itypes = itypes_data
     else:
-        print("Unexpected issue types response:", json.dumps(itypes_data, indent=2)[:500], file=sys.stderr)
-        sys.exit(1)
+        print(
+            "Error: unexpected issue types response: "
+            + json.dumps(itypes_data, ensure_ascii=False)[:300],
+            file=sys.stderr,
+        )
+        return 1
 
     if not itypes:
-        print(f"No issue types for project {project_key}.", file=sys.stderr)
-        sys.exit(0)
+        result = {"ok": True, "project": project_key, "issue_types": [], "items": []}
+        if args.output_file:
+            out = Path(args.output_file)
+            if not out.is_absolute():
+                out = REPO_ROOT / out
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"DONE get_createmeta project={project_key} issue_types=0 output={out}")
+        else:
+            print(f"DONE get_createmeta project={project_key} issue_types=0")
+        return 0
 
-    print(f"Project: {project_key}")
-    print(f"Issue types: {[t.get('name') for t in itypes]}\n")
+    items: list[dict] = []
 
     for it in itypes:
         it_id = it.get("id")
@@ -83,7 +115,11 @@ def main() -> None:
         if it_id is None:
             continue
         path_fields = f"/issue/createmeta/{project_key}/issuetypes/{it_id}"
-        fields_data = _get(base_url, auth, path_fields)
+        try:
+            fields_data = _get(base_url, auth, path_fields)
+        except URLError as exc:
+            print(f"Error: network request failed: {exc}", file=sys.stderr)
+            return 1
         if isinstance(fields_data, dict) and "values" in fields_data:
             fields_page = fields_data["values"]
         elif isinstance(fields_data, dict) and "fields" in fields_data:
@@ -96,35 +132,58 @@ def main() -> None:
         required = [f for f in fields_page if f.get("required")]
         optional = [f for f in fields_page if not f.get("required")]
 
-        def _fmt_field(f: dict, show_options: bool) -> str:
+        def _field_obj(f: dict, show_options: bool) -> dict:
             key = f.get("key") or f.get("fieldId") or "?"
             name = f.get("name", key)
             schema = f.get("schema", {})
             schema_type = schema.get("type", "")
-            line = f"  - {name} (key={key}, type={schema_type})"
+            obj = {"name": name, "key": key, "type": schema_type}
             if show_options and f.get("allowedValues"):
-                vals = [str(o.get("value") or o.get("name") or o.get("id", "")) for o in f["allowedValues"]]
-                line += f"\n      options: {vals}"
-            return line
+                obj["options"] = [str(o.get("value") or o.get("name") or o.get("id", "")) for o in f["allowedValues"]]
+            return obj
 
-        print(f"--- {it_name} (id={it_id}) ---")
-        print("Required fields:")
-        for f in required:
-            print(_fmt_field(f, with_options))
-        print("Optional fields:")
-        for f in optional:
-            print(_fmt_field(f, with_options))
-        print()
+        items.append(
+            {
+                "issue_type_id": str(it_id),
+                "issue_type": it_name,
+                "required_fields": [_field_obj(f, with_options) for f in required],
+                "optional_fields": [_field_obj(f, with_options) for f in optional],
+            }
+        )
 
-    # Optional: dump raw JSON for one issue type (e.g. Idea)
-    if "--json" in args:
-        it_name_arg = next((args[i + 1] for i, a in enumerate(args) if a == "--json" and i + 1 < len(args) and not args[i + 1].startswith("-")), "Idea")
+    raw_issue_type_data = None
+    if args.json_issue_type:
+        it_name_arg = args.json_issue_type
         for it in itypes:
             if it.get("name") == it_name_arg:
                 path_fields = f"/issue/createmeta/{project_key}/issuetypes/{it.get('id')}"
-                print(json.dumps(_get(base_url, auth, path_fields), indent=2))
+                try:
+                    raw_issue_type_data = _get(base_url, auth, path_fields)
+                except URLError as exc:
+                    print(f"Error: network request failed: {exc}", file=sys.stderr)
+                    return 1
                 break
+
+    result = {
+        "ok": True,
+        "project": project_key,
+        "issue_types": [t.get("name") for t in itypes],
+        "items": items,
+    }
+    if raw_issue_type_data is not None:
+        result["raw_issue_type_data"] = raw_issue_type_data
+
+    if args.output_file:
+        out = Path(args.output_file)
+        if not out.is_absolute():
+            out = REPO_ROOT / out
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"DONE get_createmeta project={project_key} issue_types={len(itypes)} output={out}")
+    else:
+        print(f"DONE get_createmeta project={project_key} issue_types={len(itypes)}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
