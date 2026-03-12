@@ -12,36 +12,25 @@ Flow:
 from __future__ import annotations
 
 import argparse
-import base64
 import json
 import os
 import re
-import ssl
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
-
-# Use certifi CA bundle so HTTPS works on macOS (Python.org installs often miss system certs).
-# Set PIN_REPORT_INSECURE_SSL=1 only for local testing to skip verification.
-def _ssl_context() -> ssl.SSLContext:
-    if os.environ.get("PIN_REPORT_INSECURE_SSL") == "1":
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        return ctx
-    ctx = ssl.create_default_context()
-    try:
-        import certifi
-        ctx.load_verify_locations(certifi.where())
-    except ImportError:
-        pass
-    return ctx
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.common.atlassian import basic_auth, jira_api_v3_url
+from scripts.common.env import load_dotenv
+from scripts.common.http import request_json
+from scripts.common.profile import load_atlassian_profile
+
 PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
 ENV_PATH = REPO_ROOT / ".env"
 
@@ -50,37 +39,11 @@ DEFAULT_LLM_BASE_URL = "https://api.deepseek.com/"
 DEFAULT_STATUSES = ("Backlog", "Ready for Technical Review")
 DEFAULT_FIELDS = ("key", "summary", "status", "priority", "created", "description")
 
-
-def load_dotenv() -> None:
-    if not ENV_PATH.is_file():
-        return
-    for raw in ENV_PATH.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, _, v = line.partition("=")
-        key = k.strip()
-        value = v.strip().strip("'\"").strip()
-        if key:
-            os.environ.setdefault(key, value)
-    if "EMAIL" in os.environ and "CONFLUENCE_EMAIL" not in os.environ:
-        os.environ.setdefault("CONFLUENCE_EMAIL", os.environ["EMAIL"])
-
-
-def profile_value(profile_text: str, key: str) -> str:
-    match = re.search(rf"^\s*{re.escape(key)}\s*:\s*[\"']?([^\"'#\n]+)[\"']?\s*(?:#|$)", profile_text, re.MULTILINE)
-    if match:
-        return match.group(1).strip().strip('"').strip("'")
-    return ""
-
-
 def load_profile() -> dict[str, str]:
-    if not PROFILE_PATH.is_file():
-        raise RuntimeError(f"Profile not found: {PROFILE_PATH}")
-    text = PROFILE_PATH.read_text(encoding="utf-8")
-    account_id = profile_value(text, "account_id")
-    email = profile_value(text, "email") or os.environ.get("CONFLUENCE_EMAIL", "")
-    confluence_base_url = profile_value(text, "confluence_base_url")
+    profile = load_atlassian_profile(PROFILE_PATH)
+    account_id = profile["account_id"]
+    email = profile["email"]
+    confluence_base_url = profile["base_url"]
     jira_base_url = confluence_base_url or ""
     if not jira_base_url:
         raise RuntimeError("Cannot resolve Jira base URL from profile (confluence_base_url).")
@@ -95,17 +58,19 @@ def load_profile() -> dict[str, str]:
 
 def jira_request(base_url: str, auth: str, jql: str, fields: list[str], limit: int = 100) -> dict[str, Any]:
     # Use /rest/api/3/search/jql (old /rest/api/3/search returns 410 Gone)
-    url = f"{base_url.rstrip('/')}/rest/api/3/search/jql"
+    url = jira_api_v3_url(base_url, "/search/jql")
     payload = {"jql": jql, "maxResults": limit, "fields": list(fields)}
-    body = json.dumps(payload).encode("utf-8")
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": f"Basic {auth}",
-    }
-    req = Request(url, data=body, headers=headers, method="POST")
-    with urlopen(req, context=_ssl_context()) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    return request_json(
+        url,
+        method="POST",
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": f"Basic {auth}",
+        },
+        data=payload,
+        insecure_env_var="PIN_REPORT_INSECURE_SSL",
+    )
 
 
 def parse_pin_ids(raw: str) -> list[str]:
@@ -168,18 +133,13 @@ def openai_chat_completion(
         ],
         "response_format": {"type": "json_object"},
     }
-    body = json.dumps(payload).encode("utf-8")
-    req = Request(
+    data = request_json(
         url,
-        data=body,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
         method="POST",
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        data=payload,
+        insecure_env_var="PIN_REPORT_INSECURE_SSL",
     )
-    with urlopen(req, context=_ssl_context()) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
     choices = data.get("choices") or []
     if not choices:
         raise RuntimeError("LLM response has no choices.")
@@ -249,7 +209,7 @@ def build_pin_block(issue_key: str, base_url: str, digest: dict[str, str]) -> li
 
 
 def run() -> int:
-    load_dotenv()
+    load_dotenv(ENV_PATH)
     parser = argparse.ArgumentParser(description="Generate Request PIN Report ADF JSON via concurrent LLM analysis.")
     parser.add_argument("--pin-ids", default="", help="Comma/space separated PIN IDs, e.g. 'PIN-1,PIN-2'")
     parser.add_argument("--latest", type=int, default=0, help="If --pin-ids empty, fetch latest N unprocessed PIN requests")
@@ -320,7 +280,7 @@ def run() -> int:
         print("Error: profile email is required for Jira auth.", file=sys.stderr)
         return 1
 
-    jira_auth = base64.b64encode(f'{profile["email"]}:{token}'.encode("utf-8")).decode("utf-8")
+    jira_auth = basic_auth(profile["email"], token)
     try:
         pin_ids = resolve_pin_ids(args, profile, jira_auth)
     except HTTPError as exc:

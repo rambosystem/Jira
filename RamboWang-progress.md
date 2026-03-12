@@ -15,7 +15,7 @@
 
 - **查询**：JQL `project = PIN AND assignee = me AND status IN (Backlog, Ready for Technical Review)`，limit 50，得到 50 条工单。
 - **报告**：按 request-pin-report 流程逐条 jira_search 拉取 description，生成 50 个 Request PIN Report 块（blockCard + 需求要点 + 四要点），合并为 ADF 写入 `report_adf.json`。
-- **发布**：`Scriptsconfluence/confluence_create_page.py --title "2026-03-11 Processed" --body-file report_adf.json`，新建 Confluence 页面并发布。
+- **发布**：`scripts/confluence/confluence_create_page.py --title "2026-03-11 Processed" --body-file report_adf.json`，新建 Confluence 页面并发布。
 
 ## 2026-03-11 — request-pin-report 逐条处理 + Todo
 
@@ -36,5 +36,5 @@
 
 ## 2026-03-11 — Confluence ADF blockCard 创建脚本（历史）
 
-- **实现**: `Scriptsconfluence/confluence_create_page.py`（Python）；profile 固化 confluence\_\*；先查后建/追加。
+- **实现**: `scripts/confluence/confluence_create_page.py`（Python）；profile 固化 confluence\_\*；先查后建/追加。
 - **认证**: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN（环境变量或 .env）。
