@@ -252,15 +252,22 @@ def run() -> int:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
+    duplicate_check_error = ""
     try:
         duplicates = _search_duplicates(profile["base_url"], auth, args.project, args.issue_type, args.summary)
     except HTTPError as exc:
         body = exc.read().decode("utf-8") if exc.fp else ""
-        print(f"Error: duplicate preflight failed ({exc.code}): {body}", file=sys.stderr)
-        return 1
+        duplicate_check_error = f"duplicate preflight failed ({exc.code}): {body}"
+        if not args.dry_run:
+            print(f"Error: {duplicate_check_error}", file=sys.stderr)
+            return 1
+        duplicates = []
     except URLError as exc:
-        print(f"Error: duplicate preflight failed (network): {exc}", file=sys.stderr)
-        return 1
+        duplicate_check_error = f"duplicate preflight failed (network): {exc}"
+        if not args.dry_run:
+            print(f"Error: {duplicate_check_error}", file=sys.stderr)
+            return 1
+        duplicates = []
 
     auto_parent_key = ""
     if not args.parent:
@@ -285,6 +292,8 @@ def run() -> int:
         "duplicate_count": len(duplicates),
         "duplicates": duplicate_brief,
     }
+    if duplicate_check_error:
+        preflight["duplicate_check_error"] = duplicate_check_error
 
     if duplicates and not args.allow_duplicate:
         out = {"preflight": preflight, "blocked": "duplicate_detected", "hint": "pass --allow-duplicate to continue"}
@@ -309,7 +318,7 @@ def run() -> int:
         if out_path:
             print(f"DONE create_story dry_run=true output={out_path}")
         else:
-            print("DONE create_story dry_run=true")
+            print(json.dumps(dry, ensure_ascii=False, indent=2))
         return 0
 
     try:

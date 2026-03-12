@@ -106,7 +106,7 @@ def run() -> int:
             out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
             print(f"DONE query_issues dry_run=true output={out}")
         else:
-            print("DONE query_issues dry_run=true")
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
     try:
