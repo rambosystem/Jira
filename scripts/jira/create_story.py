@@ -316,9 +316,11 @@ def run() -> int:
         out_path = _resolve_output_path(args.output_file)
         _write_output(out_path, dry)
         if out_path:
+            print(json.dumps(dry, ensure_ascii=False, indent=2))
             print(f"DONE create_story dry_run=true output={out_path}")
         else:
             print(json.dumps(dry, ensure_ascii=False, indent=2))
+            print("DONE create_story dry_run=true")
         return 0
 
     try:

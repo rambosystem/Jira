@@ -104,9 +104,11 @@ def run() -> int:
                 out = REPO_ROOT / out
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
             print(f"DONE query_issues dry_run=true output={out}")
         else:
             print(json.dumps(payload, ensure_ascii=False, indent=2))
+            print("DONE query_issues dry_run=true")
         return 0
 
     try:
