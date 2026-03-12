@@ -11,7 +11,7 @@ description: 查询 PIN 项目中分配给当前用户（profile 中 me.account_
 
 ## Workflow
 
-1. **Assignee**：从 `Assets/Global/profile.yaml` 读取 `me.account_id`，用于 JQL。
+1. **Assignee**：从 `assets/global/profile.yaml` 读取 `me.account_id`，用于 JQL。
 2. **JQL**：
    ```
    project = PIN AND assignee in ("<me.account_id>") AND status IN ("Backlog", "Ready for Technical Review") ORDER BY priority DESC, created DESC

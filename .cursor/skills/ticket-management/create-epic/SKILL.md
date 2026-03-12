@@ -11,11 +11,11 @@ Create Jira **Epic** tickets using workspace config and **Epic-only** field stru
 
 ## Config (read first)
 
-- `Jira/Assets/Global/profile.yaml`: `me.default_project` when project not specified.
+- `Jira/assets/global/profile.yaml`: `me.default_project` when project not specified.
 - `Jira/assets/<project>/team.yaml`: `workspace.project.key`, `workspace.ownership.components`, `team.members`, `team.external_members`, `ticketing.supported_work_types`, `ticketing.defaults.assignee_by_work_type.Epic`, `ticketing.defaults.client_id`.
-- **Structure**: `Jira/Policy/<project>/issue-structures/epic.yaml` — required_fields, optional_fields, field_options, field_defaults.
-- `Jira/Policy/<project>/ticket-naming.yaml`: `naming.Epic` for title format.
-- `Jira/Assets/Global/epic-list.yaml`: conventions and recent_epics (for duplicate check).
+- **Structure**: `Jira/policy/<project>/issue-structures/epic.yaml` — required_fields, optional_fields, field_options, field_defaults.
+- `Jira/policy/<project>/ticket-naming.yaml`: `naming.Epic` for title format.
+- `Jira/assets/global/epic-list.yaml`: conventions and recent_epics (for duplicate check).
 - `Jira/assets/global/label-list.yaml`: roadmap and `recent_labels`.
 
 ## MCP 工具链

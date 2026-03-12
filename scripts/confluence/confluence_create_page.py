@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Create or update a Confluence page with ADF body via REST API v2.
-Reads confluence_* from Assets/Global/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
+Reads confluence_* from assetsglobal/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
 
 Flow: Look up page by title → if exists, append (merge ADF) and PUT; else POST new page.
 Body from: --body-stdin, --body-file (relative path → repo tmp/), --body-json, --jira-url.
@@ -13,88 +13,35 @@ remotelink to this Confluence page is removed after publish. Use --no-unlink to 
 
 Usage:
   set ATLASSIAN_API_TOKEN=your_token
-  python scripts/confluence_create_page.py --title "My Page" --body-file pin_report_adf.json
-  python scripts/confluence_create_page.py -t "My Page" --body-file pin_report_adf.json --no-unlink
+  python scripts/confluence/confluence_create_page.py --title "My Page" --body-file pin_report_adf.json
+  python scripts/confluence/confluence_create_page.py -t "My Page" --body-file pin_report_adf.json --no-unlink
 """
 
 import argparse
-import base64
 import json
 import os
 import re
-import ssl
 import sys
 from pathlib import Path
 from typing import Any, Optional
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
 from urllib.parse import quote
 
 
-def _ssl_context() -> ssl.SSLContext:
-    """Use certifi CA bundle so HTTPS works on macOS (Python.org installs often miss system certs)."""
-    if os.environ.get("CONFLUENCE_INSECURE_SSL") == "1":
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        return ctx
-    ctx = ssl.create_default_context()
-    try:
-        import certifi
-        ctx.load_verify_locations(certifi.where())
-    except ImportError:
-        pass
-    return ctx
-
-
 SCRIPT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCRIPT_DIR.parent
+REPO_ROOT = SCRIPT_DIR.parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from scripts.common.atlassian import basic_auth, confluence_api_v2_url
+from scripts.common.env import load_dotenv
+from scripts.common.http import request_json
+from scripts.common.jira_remotelinks import delete_remotelink_for_confluence_page
+from scripts.common.profile import load_atlassian_profile
+
 TMP_DIR = REPO_ROOT / "tmp"
 PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
 ENV_PATH = REPO_ROOT / ".env"
-
-
-def load_dotenv() -> None:
-    if not ENV_PATH.is_file():
-        return
-    for line in ENV_PATH.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, _, v = line.partition("=")
-        k, v = k.strip(), v.strip().strip("'\"").strip()
-        if k:
-            os.environ.setdefault(k, v)
-    if "EMAIL" in os.environ and "CONFLUENCE_EMAIL" not in os.environ:
-        os.environ.setdefault("CONFLUENCE_EMAIL", os.environ["EMAIL"])
-
-
-def load_profile() -> dict:
-    if not PROFILE_PATH.is_file():
-        print(f"Error: Profile not found: {PROFILE_PATH}", file=sys.stderr)
-        sys.exit(1)
-    text = PROFILE_PATH.read_text(encoding="utf-8")
-
-    def get(key: str) -> Optional[str]:
-        m = re.search(rf"^\s*{re.escape(key)}\s*:\s*[\"']?([^\"'#\n]+)[\"']?\s*(?:#|$)", text, re.MULTILINE)
-        if m:
-            return m.group(1).strip().strip('"').strip("'")
-        m = re.search(rf"^\s*{re.escape(key)}\s*:\s*\"([^\"]+)\"", text, re.MULTILINE)
-        return m.group(1) if m else None
-
-    base_url = get("confluence_base_url")
-    space_id = get("confluence_space_id")
-    parent_id = get("confluence_parent_id")
-    email = get("email") or os.environ.get("CONFLUENCE_EMAIL", "")
-    if not all([base_url, space_id, parent_id]):
-        print("Error: Profile must set confluence_base_url, confluence_space_id, confluence_parent_id.", file=sys.stderr)
-        sys.exit(1)
-    return {
-        "confluence_base_url": base_url.rstrip("/"),
-        "confluence_space_id": space_id,
-        "confluence_parent_id": parent_id,
-        "email": email or os.environ.get("CONFLUENCE_EMAIL", ""),
-    }
 
 
 def api_request(
@@ -104,13 +51,17 @@ def api_request(
     path: str,
     data: Optional[dict] = None,
 ) -> dict:
-    url = f"{base_url}/wiki/api/v2{path}"
+    url = confluence_api_v2_url(base_url, path)
     headers = {"Accept": "application/json", "Authorization": f"Basic {auth}"}
     if data is not None:
         headers["Content-Type"] = "application/json"
-    req = Request(url, data=json.dumps(data).encode("utf-8") if data else None, method=method, headers=headers)
-    with urlopen(req, context=_ssl_context()) as resp:
-        return json.loads(resp.read().decode())
+    return request_json(
+        url,
+        method=method,
+        headers=headers,
+        data=data,
+        insecure_env_var="CONFLUENCE_INSECURE_SSL",
+    )
 
 
 def find_page_by_title(base_url: str, auth: str, space_id: str, title: str) -> Optional[dict]:
@@ -188,7 +139,7 @@ def build_adf_from_args(args: argparse.Namespace, tmp_dir: Path) -> str:
 
 
 def main() -> None:
-    load_dotenv()
+    load_dotenv(ENV_PATH)
     parser = argparse.ArgumentParser(description="Create or append Confluence page (ADF) via REST API v2")
     parser.add_argument("--title", "-t", required=True, help="Page title")
     parser.add_argument("--jira-url", "-j", default="", help="Jira issue URL for blockCard (optional)")
@@ -212,16 +163,23 @@ def main() -> None:
         print("Error: Set ATLASSIAN_API_TOKEN.", file=sys.stderr)
         sys.exit(1)
 
-    profile = load_profile()
-    base_url = profile["confluence_base_url"]
-    space_id = profile["confluence_space_id"]
-    parent_id = profile["confluence_parent_id"]
+    try:
+        profile = load_atlassian_profile(PROFILE_PATH)
+    except RuntimeError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+    base_url = profile["base_url"]
+    space_id = profile["space_id"]
+    parent_id = profile["parent_id"]
     email = profile["email"]
+    if not all([base_url, space_id, parent_id]):
+        print("Error: Profile must set confluence_base_url, confluence_space_id, confluence_parent_id.", file=sys.stderr)
+        sys.exit(1)
     if not email:
         print("Error: Set CONFLUENCE_EMAIL or me.email in profile.", file=sys.stderr)
         sys.exit(1)
 
-    auth = base64.b64encode(f"{email}:{token}".encode()).decode()
+    auth = basic_auth(email, token)
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     new_adf_raw = build_adf_from_args(args, TMP_DIR)
     new_adf = json.loads(new_adf_raw) if isinstance(new_adf_raw, str) else new_adf_raw
@@ -288,13 +246,9 @@ def main() -> None:
     if page_id and unlink_list:
         issue_keys = [k.strip() for k in unlink_list.split(",") if k.strip()]
         if issue_keys:
-            sys.path.insert(0, str(SCRIPT_DIR))
-            import delete_issue_remotelink as del_remotelink
             for key in issue_keys:
                 try:
-                    deleted = del_remotelink.delete_remotelink_for_confluence_page(
-                        base_url, auth, key, str(page_id)
-                    )
+                    deleted = delete_remotelink_for_confluence_page(base_url, auth, key, str(page_id))
                     if deleted:
                         print(f"Unlinked {key} from this page (remotelink removed).")
                 except Exception as e:
