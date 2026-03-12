@@ -7,8 +7,8 @@ Jira API: GET /rest/api/3/issue/{key}/remotelink, then
           DELETE /rest/api/3/issue/{key}/remotelink?globalId={urlencoded(globalId)}
 
 Usage:
-  python scripts/delete_issue_remotelink.py --issue PIN-2805 --confluence-page-id 1261699359
-  python scripts/delete_issue_remotelink.py -i PIN-2805 -p 1261699359
+  python Scriptsjira/delete_issue_remotelink.py --issue PIN-2805 --confluence-page-id 1261699359
+  python Scriptsjira/delete_issue_remotelink.py -i PIN-2805 -p 1261699359
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCRIPT_DIR.parent
+REPO_ROOT = SCRIPT_DIR.parents[1]
 PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
 ENV_PATH = REPO_ROOT / ".env"
 

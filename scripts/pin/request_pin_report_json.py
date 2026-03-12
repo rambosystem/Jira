@@ -41,7 +41,7 @@ def _ssl_context() -> ssl.SSLContext:
     return ctx
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCRIPT_DIR.parent
+REPO_ROOT = SCRIPT_DIR.parents[1]
 PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
 ENV_PATH = REPO_ROOT / ".env"
 

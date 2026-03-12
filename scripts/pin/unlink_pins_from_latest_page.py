@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Unlink all PINs in tmp/pin_analysis.json from the Confluence page saved in tmp/confluence_page_latest.json.
-Uses the page_id written by confluence_create_page.py so no manual ID is needed.
+Uses the page_id written by Scriptsconfluence/confluence_create_page.py so no manual ID is needed.
 
 Usage:
-  python scripts/unlink_pins_from_latest_page.py
+  python Scriptspin/unlink_pins_from_latest_page.py
 """
 from __future__ import annotations
 
@@ -15,19 +15,19 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCRIPT_DIR.parent
+REPO_ROOT = SCRIPT_DIR.parents[1]
 TMP_DIR = REPO_ROOT / "tmp"
 PAGE_INFO_FILE = TMP_DIR / "confluence_page_latest.json"
 PIN_ANALYSIS_FILE = TMP_DIR / "pin_analysis.json"
-DELETE_SCRIPT = SCRIPT_DIR / "delete_issue_remotelink.py"
+DELETE_SCRIPT = REPO_ROOT / "scripts" / "jira" / "delete_issue_remotelink.py"
 
 
 def main() -> int:
     if not PAGE_INFO_FILE.is_file():
-        print(f"Error: {PAGE_INFO_FILE} not found. Publish a Confluence page first (confluence_create_page.py).", file=sys.stderr)
+        print(f"Error: {PAGE_INFO_FILE} not found. Publish a Confluence page first (Scriptsconfluence/confluence_create_page.py).", file=sys.stderr)
         return 1
     if not PIN_ANALYSIS_FILE.is_file():
-        print(f"Error: {PIN_ANALYSIS_FILE} not found. Generate a PIN report first (request_pin_report_json.py).", file=sys.stderr)
+        print(f"Error: {PIN_ANALYSIS_FILE} not found. Generate a PIN report first (Scriptspin/request_pin_report_json.py).", file=sys.stderr)
         return 1
 
     page_info = json.loads(PAGE_INFO_FILE.read_text(encoding="utf-8"))
