@@ -109,8 +109,14 @@ if [[ "$PARSED" == ERR* ]]; then
 fi
 
 IFS='|' read -r _ CONFLUENCE_BASE_URL CONFLUENCE_SPACE_KEY CONFLUENCE_PARENT_ID <<< "$PARSED"
+CONFLUENCE_SPACE_KEY_ENCODED="$(python3 - "$CONFLUENCE_SPACE_KEY" <<'PY'
+import sys
+from urllib.parse import quote
+print(quote(sys.argv[1], safe=""))
+PY
+)"
 
-AUTH_B64="$(printf '%s' "${EMAIL}:${ATLASSIAN_API_TOKEN}" | base64)"
+AUTH_B64="$(printf '%s' "${EMAIL}:${ATLASSIAN_API_TOKEN}" | base64 | tr -d '\n')"
 
 MYSELF_JSON="$(curl -fsS \
   -H "Accept: application/json" \
@@ -132,7 +138,7 @@ require_non_empty "account_id (from /rest/api/3/myself)" "$ACCOUNT_ID"
 SPACE_JSON="$(curl -fsS \
   -H "Accept: application/json" \
   -H "Authorization: Basic $AUTH_B64" \
-  "$CONFLUENCE_BASE_URL/wiki/api/v2/spaces?keys=$CONFLUENCE_SPACE_KEY&limit=1")"
+  "$CONFLUENCE_BASE_URL/wiki/api/v2/spaces?keys=$CONFLUENCE_SPACE_KEY_ENCODED&limit=1")"
 
 CONFLUENCE_SPACE_ID="$(python3 - "$SPACE_JSON" <<'PY'
 import json
