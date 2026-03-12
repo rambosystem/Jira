@@ -3,6 +3,7 @@
 创建与校验 Story、Technical Story、Epic 时用到的 Jira/Atlassian MCP 工具。实际工具名以当前启用的 MCP server（如 user-mcp-atlassian）提供的为准；若与下表不同，请以 MCP 描述为准并在此文档中维护对应关系。
 
 > 执行优先级：当可用时，先用脚本 `scripts/jira/create_story.py`（含 preflight + create + post-check）；MCP 表用于脚本不可用时的 fallback 或补充操作。
+> 查询执行优先级：先用 `scripts/jira/query_issues.py`（preset 或 `--jql`），仅脚本不可用时再用 `jira_search`。
 
 - **Confluence 页面创建/更新、搜索、附件等**：见 **`skills/confluence-management/MCP-tools.md`**。
 

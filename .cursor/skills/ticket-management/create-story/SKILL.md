@@ -24,6 +24,7 @@ Create Jira **Story** tickets using workspace config and **Story-only** field st
 - **优先使用脚本**：`scripts/jira/create_story.py`
   - 已包含：重复检查、Parent 自动解析、required fields 拼接、创建、创建后校验、可选 PIN 关联。
   - 常用参数：`--project`、`--issue-type Story`、`--summary`、`--components`、`--priority`、`--parent`、`--dry-run`、`--allow-duplicate`、`--link-pin PIN-1,PIN-2`。
+- **查询统一脚本化**：所有查询步骤优先用 `scripts/jira/query_issues.py`（如 team board、sprint done、duplicate check、raw JQL）。
 - **仅在脚本不可用时**，才按 **`skills/ticket-management/MCP-tools.md`** 走手动 MCP 流程。
 
 ## Required inputs
@@ -66,7 +67,7 @@ Enforce format from `ticket-naming.yaml`: **`[模块] - [平台或范围] - [动
 - Only components in `workspace.ownership.components`. Validate assignee; verify external before use.
 - Pre-create Ticket Name List and explicit confirmation. No raw summary; always normalized title.
 - Follow `issue-structures/story.yaml`; do not invent fields. Default Priority Medium, Client ID 0000.
-- 优先用 `scripts/jira/create_story.py`，不要手动拼 MCP 创建参数；仅脚本不可用时退回 MCP-tools.md。
+- 优先用 `scripts/jira/create_story.py`；查询统一用 `scripts/jira/query_issues.py`，不要手动拼 MCP 查询/创建参数；仅脚本不可用时退回 MCP-tools.md。
 - **PIN 关联**：用户指定 PIN key（如 PIN-2712）时，创建 Story 后必须调用 `jira_create_issue_link`，link_type 为 **"Relates"**（不是 "Relates to"）；inward=新 Story，outward=PIN。
 
 ## Output
