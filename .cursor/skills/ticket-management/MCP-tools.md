@@ -26,8 +26,9 @@
 | **jira_search_fields**    | —                                             | `keyword`（模糊搜字段名）, `limit`（默认 10）, `refresh`                                                                                          |
 | **jira_create_issue**     | `project_key`, `summary`, `issue_type`        | `assignee`, `description`, `components`（逗号分隔）, `additional_fields`（**JSON 字符串**，如 `"{\"parent\": \"CP-123\", \"labels\": [\"x\"]}"`） |
 | **jira_get_issue**        | `issue_key`                                   | `fields`, `expand`, `comment_limit`（默认 10）                                                                                                    |
-| **jira_create_issue_link** | `link_type`, `inward_issue_key`, `outward_issue_key` | `comment`, `comment_visibility`                                                                                                                                 |
+| **jira_create_issue_link** | `link_type`, `inward_issue_key`, `outward_issue_key`（**三者必填，不可省略或传空**） | `comment`, `comment_visibility`                                                                                                                                 |
 - **PIN 关联**：与 PIN 工单建立「关联」时，`link_type` 填 **"Relates"**；`inward_issue_key` = 刚创建的 Story key（如 CP-45995），`outward_issue_key` = PIN key（如 PIN-2712）。可用 **`jira_get_link_types`** 查询当前实例支持的 link type 列表。
+- **禁止**：不可用空对象 `{}` 或省略任一必填参数调用 `jira_create_issue_link`，否则会报 `Missing required argument` 校验错误。
 - **重复检查**：用 **jira_search** + JQL（如 `project = CP AND issuetype = Story AND summary ~ "..."`），无需 `jira_search_issues`。
 - **Parent 格式**：`additional_fields` 中 `parent` 必须为 issue key 字符串，例如 `"parent": "CP-123"`，不要传对象。
 
@@ -35,3 +36,4 @@
 
 - **创建/校验流程**：直接使用上表快捷参数调用 MCP，无需读 mcps 下 descriptor。
 - **Parent 格式**：在 `jira_create_issue` 的 `additional_fields` 中，`parent` 必须为 issue key **字符串**，例如 `"parent": "CP-123"`。不要传对象（如 `{"key": "CP-123"}`），否则会报错。
+- **jira_create_issue_link**：每次调用必须显式传入 `link_type`、`inward_issue_key`、`outward_issue_key` 三个参数，不得传空对象或省略，否则会触发 Pydantic 校验错误（Missing required argument）。
