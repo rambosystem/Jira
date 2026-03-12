@@ -21,7 +21,7 @@ Produce a **Sprint 迭代总结** document that:
 
 ## Configuration to Read
 
-1. **`Jira/Assets/Global/profile.yaml`**
+1. **`Jira/assets/global/profile.yaml`**
    - `me.default_project`: project key when user does not specify (e.g. `CP`). Use this to resolve paths below.
 
 2. **`Jira/assets/<project>/sprint-list.yaml`** (project from user or `me.default_project` from profile)
@@ -44,7 +44,7 @@ When querying Jira for board/sprint data, use **`Jira/assets/<project>/query-tem
 ## Workflow
 
 1. **Resolve sprint identifier**
-   - Determine project: from user input or `me.default_project` in `Jira/Assets/Global/profile.yaml`.
+   - Determine project: from user input or `me.default_project` in `Jira/assets/global/profile.yaml`.
    - From user input (e.g. "Sprint4") derive full sprint name (e.g. `26Q1-Sprint4-Defenders`) using `Jira/assets/<project>/sprint-list.yaml`.
 
 2. **Query Jira**（无需读 schema，直接按下列参数调用）
