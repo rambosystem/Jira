@@ -20,3 +20,6 @@
 *.pyzw
 *.pyzwz
 __pycache__
+
+# plans
+*plans
