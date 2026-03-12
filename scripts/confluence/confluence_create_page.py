@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Create or update a Confluence page with ADF body via REST API v2.
-Reads confluence_* from assetsglobal/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
+Reads confluence_* from assets/global/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
 
 Flow: Look up page by title → if exists, append (merge ADF) and PUT; else POST new page.
 Body from: --body-stdin, --body-file (relative path → repo tmp/), --body-json, --jira-url.
@@ -37,10 +37,10 @@ from scripts.common.atlassian import basic_auth, confluence_api_v2_url
 from scripts.common.env import load_dotenv
 from scripts.common.http import request_json
 from scripts.common.jira_remotelinks import delete_remotelink_for_confluence_page
-from scripts.common.profile import load_atlassian_profile
+from scripts.common.profile import load_atlassian_profile, resolve_profile_path
 
 TMP_DIR = REPO_ROOT / "tmp"
-PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
+PROFILE_PATH = resolve_profile_path(REPO_ROOT)
 ENV_PATH = REPO_ROOT / ".env"
 
 

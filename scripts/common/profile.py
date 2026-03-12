@@ -5,6 +5,18 @@ import re
 from pathlib import Path
 
 
+def resolve_profile_path(repo_root: Path) -> Path:
+    """Resolve profile path with backward compatibility for legacy folder casing."""
+    preferred = repo_root / "assets" / "global" / "profile.yaml"
+    legacy = repo_root / "Assets" / "Global" / "profile.yaml"
+    if preferred.is_file():
+        return preferred
+    if legacy.is_file():
+        return legacy
+    # Return preferred for consistent error message in read_profile/loaders.
+    return preferred
+
+
 def profile_value(profile_text: str, key: str) -> str:
     match = re.search(
         rf"^\s*{re.escape(key)}\s*:\s*[\"']?([^\"'#\n]+)[\"']?\s*(?:#|$)",
@@ -33,4 +45,15 @@ def load_atlassian_profile(profile_path: Path) -> dict[str, str]:
         "parent_id": parent_id,
         "account_id": account_id,
         "email": email,
+    }
+
+
+def load_workspace_profile(profile_path: Path) -> dict[str, str]:
+    """Load Atlassian profile plus workspace-level defaults used by Jira scripts."""
+    text = read_profile(profile_path)
+    base = load_atlassian_profile(profile_path)
+    default_project = profile_value(text, "default_project")
+    return {
+        **base,
+        "default_project": default_project,
     }

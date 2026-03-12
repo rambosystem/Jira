@@ -8,7 +8,6 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -22,75 +21,10 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.common.atlassian import basic_auth, jira_api_v3_url
 from scripts.common.env import load_dotenv
 from scripts.common.http import request_json
+from scripts.common.policy_bundle import load_policy_bundle
+from scripts.common.ticket_config import load_jira_runtime_profile
 
 ENV_PATH = REPO_ROOT / ".env"
-PROFILE_PATH = REPO_ROOT / "assets" / "global" / "profile.yaml"
-EPIC_LIST_PATH = REPO_ROOT / "assets" / "global" / "epic-list.yaml"
-
-
-@dataclass
-class Profile:
-    base_url: str
-    email: str
-    account_id: str
-    default_project: str
-
-
-def _read_text(path: Path) -> str:
-    if not path.is_file():
-        raise RuntimeError(f"File not found: {path}")
-    return path.read_text(encoding="utf-8")
-
-
-def _yaml_scalar(text: str, key: str) -> str:
-    m = re.search(
-        rf"^\s*{re.escape(key)}\s*:\s*[\"']?([^\"'#\n]+)[\"']?\s*(?:#|$)",
-        text,
-        re.MULTILINE,
-    )
-    return m.group(1).strip() if m else ""
-
-
-def _load_profile() -> Profile:
-    text = _read_text(PROFILE_PATH)
-    base_url = _yaml_scalar(text, "confluence_base_url").rstrip("/")
-    email = _yaml_scalar(text, "email")
-    account_id = _yaml_scalar(text, "account_id")
-    default_project = _yaml_scalar(text, "default_project") or "CP"
-    if not base_url:
-        raise RuntimeError("Missing confluence_base_url in profile.")
-    if not email:
-        raise RuntimeError("Missing email in profile.")
-    if not account_id:
-        raise RuntimeError("Missing account_id in profile.")
-    return Profile(
-        base_url=base_url,
-        email=email,
-        account_id=account_id,
-        default_project=default_project,
-    )
-
-
-def _project_team_path(project_key: str) -> Path:
-    return REPO_ROOT / "assets" / "project" / project_key.upper() / "team.yaml"
-
-
-def _load_team_defaults(project_key: str) -> dict[str, str]:
-    path = _project_team_path(project_key)
-    text = _read_text(path)
-
-    client_id = _yaml_scalar(text, "client_id") or "0000"
-    assignee = _yaml_scalar(text, "default_assignee_account_id")
-    if not assignee:
-        m = re.search(
-            r"(?ms)^\s*defaults:\s*\n.*?^\s*assignee:\s*\n.*?^\s*account_id:\s*[\"']?([^\"'\n#]+)",
-            text,
-        )
-        assignee = m.group(1).strip() if m else ""
-    return {
-        "client_id": client_id,
-        "assignee_account_id": assignee,
-    }
 
 
 def _current_quarter_tag() -> str:
@@ -149,69 +83,37 @@ def _search_duplicates(base_url: str, auth: str, project_key: str, issue_type: s
     return data.get("issues") or []
 
 
-def _parse_epics() -> list[dict[str, Any]]:
-    text = _read_text(EPIC_LIST_PATH)
-    lines = text.splitlines()
-    in_recent = False
-    epics: list[dict[str, Any]] = []
-    current: dict[str, Any] | None = None
-
-    for line in lines:
-        if not in_recent:
-            if re.match(r"^\s*recent_epics:\s*$", line):
-                in_recent = True
-            continue
-        if in_recent and re.match(r"^\S", line):
-            break
-        m_key = re.match(r"^\s*-\s*key:\s*([A-Z]+-\d+)\s*$", line)
-        if m_key:
-            if current:
-                epics.append(current)
-            current = {"key": m_key.group(1), "title": "", "components": []}
-            continue
-        if current is None:
-            continue
-        m_title = re.match(r"^\s*title:\s*(.+?)\s*$", line)
-        if m_title:
-            current["title"] = m_title.group(1).strip().strip('"').strip("'")
-            continue
-        m_comps = re.match(r"^\s*components:\s*\[(.*)\]\s*$", line)
-        if m_comps:
-            raw = m_comps.group(1).strip()
-            if not raw:
-                current["components"] = []
-            else:
-                current["components"] = [c.strip().strip('"').strip("'") for c in raw.split(",") if c.strip()]
-    if current:
-        epics.append(current)
-    return epics
-
-
-def _auto_parent(project_key: str, components: list[str], quarter: str) -> str:
-    project_prefix = f"{project_key.upper()}-"
+def _auto_parent(
+    project_key: str,
+    components: list[str],
+    quarter: str,
+    epic_index: dict[str, dict[str, dict[str, str]]],
+) -> str:
     lookup = {c.strip().lower() for c in components if c.strip()}
     quarter_upper = quarter.upper()
-    for epic in _parse_epics():
-        key = epic.get("key", "")
-        title = str(epic.get("title", ""))
-        epic_components = [str(c).strip().lower() for c in epic.get("components", [])]
-        if not key.startswith(project_prefix):
-            continue
-        if quarter_upper not in title.upper():
-            continue
-        if lookup.intersection(epic_components):
+    project_map = epic_index.get(project_key.upper(), {})
+    quarter_map = project_map.get(quarter_upper, {})
+    for comp in lookup:
+        key = quarter_map.get(comp)
+        if key:
             return key
     return ""
 
 
-def _assemble_fields(args: argparse.Namespace, defaults: dict[str, str], auto_parent_key: str) -> dict[str, Any]:
+def _assemble_fields(
+    args: argparse.Namespace,
+    defaults: dict[str, str],
+    auto_parent_key: str,
+    field_map: dict[str, str],
+) -> dict[str, Any]:
+    client_id_key = field_map["client_id"]
     fields: dict[str, Any] = {
         "project": {"key": args.project},
         "summary": args.summary.strip(),
         "issuetype": {"name": args.issue_type},
         "priority": {"name": args.priority},
         "components": [{"name": c} for c in args.components],
-        "customfield_10043": [args.client_id or defaults["client_id"]],
+        client_id_key: [args.client_id or defaults["client_id"]],
     }
     if args.assignee_account_id:
         fields["assignee"] = {"id": args.assignee_account_id}
@@ -223,11 +125,11 @@ def _assemble_fields(args: argparse.Namespace, defaults: dict[str, str], auto_pa
         fields["parent"] = {"key": chosen_parent}
 
     if args.issue_type == "Story":
-        fields["customfield_10085"] = {"value": args.story_type}
-        fields["customfield_13319"] = {"value": args.ux_review_required}
-        fields["customfield_13320"] = {"value": args.ux_review_status}
+        fields[field_map["story_type"]] = {"value": args.story_type}
+        fields[field_map["ux_review_required"]] = {"value": args.ux_review_required}
+        fields[field_map["ux_review_status"]] = {"value": args.ux_review_status}
     else:
-        fields["customfield_12348"] = {"value": args.technical_story_type}
+        fields[field_map["technical_story_type"]] = {"value": args.technical_story_type}
 
     if args.description:
         fields["description"] = {
@@ -244,6 +146,19 @@ def _assemble_fields(args: argparse.Namespace, defaults: dict[str, str], auto_pa
     return fields
 
 
+def _validate_field_map(issue_type: str, field_map: dict[str, str]) -> None:
+    required = {"client_id"}
+    if issue_type == "Story":
+        required.update({"story_type", "ux_review_required", "ux_review_status"})
+    else:
+        required.add("technical_story_type")
+    missing = [k for k in required if not field_map.get(k)]
+    if missing:
+        raise RuntimeError(
+            f"Missing policy field mapping for {issue_type}: {', '.join(sorted(missing))}"
+        )
+
+
 def run() -> int:
     load_dotenv(ENV_PATH)
     parser = argparse.ArgumentParser(
@@ -258,7 +173,7 @@ def run() -> int:
     parser.add_argument("--assignee-account-id", default="", help="Atlassian account id")
     parser.add_argument("--parent", default="", help="Parent issue key override, e.g. CP-45460")
     parser.add_argument("--quarter", default="", help="Quarter token for auto parent match, e.g. 26Q2")
-    parser.add_argument("--client-id", default="", help="Client ID for customfield_10043, default from team.yaml")
+    parser.add_argument("--client-id", default="", help="Client ID, default from team.yaml")
     parser.add_argument("--story-type", default="Improvement")
     parser.add_argument("--ux-review-required", default="No", choices=["Yes", "No"])
     parser.add_argument("--ux-review-status", default="Not Needed", choices=["Not Needed", "Pending", "Reviewed"])
@@ -273,12 +188,18 @@ def run() -> int:
     args = parser.parse_args()
 
     try:
-        profile = _load_profile()
+        profile = load_jira_runtime_profile(REPO_ROOT)
+    except RuntimeError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+    try:
+        policy_bundle = load_policy_bundle(REPO_ROOT)
     except RuntimeError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    args.project = (args.project or profile.default_project).upper()
+    bundle_default_project = (policy_bundle.get("profile") or {}).get("default_project") or ""
+    args.project = (args.project or bundle_default_project or profile["default_project"]).upper()
     args.components = [c.strip() for c in args.components.split(",") if c.strip()]
     if not args.components:
         print("Error: --components must include at least one component.", file=sys.stderr)
@@ -300,16 +221,24 @@ def run() -> int:
     if not token:
         print("Error: ATLASSIAN_API_TOKEN not set.", file=sys.stderr)
         return 1
-    auth = basic_auth(profile.email, token)
+    auth = basic_auth(profile["email"], token)
 
     try:
-        defaults = _load_team_defaults(args.project)
+        defaults = ((policy_bundle.get("team_defaults") or {}).get(args.project)) or {}
+        if not defaults:
+            raise RuntimeError(f"No team defaults for project {args.project} in policy bundle.")
+        field_map = (((policy_bundle.get("field_mappings") or {}).get(args.project) or {}).get(args.issue_type)) or {}
+        if not field_map:
+            raise RuntimeError(
+                f"No field mapping for {args.project}/{args.issue_type} in policy bundle."
+            )
+        _validate_field_map(args.issue_type, field_map)
     except RuntimeError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
     try:
-        duplicates = _search_duplicates(profile.base_url, auth, args.project, args.issue_type, args.summary)
+        duplicates = _search_duplicates(profile["base_url"], auth, args.project, args.issue_type, args.summary)
     except HTTPError as exc:
         body = exc.read().decode("utf-8") if exc.fp else ""
         print(f"Error: duplicate preflight failed ({exc.code}): {body}", file=sys.stderr)
@@ -320,9 +249,10 @@ def run() -> int:
 
     auto_parent_key = ""
     if not args.parent:
-        auto_parent_key = _auto_parent(args.project, args.components, args.quarter)
+        epic_index = policy_bundle.get("epic_index") or {}
+        auto_parent_key = _auto_parent(args.project, args.components, args.quarter, epic_index)
 
-    fields = _assemble_fields(args, defaults, auto_parent_key)
+    fields = _assemble_fields(args, defaults, auto_parent_key, field_map)
     duplicate_brief = [
         {
             "key": issue.get("key"),
@@ -360,7 +290,7 @@ def run() -> int:
 
     try:
         created = jira_request(
-            profile.base_url,
+            profile["base_url"],
             auth,
             "/issue",
             method="POST",
@@ -404,10 +334,21 @@ def run() -> int:
         return 1
 
     try:
+        post_check_fields = [
+            "summary",
+            "issuetype",
+            "assignee",
+            "priority",
+            "components",
+            "parent",
+        ]
+        for custom_key in field_map.values():
+            if custom_key not in post_check_fields:
+                post_check_fields.append(custom_key)
         fetched = jira_request(
-            profile.base_url,
+            profile["base_url"],
             auth,
-            f"/issue/{issue_key}?fields=summary,issuetype,assignee,priority,components,parent,customfield_10043,customfield_10085,customfield_12348,customfield_13319,customfield_13320",
+            f"/issue/{issue_key}?fields={','.join(post_check_fields)}",
             method="GET",
         )
     except HTTPError as exc:
@@ -459,7 +400,7 @@ def run() -> int:
         for pin_key in link_pins:
             try:
                 link_resp = jira_request(
-                    profile.base_url,
+                    profile["base_url"],
                     auth,
                     "/issueLink",
                     method="POST",

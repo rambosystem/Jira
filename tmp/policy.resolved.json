@@ -1,0 +1,301 @@
+{
+  "generated_at": "2026-03-12T15:09:42.655821+00:00",
+  "profile": {
+    "default_project": "CP"
+  },
+  "projects": [
+    "CP",
+    "PAG"
+  ],
+  "team_defaults": {
+    "CP": {
+      "client_id": "0000",
+      "assignee_account_id": "712020:56137117-3aff-4ea4-b5b5-59aae5ad5235"
+    },
+    "PAG": {
+      "client_id": "0000",
+      "assignee_account_id": "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+    }
+  },
+  "field_mappings": {
+    "CP": {
+      "Story": {
+        "client_id": "customfield_10043",
+        "story_type": "customfield_10085",
+        "ux_review_required": "customfield_13319",
+        "ux_review_status": "customfield_13320"
+      },
+      "Technical Story": {
+        "client_id": "customfield_10043",
+        "technical_story_type": "customfield_12348"
+      }
+    },
+    "PAG": {
+      "Story": {
+        "client_id": "customfield_10043",
+        "story_type": "customfield_10085",
+        "ux_review_required": "customfield_13319",
+        "ux_review_status": "customfield_13320"
+      },
+      "Technical Story": {
+        "client_id": "customfield_10043",
+        "technical_story_type": "customfield_12348"
+      }
+    }
+  },
+  "recent_epics": [
+    {
+      "key": "CP-45468",
+      "title": "Message Upgrade - 26Q2",
+      "components": [
+        "Message"
+      ]
+    },
+    {
+      "key": "CP-45467",
+      "title": "Calendar Center Upgrade - 26Q2",
+      "components": [
+        "Calendar Center"
+      ]
+    },
+    {
+      "key": "CP-45466",
+      "title": "Pacvue Copilot Upgrade - 26Q2",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-45465",
+      "title": "My Report Upgrade - 26Q2",
+      "components": [
+        "My Report"
+      ]
+    },
+    {
+      "key": "CP-45464",
+      "title": "Dayparting Scheduler Upgrade - 26Q2",
+      "components": [
+        "Dayparting Scheduler"
+      ]
+    },
+    {
+      "key": "CP-45463",
+      "title": "Budget Scheduler Upgrade - 26Q2",
+      "components": [
+        "Budget Scheduler"
+      ]
+    },
+    {
+      "key": "CP-45462",
+      "title": "Download Center Upgrade - 26Q2",
+      "components": [
+        "Download Center"
+      ]
+    },
+    {
+      "key": "CP-45461",
+      "title": "Bid Explorer Upgrade - 26Q2",
+      "components": [
+        "Bid Explorer"
+      ]
+    },
+    {
+      "key": "CP-45460",
+      "title": "SOV Upgrade - 26Q2",
+      "components": [
+        "SOV"
+      ]
+    },
+    {
+      "key": "CP-44575",
+      "title": "Calender Center Rollout to Target",
+      "components": [
+        "Calendar Center"
+      ]
+    },
+    {
+      "key": "CP-44089",
+      "title": "Dayparting Upgrade - 26Q1",
+      "components": [
+        "Dayparting Scheduler"
+      ]
+    },
+    {
+      "key": "CP-44087",
+      "title": "SOV Upgrade - 26Q1",
+      "components": [
+        "SOV"
+      ]
+    },
+    {
+      "key": "CP-44086",
+      "title": "My Report Upgrade - 26Q1",
+      "components": [
+        "My Report"
+      ]
+    },
+    {
+      "key": "CP-44007",
+      "title": "Reddit - Dayparting",
+      "components": [
+        "Dayparting Scheduler"
+      ]
+    },
+    {
+      "key": "CP-43671",
+      "title": "Kroger - Dayparting & Budget Scheduler",
+      "components": [
+        "Budget Scheduler",
+        "Dayparting Scheduler"
+      ]
+    },
+    {
+      "key": "CP-43139",
+      "title": "Copilot - Proactive Engagement",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42669",
+      "title": "Ads Agent - Visualized Report Generation",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42668",
+      "title": "My Report - Rollout to Moloco",
+      "components": [
+        "My Report"
+      ]
+    },
+    {
+      "key": "CP-42667",
+      "title": "Ads Agent - Data Insights & Analysis V2",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42666",
+      "title": "Ads Agent - Action Auto-Executor V2",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42665",
+      "title": "Ads Agent - Recommended Actions V2",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42664",
+      "title": "Ads Agent - Visualized Report Generation V2",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42663",
+      "title": "Home Depot - Automation Function Integration",
+      "components": [
+        "All"
+      ]
+    },
+    {
+      "key": "CP-42662",
+      "title": "Slack Copilot",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42661",
+      "title": "SOV - Support Walmart MX & CA Market",
+      "components": [
+        "SOV"
+      ]
+    },
+    {
+      "key": "CP-42660",
+      "title": "Ads Agent - Action Auto-Executor",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42659",
+      "title": "Ads Agent - Recommended Actions",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42658",
+      "title": "Ads Agent - Data Insights & Analysis",
+      "components": [
+        "Pacvue Copilot"
+      ]
+    },
+    {
+      "key": "CP-42657",
+      "title": "Calendar Center Rollout to Target",
+      "components": [
+        "Calendar Center"
+      ]
+    },
+    {
+      "key": "CP-40078",
+      "title": "[AI AC] Share Link for HQ",
+      "components": [
+        "Executive Hub"
+      ]
+    }
+  ],
+  "epic_index": {
+    "CP": {
+      "26Q2": {
+        "message": "CP-45468",
+        "calendar center": "CP-45467",
+        "pacvue copilot": "CP-45466",
+        "my report": "CP-45465",
+        "dayparting scheduler": "CP-45464",
+        "budget scheduler": "CP-45463",
+        "download center": "CP-45462",
+        "bid explorer": "CP-45461",
+        "sov": "CP-45460"
+      },
+      "26Q1": {
+        "dayparting scheduler": "CP-44089",
+        "sov": "CP-44087",
+        "my report": "CP-44086"
+      }
+    }
+  },
+  "sources": [
+    {
+      "path": "assets/global/profile.yaml",
+      "mtime": 1773246137
+    },
+    {
+      "path": "assets/global/epic-list.yaml",
+      "mtime": 1773304780
+    },
+    {
+      "path": "policy/field-mappings.yaml",
+      "mtime": 1773327697
+    },
+    {
+      "path": "assets/project/CP/team.yaml",
+      "mtime": 1773246137
+    },
+    {
+      "path": "assets/project/PAG/team.yaml",
+      "mtime": 1773304751
+    }
+  ]
+}

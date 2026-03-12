@@ -1,0 +1,16 @@
+defaults:
+  Story:
+    fields:
+      client_id: customfield_10043
+      story_type: customfield_10085
+      ux_review_required: customfield_13319
+      ux_review_status: customfield_13320
+  Technical Story:
+    fields:
+      client_id: customfield_10043
+      technical_story_type: customfield_12348
+
+# Project-specific overrides (if Jira customfield ids differ by project)
+projects:
+  CP: {}
+  PAG: {}

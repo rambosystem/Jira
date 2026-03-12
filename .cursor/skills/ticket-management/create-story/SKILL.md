@@ -22,6 +22,7 @@ Create Jira **Story** tickets using workspace config and **Story-only** field st
 ## 执行方式（脚本优先）
 
 - **优先使用脚本**：`scripts/jira/create_story.py`
+  - 先执行一次：`python3 scripts/policy/build_policy_json.py`（将 YAML/配置预编译为 `tmp/policy.resolved.json`）。
   - 已包含：重复检查、Parent 自动解析、required fields 拼接、创建、创建后校验、可选 PIN 关联。
   - 常用参数：`--project`、`--issue-type Story`、`--summary`、`--components`、`--priority`、`--parent`、`--dry-run`、`--allow-duplicate`、`--link-pin PIN-1,PIN-2`。
 - **仅在脚本不可用时**，才按 **`skills/ticket-management/MCP-tools.md`** 走手动 MCP 流程。
@@ -50,10 +51,11 @@ Enforce format from `ticket-naming.yaml`: **`[模块] - [平台或范围] - [动
 
 1. **Collect inputs**: summary, components, project (optional), plus optional `--link-pin` / `--parent` / `--priority`.
 2. **Ticket Name List + confirmation**: 确认最终标题后再执行创建。
-3. **先 dry-run**：运行 `python3 scripts/jira/create_story.py ... --dry-run`，查看 preflight（重复/parent/payload）。
-4. **再创建**：运行同一命令去掉 `--dry-run`。如确认允许重复，追加 `--allow-duplicate`。
-5. **PIN 关联**：若用户给 PIN key，创建命令追加 `--link-pin PIN-1,PIN-2`（逗号分隔），脚本会在创建后逐个建立 Relates。
-6. **输出**：返回 issue key、URL、关键字段校验结果、以及 PIN link 状态（如有）。
+3. **先 build policy JSON**：运行 `python3 scripts/policy/build_policy_json.py`（当 policy/assets 变更后需重新执行）。
+4. **再 dry-run**：运行 `python3 scripts/jira/create_story.py ... --dry-run`，查看 preflight（重复/parent/payload）。
+5. **再创建**：运行同一命令去掉 `--dry-run`。如确认允许重复，追加 `--allow-duplicate`。
+6. **PIN 关联**：若用户给 PIN key，创建命令追加 `--link-pin PIN-1,PIN-2`（逗号分隔），脚本会在创建后逐个建立 Relates。
+7. **输出**：返回 issue key、URL、关键字段校验结果、以及 PIN link 状态（如有）。
 
 ## PIN Ticket 关联能力
 

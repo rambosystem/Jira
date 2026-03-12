@@ -26,7 +26,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-PROFILE_PATH="$REPO_ROOT/Assets/Global/profile.yaml"
+PROFILE_PATH="$REPO_ROOT/assets/global/profile.yaml"
 ENV_PATH="$REPO_ROOT/.env"
 
 mkdir -p "$(dirname "$PROFILE_PATH")"

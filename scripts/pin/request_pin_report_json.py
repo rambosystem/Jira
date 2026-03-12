@@ -29,9 +29,9 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.common.atlassian import basic_auth, jira_api_v3_url
 from scripts.common.env import load_dotenv
 from scripts.common.http import request_json
-from scripts.common.profile import load_atlassian_profile
+from scripts.common.profile import load_atlassian_profile, resolve_profile_path
 
-PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
+PROFILE_PATH = resolve_profile_path(REPO_ROOT)
 ENV_PATH = REPO_ROOT / ".env"
 
 DEFAULT_LLM_MODEL = "deepseek-chat"

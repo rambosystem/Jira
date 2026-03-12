@@ -22,12 +22,12 @@ if str(REPO_ROOT) not in sys.path:
 from scripts.common.atlassian import basic_auth
 from scripts.common.env import load_dotenv
 from scripts.common.jira_remotelinks import delete_remotelink_for_confluence_page
-from scripts.common.profile import load_atlassian_profile
+from scripts.common.profile import load_atlassian_profile, resolve_profile_path
 
 TMP_DIR = REPO_ROOT / "tmp"
 PAGE_INFO_FILE = TMP_DIR / "confluence_page_latest.json"
 PIN_ANALYSIS_FILE = TMP_DIR / "pin_analysis.json"
-PROFILE_PATH = REPO_ROOT / "Assets" / "Global" / "profile.yaml"
+PROFILE_PATH = resolve_profile_path(REPO_ROOT)
 ENV_PATH = REPO_ROOT / ".env"
 
 
