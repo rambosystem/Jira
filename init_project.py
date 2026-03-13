@@ -823,10 +823,11 @@ def prompt_config_menu() -> str:
     return prompt_choice(
         "Configure project:",
         [
-            ("1", "Add Jira Project"),
-            ("2", "Update Jira Project"),
-            ("3", "Update Workspace Folder URL"),
-            ("4", "Configure ATLASSIAN MCP"),
+            ("1", "Update Profile"),
+            ("2", "Update Workspace Folder URL"),
+            ("3", "Configure ATLASSIAN MCP"),
+            ("4", "Add Jira Project"),
+            ("5", "Update Jira Project"),
             ("0", "Back"),
         ],
     )
@@ -1223,27 +1224,25 @@ def prompt_default_assignee(project_key: str, auth_b64: str) -> dict[str, str]:
             return match
 
 
-def prompt_validated_credentials() -> tuple[str, str, dict[str, str]]:
+def prompt_validated_credentials() -> tuple[str, dict[str, str]]:
     while True:
-        print("Step 1/3 - Email")
+        print("Step 1/2 - Email")
         email = prompt_email()
-        print("Step 2/3 - Project Name or Key")
-        project_input = prompt_non_empty('Input project name or key (e.g. "CP" or "Common Platform"): ')
-        print("Step 3/3 - ATLASSIAN_API_TOKEN")
+        print("Step 2/2 - ATLASSIAN_API_TOKEN")
         token_url = "https://id.atlassian.com/manage-profile/security/api-tokens"
         token_link = f"\033]8;;{token_url}\033\\\033[94m{token_url}\033[0m\033]8;;\033\\"
         print(f"Create a token here if needed: {token_link}")
         token = prompt_non_empty("Input ATLASSIAN_API_TOKEN: ", secret=True)
         try:
             identity = validate_identity(email, token)
-            return email, project_input, {"token": token, **identity}
+            return email, {"token": token, **identity}
         except (HTTPError, URLError, RuntimeError) as exc:
             fail(f"Email or token validation failed: {exc}")
             print("Please retry your email and token.\n")
 
 
 def run_initialize_project_flow() -> int:
-    email, project_input, creds = prompt_validated_credentials()
+    email, creds = prompt_validated_credentials()
     token = creds["token"]
     auth_b64 = creds["auth_b64"]
     account_id = creds["account_id"]
@@ -1252,6 +1251,8 @@ def run_initialize_project_flow() -> int:
 
     print("Workspace setup")
     workspace = prompt_workspace_config(auth_b64, account_id)
+    print("Project setup")
+    project_input = prompt_non_empty('Input project name or key (e.g. "CP" or "Common Platform"): ')
     project = resolve_project(project_input, auth_b64)
     project_key = str(project.get("key") or "").upper()
     if not project_key:
@@ -1360,6 +1361,17 @@ def update_workspace_profile_fields(workspace: dict[str, str]) -> None:
     text = replace_profile_scalar(text, "confluence_space_key", workspace["space_key"])
     text = replace_profile_scalar(text, "confluence_parent_id", workspace["parent_id"])
     text = replace_profile_scalar(text, "confluence_space_id", workspace["space_id"])
+    PROFILE_PATH.write_text(text, encoding="utf-8")
+
+
+def update_identity_profile_fields(username: str, display_name: str, email: str, account_id: str) -> None:
+    if not PROFILE_PATH.is_file():
+        raise RuntimeError(f"Profile not found: {PROFILE_PATH}")
+    text = PROFILE_PATH.read_text(encoding="utf-8")
+    text = replace_profile_scalar(text, "name", username)
+    text = replace_profile_scalar(text, "display_name", display_name or username)
+    text = replace_profile_scalar(text, "email", email)
+    text = replace_profile_scalar(text, "account_id", account_id)
     PROFILE_PATH.write_text(text, encoding="utf-8")
 
 
@@ -1532,6 +1544,29 @@ def run_update_workspace_folder_flow() -> int:
     return 0
 
 
+def run_update_profile_flow() -> int:
+    while True:
+        print("Profile setup")
+        email = prompt_email()
+        token_url = "https://id.atlassian.com/manage-profile/security/api-tokens"
+        token_link = f"\033]8;;{token_url}\033\\\033[94m{token_url}\033[0m\033]8;;\033\\"
+        print(f"Create a token here if needed: {token_link}")
+        token = prompt_non_empty("Input ATLASSIAN_API_TOKEN: ", secret=True)
+        try:
+            identity = validate_identity(email, token)
+            username = derive_username(email, identity["display_name"])
+            update_identity_profile_fields(username, identity["display_name"], email, identity["account_id"])
+            upsert_env(ENV_PATH, "CONFLUENCE_EMAIL", email)
+            upsert_env(ENV_PATH, "ATLASSIAN_API_TOKEN", token)
+            upsert_env(ENV_PATH, "ACCOUNT_ID", identity["account_id"])
+            log(f"Updated profile: {PROFILE_PATH}")
+            log(f"Updated env: {ENV_PATH}")
+            return 0
+        except (HTTPError, URLError, RuntimeError) as exc:
+            fail(f"Email or token validation failed: {exc}")
+            print("Please retry your email and token.\n")
+
+
 def run_configure_mcp_flow() -> int:
     context = load_existing_atlassian_context()
     exists, mcp_path = cursor_atlassian_mcp_exists()
@@ -1562,16 +1597,18 @@ def main() -> int:
                     if config_choice == "0":
                         break
                     if config_choice == "1":
-                        return run_add_jira_project_flow()
+                        return run_update_profile_flow()
                     if config_choice == "2":
+                        return run_update_workspace_folder_flow()
+                    if config_choice == "3":
+                        return run_configure_mcp_flow()
+                    if config_choice == "4":
+                        return run_add_jira_project_flow()
+                    if config_choice == "5":
                         result = run_update_jira_project_flow()
                         if result == -1:
                             continue
                         return result
-                    if config_choice == "3":
-                        return run_update_workspace_folder_flow()
-                    if config_choice == "4":
-                        return run_configure_mcp_flow()
     except KeyboardInterrupt:
         fail("Initialization cancelled.")
         return 130
