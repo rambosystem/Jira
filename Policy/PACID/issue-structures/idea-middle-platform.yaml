@@ -30,6 +30,10 @@ required_by_team:
     key: customfield_10726
     note: 当前阶段
     options: [Discovery, Development, Alpha, Beta, GA, "Product Backlog"]
+  - name: Roadmap Quarter
+    key: customfield_12866
+    note: 路线图季度，如 Q2 填 26Q2
+    options: []  # 以 Jira 项目配置为准，常见 26Q1, 26Q2, 26Q3, 26Q4 等
 
 description_template: |
   **What we are building?**
@@ -53,3 +57,4 @@ field_defaults:
   Teams: [Ads]
   Client Segment: [Pacvue]
   Release Status: Discovery
+  Roadmap Quarter: []  # 创建时按用户指定填写，如 26Q2
