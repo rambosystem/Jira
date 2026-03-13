@@ -1,6 +1,6 @@
 ---
 name: create-story
-description: Create Jira Story tickets for the CP team. Prefer assembling a structured issue plan first, then creating once. Read rules from config/policy/<project>/ticket-schema.json and naming from ticket-naming.yaml.
+description: Create Jira Story tickets for the CP team. Assemble a structured issue plan first, then create through MCP after confirmation. Read rules from config/policy/<project>/ticket-schema.json and naming from ticket-naming.yaml.
 ---
 
 # Create Story
@@ -21,9 +21,7 @@ Create Jira Story tickets using workspace config and the project ticket schema.
 
 ## Preferred Execution
 
-- Prefer `scripts/jira/assemble_jira_issue.py` then `scripts/jira/create_jira_issue.py`
-- Use `scripts/jira/query_issues.py --jql "<JQL>"` for Jira searches
-- Use MCP only as fallback
+- Prefer MCP for Jira search, draft review, create, and link actions.
 
 ## Required Inputs
 
@@ -43,18 +41,25 @@ Default field values should come from `ticket-schema.json` `issue_types.Story.fi
 - Follow `ticket-schema.json` `issue_types.Story.required_fields`, `optional_fields`, `field_options`, and `field_defaults`.
 - Do not invent fields outside schema and Jira field mapping.
 - Use naming from `ticket-naming.yaml`.
+- Build the draft quickly from required fields plus applicable defaults.
+- Do not include optional fields unless the user provided them or they are needed to review/create the issue.
 
 ## Workflow
 
 1. Collect inputs.
-2. Normalize title and show Ticket Name List.
-3. Assemble a structured issue plan first.
-4. Review resolved parent/defaults/fields.
-5. Create once from the plan.
-6. If PIN keys are provided, create `Relates` links.
-7. Post-check key fields.
+2. Normalize title and assemble the required schema with defaults.
+3. Show a concise draft before any create action. Do not ask extra questions unless required information is missing or the user asks to adjust it.
+4. Resolve Epic/Parent in this order:
+   - First, show the closest Epic match.
+   - Prefer the module quarterly Epic for the selected quarter when available, e.g. `SOV -> SOV Upgrade - 26Q2`.
+   - If no suitable Epic exists, note that no quarterly Epic was found and only ask to create one if the user wants to proceed that way.
+5. Review only the key fields, parent recommendation, and duplicate check.
+6. Wait for user confirmation or correction.
+7. Create once from the confirmed plan through MCP.
+8. If PIN keys are provided, create `Relates` links.
+9. Post-check key fields.
 
 ## Output
 
-- Before create: Ticket Name List, Confirmation Needed
+- Before create: Concise Draft, Parent Recommendation, Confirmation Needed
 - After create: Issue, URL, Type, Component, Assignee, Project, Validation, Validation Details

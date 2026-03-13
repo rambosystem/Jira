@@ -20,6 +20,8 @@ Create PACID Idea tickets for the Middle Platform team.
 - Only pass fields defined in `idea-middle-platform.yaml`.
 - Do not invent extra fields.
 - Use the template structure from `description_template`.
+- Build the draft quickly from required fields plus applicable defaults.
+- Do not include optional fields unless the user provided them or they are needed to review/create the issue.
 
 ## Required Inputs
 
@@ -33,12 +35,14 @@ Create PACID Idea tickets for the Middle Platform team.
 
 1. Read `config/policy/PACID/issue-structures/idea-middle-platform.yaml`.
 2. Collect required inputs.
-3. Build additional Jira custom fields only from this yaml.
-4. Create the PACID Idea.
-5. Optionally ask whether to create and link a CP Epic.
-6. If Epic is created, update `config/assets/global/epic-list.yaml`.
+3. Build the required Jira fields only from this yaml.
+4. Show a concise draft before any create action. Do not ask extra questions unless required information is missing or the user asks to adjust it.
+5. Wait for user confirmation or correction.
+6. Create the PACID Idea.
+7. Only discuss creating/linking a CP Epic if the user explicitly asks for it.
+8. If Epic is created, update `config/assets/global/epic-list.yaml`.
 
 ## Output
 
-- Before create: summary of required fields and confirmation
+- Before create: Concise Draft, Confirmation Needed
 - After create: Issue key, URL, Summary, Assignee, Release Status, Roadmap Quarter
