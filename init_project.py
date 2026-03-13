@@ -37,6 +37,7 @@ REQUIRED_PACKAGES = [
     ("rich", "rich"),
 ]
 questionary = None
+QUESTIONARY_STYLE = None
 Console = None
 Progress = None
 BarColumn = None
@@ -84,7 +85,7 @@ def debug(message: str) -> None:
 
 
 def ensure_dependencies() -> None:
-    global questionary, Console, Progress, BarColumn, TextColumn, TimeElapsedColumn
+    global questionary, QUESTIONARY_STYLE, Console, Progress, BarColumn, TextColumn, TimeElapsedColumn
     missing = [package for module_name, package in REQUIRED_PACKAGES if importlib.util.find_spec(module_name) is None]
     if not missing:
         import questionary as _questionary
@@ -95,6 +96,16 @@ def ensure_dependencies() -> None:
         from rich.progress import TimeElapsedColumn as _TimeElapsedColumn
 
         questionary = _questionary
+        QUESTIONARY_STYLE = _questionary.Style(
+            [
+                ("qmark", "fg:#38bdf8 bold"),
+                ("question", "bold"),
+                ("answer", "fg:#f59e0b bold"),
+                ("pointer", "fg:#f59e0b bold"),
+                ("highlighted", "fg:#111827 bg:#22c55e bold"),
+                ("selected", ""),
+            ]
+        )
         Console = _Console
         Progress = _Progress
         BarColumn = _BarColumn
@@ -116,6 +127,16 @@ def ensure_dependencies() -> None:
     from rich.progress import TimeElapsedColumn as _TimeElapsedColumn
 
     questionary = _questionary
+    QUESTIONARY_STYLE = _questionary.Style(
+        [
+            ("qmark", "fg:#38bdf8 bold"),
+            ("question", "bold"),
+            ("answer", "fg:#f59e0b bold"),
+            ("pointer", "fg:#f59e0b bold"),
+            ("highlighted", "fg:#111827 bg:#22c55e bold"),
+            ("selected", ""),
+        ]
+    )
     Console = _Console
     Progress = _Progress
     BarColumn = _BarColumn
@@ -753,25 +774,27 @@ def prompt_choice(
     helper_text: str = "Use arrow keys to move, Enter to confirm.",
     default_index: int = 0,
 ) -> str:
-    selected = default_index
+    ordered_options = list(options)
+    if 0 <= default_index < len(ordered_options) and default_index != 0:
+        default_option = ordered_options.pop(default_index)
+        ordered_options.insert(0, default_option)
     if not sys.stdin.isatty() or not sys.stdout.isatty() or questionary is None:
         print(title)
-        for key, label in options:
+        for key, label in ordered_options:
             print(f"  {key}. {label}")
-        valid_choices = {key for key, _ in options}
-        choice_hint = "/".join(key for key, _ in options)
+        valid_choices = {key for key, _ in ordered_options}
+        choice_hint = "/".join(key for key, _ in ordered_options)
         while True:
             choice = input(f"Enter choice [{choice_hint}]: ").strip()
             if choice in valid_choices:
                 return choice
             fail(f"Invalid choice. Please enter one of: {choice_hint}.")
-    choice_map = {label: key for key, label in options}
-    default_label = options[selected][1]
+    choice_map = {label: key for key, label in ordered_options}
     answer = questionary.select(
         title,
-        choices=[label for _, label in options],
-        default=default_label,
+        choices=[label for _, label in ordered_options],
         instruction=helper_text,
+        style=QUESTIONARY_STYLE,
     ).ask()
     if answer is None:
         raise KeyboardInterrupt
@@ -784,6 +807,7 @@ def prompt_main_menu() -> str:
         [
             ("1", "Initialize project"),
             ("2", "Configure project"),
+            ("0", "Exit"),
         ],
     )
 
@@ -794,7 +818,8 @@ def prompt_config_menu() -> str:
         [
             ("1", "Add Jira Project"),
             ("2", "Configure ATLASSIAN MCP"),
-            ("3", "TBD"),
+            ("3", "Update Jira Project"),
+            ("0", "Back"),
         ],
     )
 
@@ -814,6 +839,22 @@ def prompt_confirm(label: str, *, default_yes: bool = True) -> bool:
                 return False
             fail("Invalid choice. Please enter y or n.")
     return prompt_choice(label, options, default_index=default_index) == "y"
+
+
+def list_existing_project_keys() -> list[str]:
+    project_root = REPO_ROOT / "config" / "assets" / "project"
+    if not project_root.is_dir():
+        return []
+    return sorted(path.name for path in project_root.iterdir() if path.is_dir())
+
+
+def prompt_existing_project_key() -> str:
+    project_keys = list_existing_project_keys()
+    if not project_keys:
+        raise RuntimeError(f"No existing project folders found under {REPO_ROOT / 'config' / 'assets' / 'project'}")
+    options = [(project_key, project_key) for project_key in project_keys]
+    options.append(("0", "Back"))
+    return prompt_choice("Select a project to update:", options)
 
 
 def write_outputs(
@@ -1259,6 +1300,10 @@ def run_initialize_project_flow() -> int:
         team_name,
     )
     if prompt_confirm("Configure ATLASSIAN MCP in Cursor?", default_yes=True):
+        exists, mcp_path = cursor_atlassian_mcp_exists()
+        if exists:
+            log(f"Cursor MCP already configured: {mcp_path}")
+            return 0
         ensure_uv_installed()
         mcp_path = configure_cursor_atlassian_mcp(email, token)
         log(f"Updated Cursor MCP config: {mcp_path}")
@@ -1284,6 +1329,63 @@ def load_existing_atlassian_context() -> dict[str, str]:
         "account_id": account_id,
         "base_url": base_url,
     }
+
+
+def run_project_config_flow(project_input: str) -> int:
+    context = load_existing_atlassian_context()
+    auth_b64 = basic_auth(context["email"], context["token"])
+    account_id = context["account_id"]
+
+    project = resolve_project(project_input, auth_b64)
+    project_key = str(project.get("key") or "").upper()
+    if not project_key:
+        raise RuntimeError("resolved project key is empty")
+
+    log(f"Fetching Jira components for {project_key}")
+    components_data = get_json(
+        f"/rest/api/3/project/{project_key}/components",
+        auth_b64,
+        loading_message=f"Loading Jira components for {project_key}",
+    )
+
+    default_assignee = prompt_default_assignee(project_key, auth_b64)
+    print("Sprint setup")
+    team_name = prompt_team_name(project_key)
+
+    log(f"Fetching recent epics for {project_key}")
+    epics_data = post_json(
+        "/rest/api/3/search/jql",
+        auth_b64,
+        {
+            "jql": (
+                f"project = {project_key} "
+                'AND issuetype = Epic '
+                f'AND reporter = "{account_id}" '
+                'AND status NOT IN (Done, "Won\'t Do") '
+                "AND created >= -24w "
+                "ORDER BY created DESC"
+            ),
+            "maxResults": 50,
+            "fields": ["key", "summary", "components"],
+        },
+        loading_message=f"Loading recent epics for {project_key}",
+    )
+
+    createmeta = fetch_createmeta(project_key, auth_b64)
+    log("Building project discovery payload")
+    discovery = build_discovery(
+        project,
+        components_data,
+        createmeta,
+        epics_data,
+        project_key,
+        account_id,
+        derive_username(context["email"], ""),
+        default_assignee,
+    )
+    log("Writing project config only")
+    write_project_outputs(discovery, default_assignee, team_name, account_id)
+    return 0
 
 
 def resolve_cursor_mcp_config_path() -> Path:
@@ -1341,6 +1443,23 @@ def configure_cursor_atlassian_mcp(email: str, token: str) -> Path:
     return mcp_path
 
 
+def cursor_atlassian_mcp_exists() -> tuple[bool, Path]:
+    mcp_path = resolve_cursor_mcp_config_path()
+    if not mcp_path.is_file():
+        return False, mcp_path
+    raw = mcp_path.read_text(encoding="utf-8").strip()
+    if not raw:
+        return False, mcp_path
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return False, mcp_path
+    servers = data.get("mcpServers")
+    if not isinstance(servers, dict):
+        return False, mcp_path
+    return "mcp-atlassian" in servers, mcp_path
+
+
 def ensure_uv_installed() -> None:
     if shutil.which("uvx") or shutil.which("uv"):
         return
@@ -1356,66 +1475,26 @@ def ensure_uv_installed() -> None:
 
 
 def run_add_jira_project_flow() -> int:
-    context = load_existing_atlassian_context()
-    auth_b64 = basic_auth(context["email"], context["token"])
-    account_id = context["account_id"]
-
     print("Project setup")
     project_input = prompt_non_empty('Input project name or key (e.g. "CP" or "Common Platform"): ')
-    project = resolve_project(project_input, auth_b64)
-    project_key = str(project.get("key") or "").upper()
-    if not project_key:
-        raise RuntimeError("resolved project key is empty")
+    return run_project_config_flow(project_input)
 
-    log(f"Fetching Jira components for {project_key}")
-    components_data = get_json(
-        f"/rest/api/3/project/{project_key}/components",
-        auth_b64,
-        loading_message=f"Loading Jira components for {project_key}",
-    )
 
-    default_assignee = prompt_default_assignee(project_key, auth_b64)
-    print("Sprint setup")
-    team_name = prompt_team_name(project_key)
-
-    log(f"Fetching recent epics for {project_key}")
-    epics_data = post_json(
-        "/rest/api/3/search/jql",
-        auth_b64,
-        {
-            "jql": (
-                f"project = {project_key} "
-                'AND issuetype = Epic '
-                f'AND reporter = "{account_id}" '
-                'AND status NOT IN (Done, "Won\'t Do") '
-                "AND created >= -24w "
-                "ORDER BY created DESC"
-            ),
-            "maxResults": 50,
-            "fields": ["key", "summary", "components"],
-        },
-        loading_message=f"Loading recent epics for {project_key}",
-    )
-
-    createmeta = fetch_createmeta(project_key, auth_b64)
-    log("Building project discovery payload")
-    discovery = build_discovery(
-        project,
-        components_data,
-        createmeta,
-        epics_data,
-        project_key,
-        account_id,
-        derive_username(context["email"], ""),
-        default_assignee,
-    )
-    log("Writing project config only")
-    write_project_outputs(discovery, default_assignee, team_name, account_id)
-    return 0
+def run_update_jira_project_flow() -> int:
+    print("Project selection")
+    project_key = prompt_existing_project_key()
+    if project_key == "0":
+        log("Back to configure menu.")
+        return -1
+    return run_project_config_flow(project_key)
 
 
 def run_configure_mcp_flow() -> int:
     context = load_existing_atlassian_context()
+    exists, mcp_path = cursor_atlassian_mcp_exists()
+    if exists:
+        log(f"Cursor MCP already configured: {mcp_path}")
+        return 0
     ensure_uv_installed()
     mcp_path = configure_cursor_atlassian_mcp(context["email"], context["token"])
     log(f"Updated Cursor MCP config: {mcp_path}")
@@ -1427,17 +1506,27 @@ def main() -> int:
         ensure_dependencies()
         print_banner()
         show_startup_progress()
-        choice = prompt_main_menu()
-        if choice == "2":
-            config_choice = prompt_config_menu()
-            if config_choice == "1":
-                return run_add_jira_project_flow()
-            if config_choice == "2":
-                return run_configure_mcp_flow()
-            log("This configure option is not implemented yet.")
-            return 0
-
-        return run_initialize_project_flow()
+        while True:
+            choice = prompt_main_menu()
+            if choice == "0":
+                log("Exit.")
+                return 0
+            if choice == "1":
+                return run_initialize_project_flow()
+            if choice == "2":
+                while True:
+                    config_choice = prompt_config_menu()
+                    if config_choice == "0":
+                        break
+                    if config_choice == "1":
+                        return run_add_jira_project_flow()
+                    if config_choice == "2":
+                        return run_configure_mcp_flow()
+                    if config_choice == "3":
+                        result = run_update_jira_project_flow()
+                        if result == -1:
+                            continue
+                        return result
     except KeyboardInterrupt:
         fail("Initialization cancelled.")
         return 130
