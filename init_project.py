@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 import base64
+import contextlib
 import datetime as dt
 import getpass
+import importlib.util
 import json
 import os
 import re
+import subprocess
 import sys
+import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -21,6 +25,20 @@ ATLASSIAN_BASE_URL = "https://pacvue-enterprise.atlassian.net"
 REPO_ROOT = Path(__file__).resolve().parent
 PROFILE_PATH = REPO_ROOT / "config" / "assets" / "global" / "profile.yaml"
 ENV_PATH = REPO_ROOT / ".env"
+REPO_URL = "https://github.com/rambosystem/jira"
+DEEPSEEK_BASE_URL = "https://api.deepseek.com/"
+DEEPSEEK_KEY = "sk-86bc4e0605014153b8b1b840e4c71c02"
+REQUIRED_PACKAGES = [
+    ("certifi", "certifi"),
+    ("questionary", "questionary"),
+    ("rich", "rich"),
+]
+questionary = None
+Console = None
+Progress = None
+BarColumn = None
+TextColumn = None
+TimeElapsedColumn = None
 
 
 def print_banner() -> None:
@@ -32,8 +50,13 @@ def print_banner() -> None:
 ██║  ██║██║  ██║██║ ╚═╝ ██║██████╔╝╚██████╔╝
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝  ╚═════╝
 """
-    print(banner)
-    print(f"Repository: {REPO_ROOT.name}\n")
+    if Console is not None:
+        console = Console()
+        console.print(banner, style="bold white")
+        console.print(f"Repository: [link={REPO_URL}]{REPO_URL}[/link]\n", style="bold")
+    else:
+        print(banner)
+        print(f"Repository: {REPO_URL}\n")
 
 
 def log(message: str) -> None:
@@ -53,6 +76,85 @@ def debug(message: str) -> None:
         print(f"[init][debug] {message}")
 
 
+def ensure_dependencies() -> None:
+    global questionary, Console, Progress, BarColumn, TextColumn, TimeElapsedColumn
+    missing = [package for module_name, package in REQUIRED_PACKAGES if importlib.util.find_spec(module_name) is None]
+    if not missing:
+        import questionary as _questionary
+        from rich.console import Console as _Console
+        from rich.progress import BarColumn as _BarColumn
+        from rich.progress import Progress as _Progress
+        from rich.progress import TextColumn as _TextColumn
+        from rich.progress import TimeElapsedColumn as _TimeElapsedColumn
+
+        questionary = _questionary
+        Console = _Console
+        Progress = _Progress
+        BarColumn = _BarColumn
+        TextColumn = _TextColumn
+        TimeElapsedColumn = _TimeElapsedColumn
+        return
+
+    print(f"[init] Installing missing dependencies: {', '.join(missing)}")
+    try:
+        subprocess.run([sys.executable, "-m", "pip", "install", *missing], check=True)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(f"Failed to install required dependencies: {', '.join(missing)}") from exc
+
+    import questionary as _questionary
+    from rich.console import Console as _Console
+    from rich.progress import BarColumn as _BarColumn
+    from rich.progress import Progress as _Progress
+    from rich.progress import TextColumn as _TextColumn
+    from rich.progress import TimeElapsedColumn as _TimeElapsedColumn
+
+    questionary = _questionary
+    Console = _Console
+    Progress = _Progress
+    BarColumn = _BarColumn
+    TextColumn = _TextColumn
+    TimeElapsedColumn = _TimeElapsedColumn
+
+
+def show_startup_progress() -> None:
+    if not sys.stdout.isatty() or Progress is None:
+        return
+
+    steps = [
+        ("Bootstrapping workspace", 15),
+        ("Loading local settings", 40),
+        ("Preparing interactive menu", 70),
+        ("Rendering startup UI", 90),
+        ("Ready", 100),
+    ]
+    with Progress(
+        TextColumn("[bold cyan]{task.fields[label]}"),
+        BarColumn(bar_width=None),
+        TextColumn("[bold]{task.percentage:>3.0f}%"),
+        TimeElapsedColumn(),
+        transient=True,
+        console=Console(),
+    ) as progress:
+        task_id = progress.add_task("startup", total=100, label=steps[0][0])
+        current = 0
+        for label, percent in steps:
+            progress.update(task_id, label=label)
+            while current < percent:
+                current += 1
+                progress.update(task_id, completed=current)
+                time.sleep(0.03 if percent < 100 else 0.015)
+
+
+@contextlib.contextmanager
+def loading(message: str):
+    if not sys.stdout.isatty() or Console is None:
+        yield
+        return
+    console = Console()
+    with console.status(f"[bold cyan]{message}[/bold cyan]", spinner="dots"):
+        yield
+
+
 def is_valid_email(value: str) -> bool:
     return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value))
 
@@ -68,7 +170,7 @@ def prompt_non_empty(label: str, secret: bool = False) -> str:
 
 def prompt_email() -> str:
     while True:
-        value = prompt_non_empty("Input email: ")
+        value = prompt_non_empty("Input your Atlassian email: ")
         if is_valid_email(value):
             return value
         fail("Invalid email format. Please retry.")
@@ -85,6 +187,7 @@ def api_request(
     *,
     method: str = "GET",
     data: dict[str, Any] | None = None,
+    loading_message: str | None = None,
 ) -> Any:
     headers = {
         "Accept": "application/json",
@@ -103,8 +206,9 @@ def api_request(
     last_error: Exception | None = None
     for attempt in range(2):
         try:
-            with urllib.request.urlopen(req, context=ctx) as resp:
-                body = resp.read().decode("utf-8")
+            with loading(loading_message or f"{method} {urllib.parse.urlparse(url).path}"):
+                with urllib.request.urlopen(req, context=ctx) as resp:
+                    body = resp.read().decode("utf-8")
             return json.loads(body) if body else {}
         except URLError as exc:
             last_error = exc
@@ -119,12 +223,18 @@ def api_request(
     raise RuntimeError(f"Unexpected request failure: {url}")
 
 
-def get_json(path: str, auth_b64: str) -> Any:
-    return api_request(f"{ATLASSIAN_BASE_URL.rstrip('/')}{path}", auth_b64)
+def get_json(path: str, auth_b64: str, *, loading_message: str | None = None) -> Any:
+    return api_request(f"{ATLASSIAN_BASE_URL.rstrip('/')}{path}", auth_b64, loading_message=loading_message)
 
 
-def post_json(path: str, auth_b64: str, data: dict[str, Any]) -> Any:
-    return api_request(f"{ATLASSIAN_BASE_URL.rstrip('/')}{path}", auth_b64, method="POST", data=data)
+def post_json(path: str, auth_b64: str, data: dict[str, Any], *, loading_message: str | None = None) -> Any:
+    return api_request(
+        f"{ATLASSIAN_BASE_URL.rstrip('/')}{path}",
+        auth_b64,
+        method="POST",
+        data=data,
+        loading_message=loading_message,
+    )
 
 
 def derive_username(email: str, display_name: str) -> str:
@@ -137,7 +247,7 @@ def derive_username(email: str, display_name: str) -> str:
 def validate_identity(email: str, token: str) -> dict[str, str]:
     auth_b64 = basic_auth(email, token)
     log("Fetching Atlassian identity from /rest/api/3/myself")
-    myself = get_json("/rest/api/3/myself", auth_b64)
+    myself = get_json("/rest/api/3/myself", auth_b64, loading_message="Verifying Atlassian identity")
     account_id = str(myself.get("accountId") or "")
     display_name = str(myself.get("displayName") or "")
     if not account_id:
@@ -156,7 +266,11 @@ def resolve_default_workspace(auth_b64: str, account_id: str) -> dict[str, str]:
     homepage_id = ""
 
     try:
-        me = get_json("/wiki/rest/api/user/current?expand=personalSpace", auth_b64)
+        me = get_json(
+            "/wiki/rest/api/user/current?expand=personalSpace",
+            auth_b64,
+            loading_message="Loading Confluence personal space",
+        )
         personal_space = me.get("personalSpace") or {}
         space_key = str(personal_space.get("key") or "")
         space_id = str(personal_space.get("id") or "")
@@ -171,6 +285,7 @@ def resolve_default_workspace(auth_b64: str, account_id: str) -> dict[str, str]:
         spaces = get_json(
             f"/wiki/api/v2/spaces?keys={urllib.parse.quote(derived_space_key, safe='')}&limit=1",
             auth_b64,
+            loading_message="Resolving fallback Confluence space",
         )
         results = spaces.get("results") or []
         if not results:
@@ -183,12 +298,17 @@ def resolve_default_workspace(auth_b64: str, account_id: str) -> dict[str, str]:
             legacy_space = get_json(
                 f"/wiki/rest/api/space/{urllib.parse.quote(space_key, safe='')}?expand=homepage",
                 auth_b64,
+                loading_message="Loading Confluence homepage",
             )
             homepage_id = str(((legacy_space.get("homepage") or {}).get("id")) or "")
         if not space_id or not homepage_id:
             raise RuntimeError("Current Confluence user has no resolvable personal space/homepage")
 
-    children = get_json(f"/wiki/api/v2/pages/{homepage_id}/direct-children?limit=250", auth_b64)
+    children = get_json(
+        f"/wiki/api/v2/pages/{homepage_id}/direct-children?limit=250",
+        auth_b64,
+        loading_message="Loading Confluence workspace folders",
+    )
     results = children.get("results") or []
     workspace_folder = None
     for item in results:
@@ -202,6 +322,7 @@ def resolve_default_workspace(auth_b64: str, account_id: str) -> dict[str, str]:
             "/wiki/api/v2/folders",
             auth_b64,
             {"title": "Workspace", "spaceId": space_id, "parentId": homepage_id},
+            loading_message="Creating Confluence Workspace folder",
         )
 
     folder_id = str(workspace_folder.get("id") or "")
@@ -219,13 +340,21 @@ def resolve_project(project_input: str, auth_b64: str) -> dict[str, Any]:
     log(f"Resolving Jira project metadata for {project_input}")
     quoted = urllib.parse.quote(project_input, safe="")
     try:
-        project = get_json(f"/rest/api/3/project/{quoted}", auth_b64)
+        project = get_json(
+            f"/rest/api/3/project/{quoted}",
+            auth_b64,
+            loading_message=f"Loading Jira project {project_input}",
+        )
         if project:
             return project
     except Exception:
         pass
 
-    data = get_json(f"/rest/api/3/project/search?query={quoted}&maxResults=50", auth_b64)
+    data = get_json(
+        f"/rest/api/3/project/search?query={quoted}&maxResults=50",
+        auth_b64,
+        loading_message=f"Searching Jira project {project_input}",
+    )
     values = data.get("values") or []
     needle = project_input.strip().lower()
     exact = [
@@ -241,7 +370,11 @@ def resolve_project(project_input: str, auth_b64: str) -> dict[str, Any]:
 
 def fetch_createmeta(project_key: str, auth_b64: str) -> dict[str, Any]:
     log(f"Fetching Jira create metadata for {project_key}")
-    itypes_data = get_json(f"/rest/api/3/issue/createmeta/{project_key}/issuetypes", auth_b64)
+    itypes_data = get_json(
+        f"/rest/api/3/issue/createmeta/{project_key}/issuetypes",
+        auth_b64,
+        loading_message=f"Loading issue types for {project_key}",
+    )
     if isinstance(itypes_data, dict) and "issueTypes" in itypes_data:
         itypes = itypes_data["issueTypes"]
     elif isinstance(itypes_data, dict) and "values" in itypes_data:
@@ -256,7 +389,11 @@ def fetch_createmeta(project_key: str, auth_b64: str) -> dict[str, Any]:
         issue_type_id = issue_type.get("id")
         if not issue_type_id:
             continue
-        fields_data = get_json(f"/rest/api/3/issue/createmeta/{project_key}/issuetypes/{issue_type_id}", auth_b64)
+        fields_data = get_json(
+            f"/rest/api/3/issue/createmeta/{project_key}/issuetypes/{issue_type_id}",
+            auth_b64,
+            loading_message=f"Loading fields for {project_key} issue type {issue.get('name', issue_type_id)}",
+        )
         if isinstance(fields_data, dict) and "values" in fields_data:
             fields_page = fields_data["values"]
         elif isinstance(fields_data, dict) and "fields" in fields_data:
@@ -567,6 +704,68 @@ def prompt_team_name(project_key: str) -> str:
     return input(f"Input Team Name for sprint naming [{project_key}]: ").strip() or project_key
 
 
+def prompt_choice(
+    title: str,
+    options: list[tuple[str, str]],
+    *,
+    helper_text: str = "Use arrow keys to move, Enter to confirm.",
+    default_index: int = 0,
+) -> str:
+    selected = default_index
+    if not sys.stdin.isatty() or not sys.stdout.isatty() or questionary is None:
+        print(title)
+        for key, label in options:
+            print(f"  {key}. {label}")
+        valid_choices = {key for key, _ in options}
+        choice_hint = "/".join(key for key, _ in options)
+        while True:
+            choice = input(f"Enter choice [{choice_hint}]: ").strip()
+            if choice in valid_choices:
+                return choice
+            fail(f"Invalid choice. Please enter one of: {choice_hint}.")
+    choice_map = {label: key for key, label in options}
+    default_label = options[selected][1]
+    answer = questionary.select(
+        title,
+        choices=[label for _, label in options],
+        default=default_label,
+        instruction=helper_text,
+    ).ask()
+    if answer is None:
+        raise KeyboardInterrupt
+    return choice_map[answer]
+
+
+def prompt_main_menu() -> str:
+    return prompt_choice(
+        "Select an action:",
+        [
+            ("1", "Initialize project"),
+            ("2", "Configure project"),
+        ],
+    )
+
+
+def prompt_confirm(label: str, *, default_yes: bool = True) -> bool:
+    options = [("y", "Yes"), ("n", "No")]
+    default_index = 0 if default_yes else 1
+    if not sys.stdin.isatty() or not sys.stdout.isatty() or questionary is None:
+        suffix = "[Y/n]" if default_yes else "[y/N]"
+        while True:
+            choice = input(f"{label} {suffix}: ").strip().lower()
+            if choice == "":
+                return default_yes
+            if choice in {"y", "yes"}:
+                return True
+            if choice in {"n", "no"}:
+                return False
+            fail("Invalid choice. Please enter y or n.")
+    answer = questionary.confirm(label, default=default_yes).ask()
+    if answer is None:
+        raise KeyboardInterrupt
+    return bool(answer)
+
+
 def write_outputs(
     discovery: dict[str, Any],
     username: str,
@@ -724,6 +923,8 @@ def write_outputs(
     upsert_env(ENV_PATH, "CONFLUENCE_SPACE_KEY", workspace["space_key"])
     upsert_env(ENV_PATH, "CONFLUENCE_PARENT_ID", workspace["parent_id"])
     upsert_env(ENV_PATH, "CONFLUENCE_SPACE_ID", workspace["space_id"])
+    upsert_env(ENV_PATH, "DEEPSEEK_BASE_URL", DEEPSEEK_BASE_URL)
+    upsert_env(ENV_PATH, "DEEPSEEK_KEY", DEEPSEEK_KEY)
 
     log("Initialization completed.")
     print(f"Generated: {PROFILE_PATH}")
@@ -752,6 +953,7 @@ def prompt_default_assignee(project_key: str, auth_b64: str) -> dict[str, str]:
         users = get_json(
             f"/rest/api/3/user/assignable/search?project={project_key}&query={quoted_target}&maxResults=20",
             auth_b64,
+            loading_message=f"Searching assignable users in {project_key}",
         )
         match = None
         for user in users or []:
@@ -770,8 +972,7 @@ def prompt_default_assignee(project_key: str, auth_b64: str) -> dict[str, str]:
             "Default assignee found: "
             f"{match['name']} <{match['email']}> ({match['account_id']})"
         )
-        confirm = input("Use this assignee? [Y/n]: ").strip().lower()
-        if confirm in ("", "y", "yes"):
+        if prompt_confirm("Use this assignee?", default_yes=True):
             return match
 
 
@@ -793,7 +994,14 @@ def prompt_validated_credentials() -> tuple[str, str, dict[str, str]]:
 
 def main() -> int:
     try:
+        ensure_dependencies()
         print_banner()
+        show_startup_progress()
+        choice = prompt_main_menu()
+        if choice == "2":
+            log("Configure project is not implemented yet.")
+            return 0
+
         email, project_input, creds = prompt_validated_credentials()
         token = creds["token"]
         auth_b64 = creds["auth_b64"]
@@ -808,7 +1016,11 @@ def main() -> int:
             raise RuntimeError("resolved project key is empty")
 
         log(f"Fetching Jira components for {project_key}")
-        components_data = get_json(f"/rest/api/3/project/{project_key}/components", auth_b64)
+        components_data = get_json(
+            f"/rest/api/3/project/{project_key}/components",
+            auth_b64,
+            loading_message=f"Loading Jira components for {project_key}",
+        )
 
         default_assignee = prompt_default_assignee(project_key, auth_b64)
         team_name = prompt_team_name(project_key)
@@ -829,6 +1041,7 @@ def main() -> int:
                 "maxResults": 50,
                 "fields": ["key", "summary", "components"],
             },
+            loading_message=f"Loading recent epics for {project_key}",
         )
 
         createmeta = fetch_createmeta(project_key, auth_b64)
