@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import datetime as dt
 import getpass
 import json
 import os
@@ -539,6 +540,20 @@ def upsert_env(path: Path, key: str, value: str) -> None:
     path.write_text("\n".join(out) + "\n", encoding="utf-8")
 
 
+def current_quarter_token(today: dt.date | None = None) -> str:
+    now = today or dt.date.today()
+    quarter = ((now.month - 1) // 3) + 1
+    return f"{now.year % 100:02d}Q{quarter}"
+
+
+def sprint_name_pattern(team_name: str) -> str:
+    return f"^[0-9]{{2}}Q[1-4]-Sprint[1-6]-{re.escape(team_name)}$"
+
+
+def prompt_team_name(project_key: str) -> str:
+    return input(f"Input Team Name for sprint naming [{project_key}]: ").strip() or project_key
+
+
 def write_outputs(
     discovery: dict[str, Any],
     username: str,
@@ -548,6 +563,7 @@ def write_outputs(
     workspace: dict[str, str],
     token: str,
     default_assignee: dict[str, str],
+    team_name: str,
 ) -> None:
     PROFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
     ENV_PATH.touch(exist_ok=True)
@@ -596,6 +612,36 @@ def write_outputs(
         },
     }
     (project_dir / "team.yaml").write_text("\n".join(dump_yaml(team_yaml)) + "\n", encoding="utf-8")
+
+    active_quarter = current_quarter_token()
+    sprint_list_yaml = {
+        "sprint_management": {
+            "format": {
+                "pattern": sprint_name_pattern(team_name),
+                "template": f"<YYQn>-Sprint<1..6>-{team_name}",
+                "example": f"{active_quarter}-Sprint6-{team_name}",
+            },
+            "rules": {
+                "sprints_per_quarter": 6,
+                "team_name": team_name,
+                "quarter_token": "YYQn",
+            },
+            "recent_sprints": {
+                "active_quarter": active_quarter,
+                "values": [f"{active_quarter}-Sprint{i}-{team_name}" for i in range(1, 7)],
+            },
+            "notes": [
+                "Sprint values should follow quarter-based naming.",
+                f"Update pattern/rules if {team_name} sprint naming changes.",
+            ],
+        }
+    }
+    sprint_list_lines = [
+        f"# {project_key} sprint list. Project implied by path (Jira/config/assets/project/{project_key}/).",
+        "",
+    ]
+    sprint_list_lines.extend(dump_yaml(sprint_list_yaml))
+    (project_dir / "sprint-list.yaml").write_text("\n".join(sprint_list_lines) + "\n", encoding="utf-8")
 
     (policy_dir / "ticket-schema.json").write_text(
         json.dumps(discovery["ticket_schema"], ensure_ascii=False, indent=2) + "\n",
@@ -675,6 +721,8 @@ def write_outputs(
     print("  Purpose: project component catalog fetched from Jira.")
     print(f"Generated: {project_dir / 'team.yaml'}")
     print("  Purpose: project team skeleton. members/external_members are intentionally left empty.")
+    print(f"Generated: {project_dir / 'sprint-list.yaml'}")
+    print("  Purpose: sprint naming config generated from the Team Name you provided.")
     print(f"Generated: {policy_dir / 'ticket-schema.json'}")
     print("  Purpose: executable Jira issue schema, defaults, and allowed field options.")
     print(f"Updated:   {field_mappings_path}")
@@ -749,6 +797,7 @@ def main() -> int:
         components_data = get_json(f"/rest/api/3/project/{project_key}/components", auth_b64)
 
         default_assignee = prompt_default_assignee(project_key, auth_b64)
+        team_name = prompt_team_name(project_key)
 
         log(f"Fetching recent epics for {project_key}")
         epics_data = post_json(
@@ -790,6 +839,7 @@ def main() -> int:
             workspace,
             token,
             default_assignee,
+            team_name,
         )
         return 0
     except KeyboardInterrupt:
