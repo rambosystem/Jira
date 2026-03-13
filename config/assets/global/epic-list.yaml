@@ -1,0 +1,127 @@
+# Global epic list: conventions and recent epics. Project implied by key prefix (CP-, PAG-).
+
+epic_management:
+  purpose: Manage Story parent linkage through quarterly module epics.
+  conventions:
+    quarterly_module_epic_naming_pattern: "<Module> Upgrade - <YYQn>"
+    story_parent_default_rule: "For functional-module Story, default Parent to module quarterly Epic."
+    special_epic_override_rule: "Use a special Epic when user explicitly specifies one or the work is non-quarterly."
+
+  # JQL template to fetch recent epics (reporter = me, not Done/Won't Do, last 24w). Substitute {{reporter_account_id}} from Jira/config/assets/global/profile.yaml me.account_id.
+  recent_epics_query:
+    description: "Epics I reported, open, created in last 24 weeks"
+    jql_template: |
+      type = Epic
+      AND reporter = {{reporter_account_id}}
+      AND status NOT IN (Done, "Won't Do")
+      AND created >= -24w
+      ORDER BY created DESC
+    # MCP tool to run this query and refresh recent_epics:
+    mcp:
+      server: user-mcp-atlassian
+      tool: jira_search
+      params:
+        jql: "jql_template with {{reporter_account_id}} replaced by profile.me.account_id"
+        fields: "key,summary,components"
+        limit: 50
+
+  recent_epics:
+    - key: CP-46176
+      title: SOV Restructure - 26Q2
+      components: [SOV]
+    - key: CP-46175
+      title: Global Report - Quarter Business Review - 26Q2
+      components: [Company Board]
+    - key: CP-46174
+      title: Global Report - Cross-Market & Cross-Channel - 26Q2
+      components: [Company Board]
+    - key: CP-45468
+      title: Message Upgrade - 26Q2
+      components: [Message]
+    - key: CP-45467
+      title: Calendar Center Upgrade - 26Q2
+      components: [Calendar Center]
+    - key: CP-45466
+      title: Pacvue Copilot Upgrade - 26Q2
+      components: [Pacvue Copilot]
+    - key: CP-45465
+      title: My Report Upgrade - 26Q2
+      components: [My Report]
+    - key: CP-45464
+      title: Dayparting Scheduler Upgrade - 26Q2
+      components: [Dayparting Scheduler]
+    - key: CP-45463
+      title: Budget Scheduler Upgrade - 26Q2
+      components: [Budget Scheduler]
+    - key: CP-45462
+      title: Download Center Upgrade - 26Q2
+      components: [Download Center]
+    - key: CP-45461
+      title: Bid Explorer Upgrade - 26Q2
+      components: [Bid Explorer]
+    - key: CP-45460
+      title: SOV Upgrade - 26Q2
+      components: [SOV]
+    - key: CP-44575
+      title: Calender Center Rollout to Target
+      components: [Calendar Center]
+    - key: CP-44089
+      title: Dayparting Upgrade - 26Q1
+      components: [Dayparting Scheduler]
+    - key: CP-44087
+      title: SOV Upgrade - 26Q1
+      components: [SOV]
+    - key: CP-44086
+      title: My Report Upgrade - 26Q1
+      components: [My Report]
+    - key: CP-44007
+      title: Reddit - Dayparting
+      components: [Dayparting Scheduler]
+    - key: CP-43671
+      title: Kroger - Dayparting & Budget Scheduler
+      components: [Budget Scheduler, Dayparting Scheduler]
+    - key: CP-43139
+      title: Copilot - Proactive Engagement
+      components: [Pacvue Copilot]
+    - key: CP-42669
+      title: Ads Agent - Visualized Report Generation
+      components: [Pacvue Copilot]
+    - key: CP-42668
+      title: My Report - Rollout to Moloco
+      components: [My Report]
+    - key: CP-42667
+      title: Ads Agent - Data Insights & Analysis V2
+      components: [Pacvue Copilot]
+    - key: CP-42666
+      title: Ads Agent - Action Auto-Executor V2
+      components: [Pacvue Copilot]
+    - key: CP-42665
+      title: Ads Agent - Recommended Actions V2
+      components: [Pacvue Copilot]
+    - key: CP-42664
+      title: Ads Agent - Visualized Report Generation V2
+      components: [Pacvue Copilot]
+    - key: CP-42663
+      title: Home Depot - Automation Function Integration
+      components: [All]
+    - key: CP-42662
+      title: Slack Copilot
+      components: [Pacvue Copilot]
+    - key: CP-42661
+      title: SOV - Support Walmart MX & CA Market
+      components: [SOV]
+    - key: CP-42660
+      title: Ads Agent - Action Auto-Executor
+      components: [Pacvue Copilot]
+    - key: CP-42659
+      title: Ads Agent - Recommended Actions
+      components: [Pacvue Copilot]
+    - key: CP-42658
+      title: Ads Agent - Data Insights & Analysis
+      components: [Pacvue Copilot]
+    - key: CP-42657
+      title: Calendar Center Rollout to Target
+      components: [Calendar Center]
+    - key: CP-40078
+      title: "[AI AC] Share Link for HQ"
+      components: [Executive Hub]

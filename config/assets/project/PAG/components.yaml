@@ -1,0 +1,9 @@
+# PAG project components. Referenced by team.yaml (workspace.ownership.components_file).
+# Used by query-templates, create-story/create-technical-story/create-epic. Edit this file to add/remove components.
+
+components:
+  - name: Pacvue Agent
+    last_version: "2.0"
+
+  - name: Pacvue Agent
+    alias: [Copilot]

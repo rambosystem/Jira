@@ -1,0 +1,31 @@
+# PAG team info. Epic/Label: Jira/config/assets/global/. Sprint: Jira/config/assets/project/PAG/sprint-list.yaml.
+# Board queries: use Jira/config/assets/project/PAG/query-templates.yaml + this file to build JQL.
+# Ticket defaults and work-type schema: Jira/config/policy/PAG/ticket-schema.json.
+
+# Components: maintained in Jira/config/assets/project/PAG/components.yaml (ownership.components_file).
+
+workspace:
+  name: PAG Team Workspace
+  project:
+    key: PAG
+  ownership:
+    components_file: components.yaml
+
+team:
+  members:
+    - name: Hongjian Zhao
+      email: hongjian.zhao@pacvue.com
+      account_id: "712020:1683110c-d149-4ca7-a0ad-03ed10597e96"
+    - name: Tianwei Cai
+      email: tianwei.cai@helium10.com
+      account_id: "712020:c3a41fa6-5c83-460a-80ca-a50827135ce5"
+    - name: Yongteng Li
+      email: yongteng.li@helium10.com
+      account_id: "712020:4d3c5575-206d-4737-9d22-2af480cda3c7"
+    - name: Zack Shang
+      email: zack.shang@pacvue.com
+      account_id: "712020:764cf448-210c-4e4b-abd0-cfb411693cd3"
+    - name: Kaifeng Xue
+      email: kaifeng.xue@pacvue.com
+      account_id: "712020:d962cf4e-1564-429c-95d3-7a72d12b697c"
+  external_members: []

@@ -1,0 +1,60 @@
+# PACID Idea - Middle Platform Ideas 结构
+# 基于  Middle Platform IDEAS 实际填写习惯整理。
+# 参考示例: PACID-5903 (Copilot - Proactive Engagement)
+#
+# Jira 层面 Idea 无必填自定义字段；以下 required_by_team 为 Middle Platform 约定必填，便于评审与排期。
+
+issue_type: Idea
+team: Middle Platform
+
+# ---------- 约定必填（Middle Platform 填 Idea 时需保证填写） ----------
+required_by_team:
+  - name: Summary
+    key: summary
+    note: 标题，一句话概括 Idea
+  - name: Description
+    key: description
+    note: 使用下方 description_template 结构
+  - name: Assignee
+    key: assignee
+    note: 负责人（US PM / 产品）
+  - name: Teams
+    key: customfield_10278
+    note: 归属团队，固定值为 Ads
+    options: [Ads]
+  - name: Client Segment
+    key: customfield_10508
+    note: 固定值为 Pacvue
+    options: [Pacvue]
+  - name: Release Status
+    key: customfield_10726
+    note: 当前阶段
+    options: [Discovery, Development, Alpha, Beta, GA, "Product Backlog"]
+  - name: Roadmap Quarter
+    key: customfield_12866
+    note: 路线图季度，如 Q2 填 26Q2
+    options: [] # 以 Jira 项目配置为准，常见 26Q1, 26Q2, 26Q3, 26Q4 等
+
+description_template: |
+  **What we are building?**
+  （我们在做什么 / 功能概述）
+
+  **Why are we building it?**
+  （为什么做 / 背景与目标）
+
+  **💡 Customer Problem**
+  （用户/客户面临的问题）
+
+  **🔥 Customer Benefit**
+  （带来的价值与收益）
+
+  **🎯 Expected Business Impact**
+  （预期业务影响 / 成功指标）
+
+# ---------- Middle Platform 默认值（创建时可预填） ----------
+field_defaults:
+  Assignee: [profile.me.account_id]
+  Teams: [Ads]
+  Client Segment: [Pacvue]
+  Release Status: Discovery
+  Roadmap Quarter: [] # 创建时按用户指定填写，如 26Q2

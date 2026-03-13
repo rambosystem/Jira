@@ -1,0 +1,31 @@
+# CP ticket summary/title naming rules. Used by create-story, create-technical-story, create-epic.
+# Edit this file to change naming conventions; do not duplicate rules in SKILL.md.
+
+naming:
+  Epic:
+    pattern: "<Module> Upgrade - <YYQn>"
+    example: "SOV Upgrade - 26Q2"
+    description: "Quarterly module epic. Module = component name; YYQn = year-quarter e.g. 26Q2."
+    shorthand_inference:
+      - "User input like 'Q2 SOV epic' => Component from module token, Delivery Quarter from quarter, Summary = '<Module> Upgrade - <YYQn>'"
+      - "Labels include roadmap_YYqN (e.g. roadmap_26q2) from quarter token."
+
+  Story:
+    pattern: "[模块] - [平台或范围] - [动作 + 对象]"
+    enforce: true
+    rules:
+      module: "Bracketed component name, e.g. [My Report], [SOV]."
+      platform_scope: "Use 'All Platforms' for all-platform scope; multi-platform use slash e.g. Amazon/Walmart/Target."
+      action_object: "Formal business wording. Prefer verb-object: 提供, 支持, 新增, 优化, 重构, 对齐, 迁移. Prefer domain-subject style: <业务主体> + <动作> + <对象> (e.g. SOV Rule, Task Scheduler, Report API). For cross-team intent use subject-style (e.g. SOV Rule 提供 Brand SOV 接口)."
+      avoid: "Colloquial or ambiguous phrases (e.g. 给别的组, 搞一下, 做个)."
+    examples:
+      - "[My Report] - All Platforms - SOV Report 支持 Google Sheet"
+      - "[SOV] - Amazon - Add New Metrics SB Banner"
+      - "[SOV] - Amazon - SOV Rule 提供 Brand SOV 接口"
+
+  Technical Story:
+    inherit: Story
+
+  Bug:
+    pattern: "Optional; prefer [模块] - 简短描述 or user summary."
+    enforce: false
