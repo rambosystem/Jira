@@ -43,6 +43,10 @@ TextColumn = None
 TimeElapsedColumn = None
 
 
+def console():
+    return Console() if Console is not None else None
+
+
 def print_banner() -> None:
     banner = r"""
 ██████╗  █████╗ ███╗   ███╗██████╗  ██████╗
