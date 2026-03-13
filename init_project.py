@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 
+from scripts.common.env import load_dotenv
+from scripts.common.profile import load_atlassian_profile
 from scripts.common.http import ssl_context
 
 
@@ -336,6 +338,40 @@ def resolve_default_workspace(auth_b64: str, account_id: str) -> dict[str, str]:
     }
 
 
+def resolve_workspace_from_folder_url(folder_url: str, auth_b64: str) -> dict[str, str]:
+    match = re.search(r"/wiki/spaces/([^/]+)/folder/([^/?#]+)", folder_url)
+    if not match:
+        raise RuntimeError("Invalid Confluence folder URL. Expected format like /wiki/spaces/<space_key>/folder/<folder_id>.")
+
+    space_key = urllib.parse.unquote(match.group(1)).strip()
+    folder_id = match.group(2).strip()
+    spaces = get_json(
+        f"/wiki/api/v2/spaces?keys={urllib.parse.quote(space_key, safe='')}&limit=1",
+        auth_b64,
+        loading_message=f"Resolving Confluence space {space_key}",
+    )
+    results = spaces.get("results") or []
+    if not results:
+        raise RuntimeError(f"Could not resolve Confluence space from URL: {space_key}")
+    space = results[0]
+    space_id = str(space.get("id") or "").strip()
+    if not space_id:
+        raise RuntimeError(f"Resolved Confluence space has no id: {space_key}")
+    return {
+        "workspace_url": folder_url.strip(),
+        "space_key": space_key,
+        "parent_id": folder_id,
+        "space_id": space_id,
+    }
+
+
+def prompt_workspace_config(auth_b64: str, account_id: str) -> dict[str, str]:
+    if prompt_confirm("Create Workspace under your personal Confluence space?", default_yes=True):
+        return resolve_default_workspace(auth_b64, account_id)
+    folder_url = prompt_non_empty("Paste existing Confluence Folder URL: ")
+    return resolve_workspace_from_folder_url(folder_url, auth_b64)
+
+
 def resolve_project(project_input: str, auth_b64: str) -> dict[str, Any]:
     log(f"Resolving Jira project metadata for {project_input}")
     quoted = urllib.parse.quote(project_input, safe="")
@@ -392,7 +428,7 @@ def fetch_createmeta(project_key: str, auth_b64: str) -> dict[str, Any]:
         fields_data = get_json(
             f"/rest/api/3/issue/createmeta/{project_key}/issuetypes/{issue_type_id}",
             auth_b64,
-            loading_message=f"Loading fields for {project_key} issue type {issue.get('name', issue_type_id)}",
+            loading_message=f"Loading fields for {project_key} issue type {issue_type.get('name', issue_type_id)}",
         )
         if isinstance(fields_data, dict) and "values" in fields_data:
             fields_page = fields_data["values"]
@@ -746,6 +782,17 @@ def prompt_main_menu() -> str:
     )
 
 
+def prompt_config_menu() -> str:
+    return prompt_choice(
+        "Configure project:",
+        [
+            ("1", "Add Jira Project"),
+            ("2", "TBD"),
+            ("3", "TBD"),
+        ],
+    )
+
+
 def prompt_confirm(label: str, *, default_yes: bool = True) -> bool:
     options = [("y", "Yes"), ("n", "No")]
     default_index = 0 if default_yes else 1
@@ -760,10 +807,7 @@ def prompt_confirm(label: str, *, default_yes: bool = True) -> bool:
             if choice in {"n", "no"}:
                 return False
             fail("Invalid choice. Please enter y or n.")
-    answer = questionary.confirm(label, default=default_yes).ask()
-    if answer is None:
-        raise KeyboardInterrupt
-    return bool(answer)
+    return prompt_choice(label, options, default_index=default_index) == "y"
 
 
 def write_outputs(
@@ -945,6 +989,146 @@ def write_outputs(
     print("  Purpose: recent Epic cache used for Story parent auto-selection.")
 
 
+def write_project_outputs(
+    discovery: dict[str, Any],
+    default_assignee: dict[str, str],
+    team_name: str,
+    reporter_account_id: str,
+) -> None:
+    project_key = discovery["project_key"]
+    project_name = discovery["project_name"]
+    project_dir = REPO_ROOT / "config" / "assets" / "project" / project_key
+    policy_dir = REPO_ROOT / "config" / "policy" / project_key
+    project_dir.mkdir(parents=True, exist_ok=True)
+    policy_dir.mkdir(parents=True, exist_ok=True)
+
+    components_yaml = {"components": discovery["components"]}
+    (project_dir / "components.yaml").write_text("\n".join(dump_yaml(components_yaml)) + "\n", encoding="utf-8")
+
+    team_yaml = {
+        "workspace": {
+            "name": f"{project_name} Workspace",
+            "project": {"key": project_key},
+            "ownership": {"components_file": "components.yaml"},
+        },
+        "team": {
+            "default_assignee": {
+                "name": default_assignee["name"],
+                "email": default_assignee["email"],
+                "account_id": default_assignee["account_id"],
+            },
+            "members": [],
+            "external_members": [],
+        },
+    }
+    (project_dir / "team.yaml").write_text("\n".join(dump_yaml(team_yaml)) + "\n", encoding="utf-8")
+
+    active_quarter = current_quarter_token()
+    sprint_list_yaml = {
+        "sprint_management": {
+            "format": {
+                "pattern": sprint_name_pattern(team_name),
+                "template": f"<YYQn>-Sprint<1..6>-{team_name}",
+                "example": f"{active_quarter}-Sprint6-{team_name}",
+            },
+            "rules": {
+                "sprints_per_quarter": 6,
+                "team_name": team_name,
+                "quarter_token": "YYQn",
+            },
+            "recent_sprints": {
+                "active_quarter": active_quarter,
+                "values": [f"{active_quarter}-Sprint{i}-{team_name}" for i in range(1, 7)],
+            },
+            "notes": [
+                "Sprint values should follow quarter-based naming.",
+                f"Update pattern/rules if {team_name} sprint naming changes.",
+            ],
+        }
+    }
+    sprint_list_lines = [
+        f"# {project_key} sprint list. Project implied by path (Jira/config/assets/project/{project_key}/).",
+        "",
+    ]
+    sprint_list_lines.extend(dump_yaml(sprint_list_yaml))
+    (project_dir / "sprint-list.yaml").write_text("\n".join(sprint_list_lines) + "\n", encoding="utf-8")
+
+    (policy_dir / "ticket-schema.json").write_text(
+        json.dumps(discovery["ticket_schema"], ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    field_mappings_path = policy_dir.parent / "field-mappings.yaml"
+    existing = {"defaults": {}, "projects": {}}
+    if field_mappings_path.is_file():
+        existing = parse_simple_yaml_map(field_mappings_path.read_text(encoding="utf-8"))
+    defaults = existing.get("defaults") or {}
+    projects = existing.get("projects") or {}
+    projects[project_key] = discovery["field_mapping_project"]
+    field_mappings_path.write_text(
+        "\n".join(dump_yaml({"defaults": defaults, "projects": projects})) + "\n",
+        encoding="utf-8",
+    )
+
+    epic_list_path = PROFILE_PATH.parent / "epic-list.yaml"
+    existing_recent_epics: list[dict[str, Any]] = []
+    if epic_list_path.is_file():
+        existing_recent_epics = parse_recent_epics(epic_list_path.read_text(encoding="utf-8"))
+    project_prefix = f"{project_key.upper()}-"
+    merged_recent_epics = [
+        item for item in existing_recent_epics if not str(item.get("key", "")).startswith(project_prefix)
+    ]
+    merged_recent_epics.extend(discovery.get("recent_epics") or [])
+    epic_list_lines = [
+        "# Global epic list: conventions and recent epics. Project implied by key prefix (CP-, PAG-).",
+        "",
+        "epic_management:",
+        "  purpose: Manage Story parent linkage through quarterly module epics.",
+        "  conventions:",
+        '    quarterly_module_epic_naming_pattern: "<Module> Upgrade - <YYQn>"',
+        '    story_parent_default_rule: "For functional-module Story, default Parent to module quarterly Epic."',
+        '    special_epic_override_rule: "Use a special Epic when user explicitly specifies one or the work is non-quarterly."',
+        "",
+        "  # JQL template to fetch recent epics (project scope, not Done/Won't Do, last 24w).",
+        "  recent_epics_query:",
+        '    description: "My project epics, open, created in last 24 weeks"',
+        "    jql_template: |",
+        "      type = Epic",
+        "      AND project = {{project_key}}",
+        "      AND reporter = {{reporter_account_id}}",
+        '      AND status NOT IN (Done, "Won\'t Do")',
+        "      AND created >= -24w",
+        "      ORDER BY created DESC",
+        "    # MCP tool to run this query and refresh recent_epics:",
+        "    mcp:",
+        "      server: user-mcp-atlassian",
+        "      tool: jira_search",
+        "      params:",
+        '        jql: "jql_template with {{project_key}} and {{reporter_account_id}} replaced"',
+        '        fields: "key,summary,components"',
+        "        limit: 50",
+        "",
+        "  recent_epics:",
+    ]
+    if merged_recent_epics:
+        epic_list_lines.extend(dump_yaml(merged_recent_epics, 4))
+    epic_list_path.write_text("\n".join(epic_list_lines) + "\n", encoding="utf-8")
+
+    log("Project configuration updated.")
+    print(f"Generated: {project_dir / 'components.yaml'}")
+    print("  Purpose: project component catalog fetched from Jira.")
+    print(f"Generated: {project_dir / 'team.yaml'}")
+    print("  Purpose: project team config with default assignee.")
+    print(f"Generated: {project_dir / 'sprint-list.yaml'}")
+    print("  Purpose: sprint naming config generated from the Team Name you provided.")
+    print(f"Generated: {policy_dir / 'ticket-schema.json'}")
+    print("  Purpose: executable Jira issue schema, defaults, and allowed field options.")
+    print(f"Updated:   {field_mappings_path}")
+    print("  Purpose: alias-to-Jira custom field mapping used by creation scripts.")
+    print(f"Updated:   {epic_list_path}")
+    print(f"  Purpose: recent Epic cache refreshed for reporter {reporter_account_id}.")
+
+
 def prompt_default_assignee(project_key: str, auth_b64: str) -> dict[str, str]:
     while True:
         assignee_input = prompt_non_empty("Input default assignee email: ")
@@ -968,10 +1152,18 @@ def prompt_default_assignee(project_key: str, auth_b64: str) -> dict[str, str]:
         if not match:
             fail(f"Default assignee not found in project {project_key}. Please retry.")
             continue
-        print(
-            "Default assignee found: "
-            f"{match['name']} <{match['email']}> ({match['account_id']})"
-        )
+        current_console = console()
+        if current_console is not None:
+            current_console.print(
+                "[bold cyan]Default assignee found:[/bold cyan] "
+                f"[bold yellow]{match['name']}[/bold yellow] "
+                f"[bold white]<{match['email']}>[/bold white]"
+            )
+        else:
+            print(
+                "Default assignee found: "
+                f"{match['name']} <{match['email']}>"
+            )
         if prompt_confirm("Use this assignee?", default_yes=True):
             return match
 
@@ -992,6 +1184,157 @@ def prompt_validated_credentials() -> tuple[str, str, dict[str, str]]:
             print("Please retry your email and token.\n")
 
 
+def run_initialize_project_flow() -> int:
+    email, project_input, creds = prompt_validated_credentials()
+    token = creds["token"]
+    auth_b64 = creds["auth_b64"]
+    account_id = creds["account_id"]
+    display_name = creds["display_name"]
+    username = derive_username(email, display_name)
+
+    print("Workspace setup")
+    workspace = prompt_workspace_config(auth_b64, account_id)
+    project = resolve_project(project_input, auth_b64)
+    project_key = str(project.get("key") or "").upper()
+    if not project_key:
+        raise RuntimeError("resolved project key is empty")
+
+    log(f"Fetching Jira components for {project_key}")
+    components_data = get_json(
+        f"/rest/api/3/project/{project_key}/components",
+        auth_b64,
+        loading_message=f"Loading Jira components for {project_key}",
+    )
+
+    default_assignee = prompt_default_assignee(project_key, auth_b64)
+    team_name = prompt_team_name(project_key)
+
+    log(f"Fetching recent epics for {project_key}")
+    epics_data = post_json(
+        "/rest/api/3/search/jql",
+        auth_b64,
+        {
+            "jql": (
+                f"project = {project_key} "
+                'AND issuetype = Epic '
+                f'AND reporter = "{account_id}" '
+                'AND status NOT IN (Done, "Won\'t Do") '
+                "AND created >= -24w "
+                "ORDER BY created DESC"
+            ),
+            "maxResults": 50,
+            "fields": ["key", "summary", "components"],
+        },
+        loading_message=f"Loading recent epics for {project_key}",
+    )
+
+    createmeta = fetch_createmeta(project_key, auth_b64)
+    log("Building project discovery payload")
+    discovery = build_discovery(
+        project,
+        components_data,
+        createmeta,
+        epics_data,
+        project_key,
+        account_id,
+        username,
+        default_assignee,
+    )
+    log("Writing profile, team, components, schema, field mapping, and epic list")
+    write_outputs(
+        discovery,
+        username,
+        display_name,
+        email,
+        account_id,
+        workspace,
+        token,
+        default_assignee,
+        team_name,
+    )
+    return 0
+
+
+def load_existing_atlassian_context() -> dict[str, str]:
+    load_dotenv(ENV_PATH)
+    profile = load_atlassian_profile(PROFILE_PATH)
+    token = os.environ.get("ATLASSIAN_API_TOKEN", "").strip()
+    email = (profile.get("email") or os.environ.get("CONFLUENCE_EMAIL", "")).strip()
+    account_id = (profile.get("account_id") or os.environ.get("ACCOUNT_ID", "")).strip()
+    base_url = (profile.get("base_url") or os.environ.get("CONFLUENCE_BASE_URL", ATLASSIAN_BASE_URL)).strip()
+    if not email or not token or not account_id:
+        raise RuntimeError(
+            f"Missing existing Atlassian config. Check {PROFILE_PATH} and {ENV_PATH} for email, account_id, and ATLASSIAN_API_TOKEN."
+        )
+    if base_url.rstrip("/") != ATLASSIAN_BASE_URL.rstrip("/"):
+        log(f"Using configured Atlassian base URL from profile/env: {base_url}")
+    return {
+        "email": email,
+        "token": token,
+        "account_id": account_id,
+        "base_url": base_url,
+    }
+
+
+def run_add_jira_project_flow() -> int:
+    context = load_existing_atlassian_context()
+    auth_b64 = basic_auth(context["email"], context["token"])
+    account_id = context["account_id"]
+
+    print("Project setup")
+    project_input = prompt_non_empty('Input project name or key (e.g. "CP" or "Common Platform"): ')
+    project = resolve_project(project_input, auth_b64)
+    project_key = str(project.get("key") or "").upper()
+    if not project_key:
+        raise RuntimeError("resolved project key is empty")
+
+    log(f"Fetching Jira components for {project_key}")
+    components_data = get_json(
+        f"/rest/api/3/project/{project_key}/components",
+        auth_b64,
+        loading_message=f"Loading Jira components for {project_key}",
+    )
+
+    default_assignee = prompt_default_assignee(project_key, auth_b64)
+    print("Sprint setup")
+    team_name = prompt_team_name(project_key)
+
+    log(f"Fetching recent epics for {project_key}")
+    epics_data = post_json(
+        "/rest/api/3/search/jql",
+        auth_b64,
+        {
+            "jql": (
+                f"project = {project_key} "
+                'AND issuetype = Epic '
+                f'AND reporter = "{account_id}" '
+                'AND status NOT IN (Done, "Won\'t Do") '
+                "AND created >= -24w "
+                "ORDER BY created DESC"
+            ),
+            "maxResults": 50,
+            "fields": ["key", "summary", "components"],
+        },
+        loading_message=f"Loading recent epics for {project_key}",
+    )
+
+    createmeta = fetch_createmeta(project_key, auth_b64)
+    log("Building project discovery payload")
+    discovery = build_discovery(
+        project,
+        components_data,
+        createmeta,
+        epics_data,
+        project_key,
+        account_id,
+        derive_username(context["email"], ""),
+        default_assignee,
+    )
+    log("Writing project config only")
+    write_project_outputs(discovery, default_assignee, team_name, account_id)
+    return 0
+
+
 def main() -> int:
     try:
         ensure_dependencies()
@@ -999,76 +1342,13 @@ def main() -> int:
         show_startup_progress()
         choice = prompt_main_menu()
         if choice == "2":
-            log("Configure project is not implemented yet.")
+            config_choice = prompt_config_menu()
+            if config_choice == "1":
+                return run_add_jira_project_flow()
+            log("This configure option is not implemented yet.")
             return 0
 
-        email, project_input, creds = prompt_validated_credentials()
-        token = creds["token"]
-        auth_b64 = creds["auth_b64"]
-        account_id = creds["account_id"]
-        display_name = creds["display_name"]
-        username = derive_username(email, display_name)
-
-        workspace = resolve_default_workspace(auth_b64, account_id)
-        project = resolve_project(project_input, auth_b64)
-        project_key = str(project.get("key") or "").upper()
-        if not project_key:
-            raise RuntimeError("resolved project key is empty")
-
-        log(f"Fetching Jira components for {project_key}")
-        components_data = get_json(
-            f"/rest/api/3/project/{project_key}/components",
-            auth_b64,
-            loading_message=f"Loading Jira components for {project_key}",
-        )
-
-        default_assignee = prompt_default_assignee(project_key, auth_b64)
-        team_name = prompt_team_name(project_key)
-
-        log(f"Fetching recent epics for {project_key}")
-        epics_data = post_json(
-            "/rest/api/3/search/jql",
-            auth_b64,
-            {
-                "jql": (
-                    f"project = {project_key} "
-                    'AND issuetype = Epic '
-                    f'AND reporter = "{account_id}" '
-                    'AND status NOT IN (Done, "Won\'t Do") '
-                    "AND created >= -24w "
-                    "ORDER BY created DESC"
-                ),
-                "maxResults": 50,
-                "fields": ["key", "summary", "components"],
-            },
-            loading_message=f"Loading recent epics for {project_key}",
-        )
-
-        createmeta = fetch_createmeta(project_key, auth_b64)
-        log("Building project discovery payload")
-        discovery = build_discovery(
-            project,
-            components_data,
-            createmeta,
-            epics_data,
-            project_key,
-            account_id,
-            username,
-            default_assignee,
-        )
-        log("Writing profile, team, components, schema, field mapping, and epic list")
-        write_outputs(
-            discovery,
-            username,
-            display_name,
-            email,
-            account_id,
-            workspace,
-            token,
-            default_assignee,
-            team_name,
-        )
-        return 0
+        return run_initialize_project_flow()
     except KeyboardInterrupt:
         fail("Initialization cancelled.")
         return 130
