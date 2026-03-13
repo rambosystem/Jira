@@ -15,12 +15,43 @@ Create Jira Epic tickets using workspace config and the project ticket schema.
 - `Jira/config/assets/project/<project>/team.yaml`: `workspace.project.key`, `workspace.ownership.components`, `team.members`, `team.external_members`
 - `Jira/config/policy/<project>/ticket-schema.json`: `supported_work_types`, `defaults`, `issue_types.Epic`
 - `Jira/config/policy/<project>/ticket-naming.yaml`: `naming.Epic`
-- `Jira/config/assets/global/epic-list.yaml`: duplicate check and post-create update
+- `Jira/config/assets/global/epic-list.yaml`: epic cache reference and post-create update
 - `Jira/config/assets/global/label-list.yaml`: roadmap and recent labels
+
+## MCP Tools
+
+- `jira_create_issue`
+- `jira_get_issue` only for post-check when needed
+
+## Required schema + defaults
+
+- Build from `ticket-schema.json` only.
+- Use `issue_types.Epic.required_fields` + `field_defaults` + user input.
+- Use `defaults.assignee_by_work_type.Epic`; fall back to `defaults.assignee` when needed.
+- Add optional fields only when user provided them or Jira create requires them.
+
+## Required Payload 模块（直接替换）
+
+使用时将占位符替换为实际值，作为 `jira_create_issue` 的 `fields` 传入。
+
+```json
+{
+  "project": { "key": "<PROJECT_KEY>" },
+  "summary": "<SUMMARY>",
+  "issuetype": { "name": "Epic" },
+  "components": [{ "name": "<COMPONENT_NAME>" }],
+  "assignee": { "accountId": "<ACCOUNT_ID>" },
+  "priority": { "name": "<PRIORITY>" },
+  "customfield_12899": { "value": "<DELIVERY_QUARTER>" }
+}
+```
+
+- **占位符**: `<PROJECT_KEY>`=workspace.project.key，`<SUMMARY>`=按 ticket-naming 规范化（如 "<Module> Upgrade - <YYQn>"），`<COMPONENT_NAME>`=组件名，`<ACCOUNT_ID>`=defaults.assignee_by_work_type.Epic 或 defaults.assignee，`<PRIORITY>`=schema field_options.Priority，`<DELIVERY_QUARTER>`=Q1/Q2/Q3/Q4。
+- **可选**: 有描述时加 `"description": { "type": "doc", "version": 1, "content": [...] }`。
 
 ## Preferred Execution
 
-- Prefer MCP for Jira search, draft review, create, and link actions.
+- Prefer MCP for Jira create and link actions.
 
 ## Required Inputs
 
@@ -40,13 +71,14 @@ Default assignee should come from `ticket-schema.json` `defaults.assignee_by_wor
 - Use naming from `ticket-naming.yaml`.
 - Build the draft quickly from required fields plus applicable defaults.
 - Do not include optional fields unless the user provided them or they are needed to review/create the issue.
+- Do not run duplicate checks or show duplicate references.
 
 ## Workflow
 
 1. Resolve project from user input or `me.default_project`.
 2. Validate component ownership and assignee.
 3. Validate Delivery Quarter and other values against `ticket-schema.json`.
-4. Run duplicate check and prepare the draft.
+4. Prepare the draft.
 5. Show a concise draft before any create action. Do not ask extra questions unless required information is missing or the user asks to adjust it.
 6. Wait for user confirmation or correction.
 7. Create Epic through MCP.

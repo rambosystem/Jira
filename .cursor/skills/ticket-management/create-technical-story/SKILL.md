@@ -19,9 +19,42 @@ Create Jira Technical Story tickets using workspace config and the project ticke
 - `Jira/config/assets/project/<project>/sprint-list.yaml`: sprint naming
 - `Jira/config/assets/global/label-list.yaml`: roadmap and labels
 
+## MCP Tools
+
+- `jira_create_issue`
+- `jira_create_issue_link` when PIN links are explicitly provided
+- `jira_get_issue` only for post-check when needed
+
+## Required schema + defaults
+
+- Build from `ticket-schema.json` only.
+- Use `issue_types.Technical Story.required_fields` + `field_defaults` + user input.
+- Use `defaults.assignee` when user does not provide assignee.
+- Add optional fields only when user provided them or Jira create requires them.
+
+## Required Payload 模块（直接替换）
+
+使用时将占位符替换为实际值，作为 `jira_create_issue` 的 `fields` 传入。
+
+```json
+{
+  "project": { "key": "<PROJECT_KEY>" },
+  "summary": "<SUMMARY>",
+  "issuetype": { "name": "Technical Story" },
+  "components": [{ "name": "<COMPONENT_NAME>" }],
+  "assignee": { "accountId": "<ACCOUNT_ID>" },
+  "priority": { "name": "<PRIORITY>" },
+  "customfield_10043": ["<CLIENT_ID>"],
+  "customfield_12348": { "value": "<TECHNICAL_STORY_TYPE>" }
+}
+```
+
+- **占位符**: `<PROJECT_KEY>`=workspace.project.key，`<SUMMARY>`=按 ticket-naming 规范化标题，`<COMPONENT_NAME>`=组件名，`<ACCOUNT_ID>`=defaults.assignee 或用户指定，`<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<TECHNICAL_STORY_TYPE>`=schema field_options 或用户指定。
+- **可选**: Technical Story 不强制 Parent；有 Parent 时加 `"parent": { "key": "<PARENT_KEY>" }`；有描述时加 `"description": { "type": "doc", "version": 1, "content": [...] }`。
+
 ## Preferred Execution
 
-- Prefer MCP for Jira search, draft review, create, and link actions.
+- Prefer MCP for Jira create and link actions.
 
 ## Required Inputs
 
@@ -37,12 +70,14 @@ Default field values should come from `ticket-schema.json` `issue_types.Technica
 
 ## Rules
 
+- **Technical Story 不强制 Parent**：可无 Parent 创建；用户提供 Parent 时再写入。
 - Validate Technical Story is listed in `ticket-schema.json` `supported_work_types`.
 - Follow `ticket-schema.json` `issue_types.Technical Story.required_fields`, `optional_fields`, `field_options`, and `field_defaults`.
 - Do not invent fields outside schema and Jira field mapping.
 - Use naming from `ticket-naming.yaml`.
 - Build the draft quickly from required fields plus applicable defaults.
 - Do not include optional fields unless the user provided them or they are needed to review/create the issue.
+- Do not run duplicate checks or show duplicate references.
 
 ## Workflow
 
@@ -50,7 +85,7 @@ Default field values should come from `ticket-schema.json` `issue_types.Technica
 2. Normalize title and assemble the required schema with defaults.
 3. Show a concise draft before any create action. Do not ask extra questions unless required information is missing or the user asks to adjust it.
 4. Do not require Epic/Parent. Default Parent to empty unless the user explicitly provides one.
-5. Review only the key fields, duplicate check, and optional parent.
+5. Review only the key fields and optional parent.
 6. Wait for user confirmation or correction.
 7. Create once from the confirmed plan through MCP.
 8. If PIN keys are provided, create `Relates` links.

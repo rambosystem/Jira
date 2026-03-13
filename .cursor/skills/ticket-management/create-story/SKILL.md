@@ -19,41 +19,77 @@ Create Jira Story tickets using workspace config and the project ticket schema.
 - `Jira/config/assets/project/<project>/sprint-list.yaml`: sprint naming
 - `Jira/config/assets/global/label-list.yaml`: roadmap and labels
 
+## MCP Tools
+
+- `jira_create_issue`
+- `jira_create_issue_link` when PIN links are explicitly provided
+- `jira_get_issue` only for post-check when needed
+
+## Required schema + defaults
+
+- Build from `ticket-schema.json` only.
+- Use `issue_types.Story.required_fields` + `field_defaults` + user input.
+- Use `defaults.assignee` when user does not provide assignee.
+- Add optional fields only when user provided them or Jira create requires them.
+
+## Required Payload 模块（直接替换）
+
+使用时将占位符替换为实际值，作为 `jira_create_issue` 的 `fields` 传入。
+
+```json
+{
+  "project": { "key": "<PROJECT_KEY>" },
+  "summary": "<SUMMARY>",
+  "issuetype": { "name": "Story" },
+  "parent": { "key": "<PARENT_KEY>" },
+  "components": [{ "name": "<COMPONENT_NAME>" }],
+  "assignee": { "accountId": "<ACCOUNT_ID>" },
+  "priority": { "name": "<PRIORITY>" },
+  "customfield_10043": ["<CLIENT_ID>"],
+  "customfield_10085": { "value": "<STORY_TYPE>" },
+  "customfield_13319": { "value": "<UX_REVIEW_REQUIRED>" },
+  "customfield_13320": { "value": "<UX_REVIEW_STATUS>" }
+}
+```
+
+- **占位符**: `<PARENT_KEY>`=**必填**，Epic；`<PROJECT_KEY>`=workspace.project.key，`<SUMMARY>`=按 ticket-naming 规范化标题，`<COMPONENT_NAME>`=组件名，`<ACCOUNT_ID>`=defaults.assignee 或用户指定，`<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<STORY_TYPE>`=默认 "Improvement"，`<UX_REVIEW_REQUIRED>`=默认 "No"，`<UX_REVIEW_STATUS>`=默认 "Not Needed"。
+- **可选**: 有描述时加 `"description": { "type": "doc", "version": 1, "content": [...] }`。
+
 ## Preferred Execution
 
-- Prefer MCP for Jira search, draft review, create, and link actions.
+- Prefer MCP for Jira create and link actions.
 
 ## Required Inputs
 
 1. Summary
-2. Component
-3. Assignee
-4. Story-specific required fields from `ticket-schema.json` `issue_types.Story`
-5. Optional description
-6. Optional `--link-pin`
+2. **Parent** (Epic 或上级 Issue key，强制)
+3. Component
+4. Assignee
+5. Story-specific required fields from `ticket-schema.json` `issue_types.Story`
+6. Optional description
+7. Optional `--link-pin`
 
 Default assignee should come from `ticket-schema.json` `defaults.assignee`.
 Default field values should come from `ticket-schema.json` `issue_types.Story.field_defaults`.
 
 ## Rules
 
+- **Story 强制 Parent**：创建前必须确定 Parent（Epic 或上级 Issue）；无 Parent 时先推荐/解析 Epic，再创建。
 - Validate Story is listed in `ticket-schema.json` `supported_work_types`.
 - Follow `ticket-schema.json` `issue_types.Story.required_fields`, `optional_fields`, `field_options`, and `field_defaults`.
 - Do not invent fields outside schema and Jira field mapping.
 - Use naming from `ticket-naming.yaml`.
 - Build the draft quickly from required fields plus applicable defaults.
 - Do not include optional fields unless the user provided them or they are needed to review/create the issue.
+- Do not run duplicate checks or show duplicate references.
 
 ## Workflow
 
 1. Collect inputs.
 2. Normalize title and assemble the required schema with defaults.
 3. Show a concise draft before any create action. Do not ask extra questions unless required information is missing or the user asks to adjust it.
-4. Resolve Epic/Parent in this order:
-   - First, show the closest Epic match.
-   - Prefer the module quarterly Epic for the selected quarter when available, e.g. `SOV -> SOV Upgrade - 26Q2`.
-   - If no suitable Epic exists, note that no quarterly Epic was found and only ask to create one if the user wants to proceed that way.
-5. Review only the key fields, parent recommendation, and duplicate check.
+4. **解析并确定 Parent（强制）**：按模块/季度推荐 Epic 或使用用户指定的 Parent；无合适 Epic 时提示并请用户先创建 Epic 或提供 Parent key。
+5. Review key fields and confirmed Parent before create.
 6. Wait for user confirmation or correction.
 7. Create once from the confirmed plan through MCP.
 8. If PIN keys are provided, create `Relates` links.
@@ -61,5 +97,5 @@ Default field values should come from `ticket-schema.json` `issue_types.Story.fi
 
 ## Output
 
-- Before create: Concise Draft, Parent Recommendation, Confirmation Needed
+- Before create: Concise Draft, Parent（必填）, Confirmation Needed
 - After create: Issue, URL, Type, Component, Assignee, Project, Validation, Validation Details
