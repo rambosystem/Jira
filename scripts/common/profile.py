@@ -6,15 +6,8 @@ from pathlib import Path
 
 
 def resolve_profile_path(repo_root: Path) -> Path:
-    """Resolve profile path with backward compatibility for legacy folder casing."""
-    preferred = repo_root / "assets" / "global" / "profile.yaml"
-    legacy = repo_root / "Assets" / "Global" / "profile.yaml"
-    if preferred.is_file():
-        return preferred
-    if legacy.is_file():
-        return legacy
-    # Return preferred for consistent error message in read_profile/loaders.
-    return preferred
+    """Resolve the canonical workspace profile path."""
+    return repo_root / "assets" / "global" / "profile.yaml"
 
 
 def profile_value(profile_text: str, key: str) -> str:

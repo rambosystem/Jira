@@ -12,11 +12,11 @@ Create Jira **Technical Story** tickets using workspace config and **Technical S
 ## Config (read first)
 
 - `Jira/assets/global/profile.yaml`: `me.default_project` when project not specified.
-- `Jira/assets/<project>/team.yaml`: `workspace.project.key`, `workspace.ownership.components`, `team.members`, `team.external_members`, `ticketing.supported_work_types`, `ticketing.defaults.assignee`, `ticketing.defaults.client_id`.
+- `Jira/assets/project/<project>/team.yaml`: `workspace.project.key`, `workspace.ownership.components`, `team.members`, `team.external_members`, `ticketing.supported_work_types`, `ticketing.defaults.assignee`, `ticketing.defaults.client_id`.
 - **Structure**: `Jira/policy/<project>/issue-structures/technical-story.yaml` — required_fields, optional_fields, field_options, field_defaults.
 - `Jira/policy/<project>/ticket-naming.yaml`: `naming.Technical Story` (inherits Story format).
 - `Jira/assets/global/epic-list.yaml`: `recent_epics` (filter by project key) to resolve Parent.
-- `Jira/assets/<project>/sprint-list.yaml`: sprint format and `recent_sprints`.
+- `Jira/assets/project/<project>/sprint-list.yaml`: sprint format and `recent_sprints`.
 - `Jira/assets/global/label-list.yaml`: roadmap/cross_team and `recent_labels`.
 
 ## 执行方式（脚本优先）

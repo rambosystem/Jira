@@ -83,7 +83,7 @@ Use the template from `idea-middle-platform.yaml`:
    - `link_type`: **"Polaris work item link"**
    - `inward_issue_key`: 刚创建的 **PACID Idea key**（如 PACID-6116）
    - `outward_issue_key`: 刚创建的 **CP Epic key**（如 CP-4xxxx）
-3. 可选：按 create-epic 技能更新 **Epic List**（`Assets/Global/epic-list.yaml` 的 recent_epics 顶部加入新 Epic）。
+3. 可选：按 create-epic 技能更新 **Epic List**（`assets/global/epic-list.yaml` 的 recent_epics 顶部加入新 Epic）。
 4. 告知用户：已创建 Epic、已关联到 Idea 的 Delivery、Epic key 与链接状态。
 
 ## Field keys（仅必填，创建时只传以下四项自定义字段）

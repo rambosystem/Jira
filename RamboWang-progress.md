@@ -27,3 +27,11 @@ Create PACID Idea: **Calendar Center - Bid & Budget Modify** (Q2 / 26Q2).
 - **CP-46180** Calendar Center - Bid & Budget Modify - 26Q2 | Component: Calendar Center | Assignee: Rambo Wang
 - **Polaris work item link**: inward PACID-6128, outward CP-46180 (Epic implements Idea)
 - **epic-list.yaml**: recent_epics 顶部已插入 CP-46180
+
+---
+
+## PAG Story + Sprint1（2026-03-13）
+
+- **需求**: PAG 项目增加一个 Story 到 Sprint 1，标题「Agent Input Prompt 优化」。
+- **执行**: MCP jira_create_issue（PAG, Story）+ jira_add_issues_to_sprint。
+- **结果**: **PAG-8** [Pacvue Agent] - All Platforms - Agent Input Prompt 优化 | Component: Pacvue Agent | Assignee: Hongjian Zhao | Sprint: 26Q1-Sprint1-PAG。

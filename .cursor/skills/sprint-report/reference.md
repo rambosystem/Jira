@@ -20,7 +20,7 @@
 
 ## 模块名与配置对齐
 
-- 分组后的模块名尽量与项目 component 列表一致（来自 `Jira/assets/CP/components.yaml` 或 `team.yaml` 的 `workspace.ownership.components`，如 Creative Hub → Creative Management）。
+- 分组后的模块名尽量与项目 component 列表一致（来自 `Jira/assets/project/CP/components.yaml` 或 `team.yaml` 的 `workspace.ownership.components`，如 Creative Hub → Creative Management）。
 - 无法归入已知模块的 issue 可归为「其他」或单独成节。
 
 ## 模板文件
