@@ -792,7 +792,7 @@ def prompt_config_menu() -> str:
         "Configure project:",
         [
             ("1", "Add Jira Project"),
-            ("2", "TBD"),
+            ("2", "Configure ATLASSIAN MCP"),
             ("3", "TBD"),
         ],
     )
@@ -1257,6 +1257,9 @@ def run_initialize_project_flow() -> int:
         default_assignee,
         team_name,
     )
+    if prompt_confirm("Configure ATLASSIAN MCP in Cursor?", default_yes=True):
+        mcp_path = configure_cursor_atlassian_mcp(email, token)
+        log(f"Updated Cursor MCP config: {mcp_path}")
     return 0
 
 
@@ -1279,6 +1282,61 @@ def load_existing_atlassian_context() -> dict[str, str]:
         "account_id": account_id,
         "base_url": base_url,
     }
+
+
+def resolve_cursor_mcp_config_path() -> Path:
+    candidates: list[Path] = []
+    home = Path.home()
+
+    if os.name == "nt":
+        appdata = os.environ.get("APPDATA", "").strip()
+        if appdata:
+            candidates.append(Path(appdata) / "Cursor" / "User" / "mcp.json")
+        candidates.append(home / "AppData" / "Roaming" / "Cursor" / "User" / "mcp.json")
+    elif sys.platform == "darwin":
+        candidates.append(home / ".cursor" / "mcp.json")
+        candidates.append(home / "Library" / "Application Support" / "Cursor" / "User" / "mcp.json")
+    else:
+        xdg_config_home = os.environ.get("XDG_CONFIG_HOME", "").strip()
+        if xdg_config_home:
+            candidates.append(Path(xdg_config_home) / "Cursor" / "User" / "mcp.json")
+        candidates.append(home / ".cursor" / "mcp.json")
+        candidates.append(home / ".config" / "Cursor" / "User" / "mcp.json")
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+def configure_cursor_atlassian_mcp(email: str, token: str) -> Path:
+    mcp_path = resolve_cursor_mcp_config_path()
+    mcp_path.parent.mkdir(parents=True, exist_ok=True)
+
+    existing: dict[str, Any] = {}
+    if mcp_path.is_file():
+        raw = mcp_path.read_text(encoding="utf-8").strip()
+        if raw:
+            existing = json.loads(raw)
+
+    servers = existing.get("mcpServers")
+    if not isinstance(servers, dict):
+        servers = {}
+    servers["mcp-atlassian"] = {
+        "command": "uvx",
+        "args": ["mcp-atlassian"],
+        "env": {
+            "JIRA_URL": ATLASSIAN_BASE_URL,
+            "JIRA_USERNAME": email,
+            "JIRA_API_TOKEN": token,
+            "CONFLUENCE_URL": f"{ATLASSIAN_BASE_URL.rstrip('/')}/wiki",
+            "CONFLUENCE_USERNAME": email,
+            "CONFLUENCE_API_TOKEN": token,
+        },
+    }
+    existing["mcpServers"] = servers
+    mcp_path.write_text(json.dumps(existing, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return mcp_path
 
 
 def run_add_jira_project_flow() -> int:
@@ -1340,6 +1398,13 @@ def run_add_jira_project_flow() -> int:
     return 0
 
 
+def run_configure_mcp_flow() -> int:
+    context = load_existing_atlassian_context()
+    mcp_path = configure_cursor_atlassian_mcp(context["email"], context["token"])
+    log(f"Updated Cursor MCP config: {mcp_path}")
+    return 0
+
+
 def main() -> int:
     try:
         ensure_dependencies()
@@ -1350,6 +1415,8 @@ def main() -> int:
             config_choice = prompt_config_menu()
             if config_choice == "1":
                 return run_add_jira_project_flow()
+            if config_choice == "2":
+                return run_configure_mcp_flow()
             log("This configure option is not implemented yet.")
             return 0
 
