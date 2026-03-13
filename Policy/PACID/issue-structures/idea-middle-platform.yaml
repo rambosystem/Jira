@@ -1,5 +1,5 @@
 # PACID Idea - Middle Platform Ideas 结构
-# 基于 Jira createmeta (docs/pacid-createmeta.json) 与 Middle Platform IDEAS 实际填写习惯整理。
+# 基于  Middle Platform IDEAS 实际填写习惯整理。
 # 参考示例: PACID-5903 (Copilot - Proactive Engagement)
 #
 # Jira 层面 Idea 无必填自定义字段；以下 required_by_team 为 Middle Platform 约定必填，便于评审与排期。
@@ -33,7 +33,7 @@ required_by_team:
   - name: Roadmap Quarter
     key: customfield_12866
     note: 路线图季度，如 Q2 填 26Q2
-    options: []  # 以 Jira 项目配置为准，常见 26Q1, 26Q2, 26Q3, 26Q4 等
+    options: [] # 以 Jira 项目配置为准，常见 26Q1, 26Q2, 26Q3, 26Q4 等
 
 description_template: |
   **What we are building?**
@@ -57,4 +57,4 @@ field_defaults:
   Teams: [Ads]
   Client Segment: [Pacvue]
   Release Status: Discovery
-  Roadmap Quarter: []  # 创建时按用户指定填写，如 26Q2
+  Roadmap Quarter: [] # 创建时按用户指定填写，如 26Q2

@@ -26,6 +26,15 @@ epic_management:
         limit: 50
 
   recent_epics:
+    - key: CP-46176
+      title: SOV Restructure - 26Q2
+      components: [SOV]
+    - key: CP-46175
+      title: Global Report - Quarter Business Review - 26Q2
+      components: [Company Board]
+    - key: CP-46174
+      title: Global Report - Cross-Market & Cross-Channel - 26Q2
+      components: [Company Board]
     - key: CP-45468
       title: Message Upgrade - 26Q2
       components: [Message]

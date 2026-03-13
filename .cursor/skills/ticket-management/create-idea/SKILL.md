@@ -1,6 +1,6 @@
 ---
 name: create-idea
-description: Create PACID Idea tickets for the Middle Platform team. Use when user asks to create an Idea, PACID Idea, or "在 PACID 建一条 Idea". Follows policy/PACID/issue-structures/idea-middle-platform.yaml (required_by_team, description_template, field_defaults). Uses MCP jira_create_issue with project PACID, issue_type Idea, and custom fields via additional_fields.
+description: Create PACID Idea tickets for the Middle Platform team. Use when user asks to create an Idea, PACID Idea, or "在 PACID 建一条 Idea". Uses only policy/PACID/issue-structures/idea-middle-platform.yaml (required_by_team, description_template, field_defaults); MCP jira_create_issue with project PACID, issue_type Idea, additional_fields from yaml only.
 ---
 
 # Create Idea (PACID)
@@ -11,9 +11,8 @@ Create **PACID** project **Idea** tickets for the **Middle Platform** team, usin
 
 ## Config (read first)
 
-- **Structure**: `policy/PACID/issue-structures/idea-middle-platform.yaml` — `required_by_team`, `description_template`, `field_defaults`.
+- **唯一字段来源**：`policy/PACID/issue-structures/idea-middle-platform.yaml` — `required_by_team`、`description_template`、`field_defaults`。仅以该 yaml 中的必填字段为准。
 - **Profile**: `assets/global/profile.yaml` — `me.account_id`, `me.name`, `me.email` for default assignee.
-- **Createmeta** (optional): `docs/pacid-createmeta.json` for full field keys/options.
 
 ## Required inputs (Middle Platform)
 
@@ -65,7 +64,7 @@ Use the template from `idea-middle-platform.yaml`:
    - `summary`: 用户确认的标题
    - `description`: 按模板填好的 ADF 或 Markdown（若 API 接受 Markdown 则直接传）
    - `assignee`: 用户指定或 profile 的 email/accountId
-   - `additional_fields`: 上述四个必填自定义字段（Teams、Client Segment、Release Status、**Roadmap Quarter**）。注意 Jira Cloud 对 option/array 的格式要求，可参考 createmeta。
+   - `additional_fields`: 仅上述四个必填自定义字段（字段 key 与取值以 `idea-middle-platform.yaml` 为准）。option/array 的 API 格式按 Jira 常见约定（如 `{"value": "..."}` / `[{"value": "..."}]`）传参即可。
 5. **Output**: 返回 created issue key、URL、Summary、Assignee、Release Status、Roadmap Quarter、以及已填的自定义字段摘要。
 6. **询问用户**：「是否为该 Idea 创建对应的 Epic 并关联到 Idea 的 Delivery？」若用户同意，执行下方「为 Idea 创建并关联 Epic」流程。
 
@@ -89,20 +88,20 @@ Use the template from `idea-middle-platform.yaml`:
 
 ## Field keys（仅必填，创建时只传以下四项自定义字段）
 
-| 显示名           | Key               | 说明 |
-|------------------|-------------------|------|
-| Teams            | customfield_10278  | array, 固定 Ads |
-| Client Segment   | customfield_10508  | array, 固定 Pacvue |
-| Release Status   | customfield_10726  | option: Discovery, Development, Alpha, Beta, GA, Product Backlog |
-| Roadmap Quarter  | customfield_12866  | array (multicheckboxes)，如 26Q2；用户说 Q2 时必填 |
+| 显示名          | Key               | 说明                                                             |
+| --------------- | ----------------- | ---------------------------------------------------------------- |
+| Teams           | customfield_10278 | array, 固定 Ads                                                  |
+| Client Segment  | customfield_10508 | array, 固定 Pacvue                                               |
+| Release Status  | customfield_10726 | option: Discovery, Development, Alpha, Beta, GA, Product Backlog |
+| Roadmap Quarter | customfield_12866 | array (multicheckboxes)，如 26Q2；用户说 Q2 时必填               |
 
-具体 option/array 的 id/value 以 `docs/pacid-createmeta.json` 或 Jira API 返回为准。
+以上 key 与选项均以 **`idea-middle-platform.yaml`** 为准；
 
 ## Guardrails
 
 - 项目固定为 **PACID**，issue_type 固定为 **Idea**。
-- **只传** `idea-middle-platform.yaml` 中 `required_by_team` 的字段；非必填字段一律不传。
-- 不杜撰字段 key。
+- **只传** `idea-middle-platform.yaml` 中 `required_by_team` 的字段；非必填字段一律不传。字段 key 与选项仅以 idea-middle-platform.yaml 为准。
+- 不杜撰字段 key；未在 idea-middle-platform.yaml 中列出的字段不传。
 - Assignee 未指定时用 profile 的 `me.account_id` 或 `me.email`。
 - Description 必须包含 template 中五段结构（可部分待补充），不要只写一句纯文本。
 - 将 Epic 关联到 Idea 的 Delivery 时，必须使用 **Polaris work item link**：inward = PACID Idea key，outward = CP Epic key。
