@@ -817,8 +817,9 @@ def prompt_config_menu() -> str:
         "Configure project:",
         [
             ("1", "Add Jira Project"),
-            ("2", "Configure ATLASSIAN MCP"),
-            ("3", "Update Jira Project"),
+            ("2", "Update Jira Project"),
+            ("3", "Update Workspace Folder URL"),
+            ("4", "Configure ATLASSIAN MCP"),
             ("0", "Back"),
         ],
     )
@@ -1222,6 +1223,9 @@ def prompt_validated_credentials() -> tuple[str, str, dict[str, str]]:
         print("Step 2/3 - Project Name or Key")
         project_input = prompt_non_empty('Input project name or key (e.g. "CP" or "Common Platform"): ')
         print("Step 3/3 - ATLASSIAN_API_TOKEN")
+        token_url = "https://id.atlassian.com/manage-profile/security/api-tokens"
+        token_link = f"\033]8;;{token_url}\033\\\033[94m{token_url}\033[0m\033]8;;\033\\"
+        print(f"Create a token here if needed: {token_link}")
         token = prompt_non_empty("Input ATLASSIAN_API_TOKEN: ", secret=True)
         try:
             identity = validate_identity(email, token)
@@ -1329,6 +1333,27 @@ def load_existing_atlassian_context() -> dict[str, str]:
         "account_id": account_id,
         "base_url": base_url,
     }
+
+
+def replace_profile_scalar(text: str, key: str, value: str) -> str:
+    pattern = re.compile(rf"^(\s*{re.escape(key)}\s*:\s*)([^\n#]*)(\s*(?:#.*)?)$", re.MULTILINE)
+    replacement = rf"\1{json.dumps(value, ensure_ascii=False)}\3"
+    updated, count = pattern.subn(replacement, text, count=1)
+    if count == 0:
+        raise RuntimeError(f"Could not update {key} in profile: {PROFILE_PATH}")
+    return updated
+
+
+def update_workspace_profile_fields(workspace: dict[str, str]) -> None:
+    if not PROFILE_PATH.is_file():
+        raise RuntimeError(f"Profile not found: {PROFILE_PATH}")
+    text = PROFILE_PATH.read_text(encoding="utf-8")
+    text = replace_profile_scalar(text, "confluence_workspace", workspace["workspace_url"])
+    text = replace_profile_scalar(text, "confluence_base_url", ATLASSIAN_BASE_URL.rstrip("/"))
+    text = replace_profile_scalar(text, "confluence_space_key", workspace["space_key"])
+    text = replace_profile_scalar(text, "confluence_parent_id", workspace["parent_id"])
+    text = replace_profile_scalar(text, "confluence_space_id", workspace["space_id"])
+    PROFILE_PATH.write_text(text, encoding="utf-8")
 
 
 def run_project_config_flow(project_input: str) -> int:
@@ -1489,6 +1514,17 @@ def run_update_jira_project_flow() -> int:
     return run_project_config_flow(project_key)
 
 
+def run_update_workspace_folder_flow() -> int:
+    context = load_existing_atlassian_context()
+    auth_b64 = basic_auth(context["email"], context["token"])
+    print("Workspace folder setup")
+    folder_url = prompt_non_empty("Paste Confluence Folder URL: ")
+    workspace = resolve_workspace_from_folder_url(folder_url, auth_b64)
+    update_workspace_profile_fields(workspace)
+    log(f"Updated workspace folder in profile: {PROFILE_PATH}")
+    return 0
+
+
 def run_configure_mcp_flow() -> int:
     context = load_existing_atlassian_context()
     exists, mcp_path = cursor_atlassian_mcp_exists()
@@ -1521,12 +1557,14 @@ def main() -> int:
                     if config_choice == "1":
                         return run_add_jira_project_flow()
                     if config_choice == "2":
-                        return run_configure_mcp_flow()
-                    if config_choice == "3":
                         result = run_update_jira_project_flow()
                         if result == -1:
                             continue
                         return result
+                    if config_choice == "3":
+                        return run_update_workspace_folder_flow()
+                    if config_choice == "4":
+                        return run_configure_mcp_flow()
     except KeyboardInterrupt:
         fail("Initialization cancelled.")
         return 130
