@@ -9,6 +9,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -1258,6 +1259,7 @@ def run_initialize_project_flow() -> int:
         team_name,
     )
     if prompt_confirm("Configure ATLASSIAN MCP in Cursor?", default_yes=True):
+        ensure_uv_installed()
         mcp_path = configure_cursor_atlassian_mcp(email, token)
         log(f"Updated Cursor MCP config: {mcp_path}")
     return 0
@@ -1339,6 +1341,20 @@ def configure_cursor_atlassian_mcp(email: str, token: str) -> Path:
     return mcp_path
 
 
+def ensure_uv_installed() -> None:
+    if shutil.which("uvx") or shutil.which("uv"):
+        return
+
+    log("Installing uv for Cursor MCP support")
+    try:
+        subprocess.run([sys.executable, "-m", "pip", "install", "uv"], check=True)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError("Failed to install uv, which is required for Atlassian MCP.") from exc
+
+    if not (shutil.which("uvx") or shutil.which("uv")):
+        raise RuntimeError("uv installation completed but uv/uvx is still not available in PATH.")
+
+
 def run_add_jira_project_flow() -> int:
     context = load_existing_atlassian_context()
     auth_b64 = basic_auth(context["email"], context["token"])
@@ -1400,6 +1416,7 @@ def run_add_jira_project_flow() -> int:
 
 def run_configure_mcp_flow() -> int:
     context = load_existing_atlassian_context()
+    ensure_uv_installed()
     mcp_path = configure_cursor_atlassian_mcp(context["email"], context["token"])
     log(f"Updated Cursor MCP config: {mcp_path}")
     return 0
