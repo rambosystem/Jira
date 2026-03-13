@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 
+from scripts.common.http import ssl_context
+
 
 ATLASSIAN_BASE_URL = "https://pacvue-enterprise.atlassian.net"
 REPO_ROOT = Path(__file__).resolve().parent
@@ -80,9 +82,27 @@ def api_request(
         payload = json.dumps(data, ensure_ascii=False).encode("utf-8")
     debug(f"{method} {url}")
     req = urllib.request.Request(url, data=payload, headers=headers, method=method)
-    with urllib.request.urlopen(req) as resp:
-        body = resp.read().decode("utf-8")
-    return json.loads(body) if body else {}
+
+    insecure_env_var = "CONFLUENCE_INSECURE_SSL" if "/wiki/" in url else "JIRA_INSECURE_SSL"
+    ctx = ssl_context(insecure_env_var)
+
+    last_error: Exception | None = None
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(req, context=ctx) as resp:
+                body = resp.read().decode("utf-8")
+            return json.loads(body) if body else {}
+        except URLError as exc:
+            last_error = exc
+            message = str(exc.reason if getattr(exc, "reason", None) else exc)
+            is_tls_eof = "UNEXPECTED_EOF_WHILE_READING" in message or "EOF occurred in violation of protocol" in message
+            if attempt == 0 and is_tls_eof:
+                debug(f"Retrying after TLS EOF: {url}")
+                continue
+            raise
+    if last_error:
+        raise last_error
+    raise RuntimeError(f"Unexpected request failure: {url}")
 
 
 def get_json(path: str, auth_b64: str) -> Any:
