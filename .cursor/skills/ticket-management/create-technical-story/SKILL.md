@@ -1,6 +1,6 @@
 ---
 name: create-technical-story
-description: Create Jira Technical Story tickets for the CP team. Prefer running scripts/jira/create_story.py with --issue-type "Technical Story". Read rules from config/policy/<project>/ticket-schema.json and naming from ticket-naming.yaml.
+description: Create Jira Technical Story tickets for the CP team. Prefer assembling a structured issue plan first, then creating once. Read rules from config/policy/<project>/ticket-schema.json and naming from ticket-naming.yaml.
 ---
 
 # Create Technical Story
@@ -21,7 +21,7 @@ Create Jira Technical Story tickets using workspace config and the project ticke
 
 ## Preferred Execution
 
-- Prefer `scripts/jira/create_story.py --issue-type "Technical Story"`
+- Prefer `scripts/jira/assemble_jira_issue.py` then `scripts/jira/create_jira_issue.py`
 - Use `scripts/jira/query_issues.py --jql "<JQL>"` for Jira searches
 - Use MCP only as fallback
 
@@ -48,10 +48,11 @@ Default field values should come from `ticket-schema.json` `issue_types.Technica
 
 1. Collect inputs.
 2. Normalize title and show Ticket Name List.
-3. Run dry-run first.
-4. Create after confirmation.
-5. If PIN keys are provided, create `Relates` links.
-6. Post-check key fields.
+3. Assemble a structured issue plan first.
+4. Review resolved parent/defaults/fields.
+5. Create once from the plan.
+6. If PIN keys are provided, create `Relates` links.
+7. Post-check key fields.
 
 ## Output
 

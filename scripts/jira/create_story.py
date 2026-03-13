@@ -1,16 +1,12 @@
-#!/usr/bin/env python3
-"""Preflight + assemble + create flow for Jira Story / Technical Story."""
+﻿#!/usr/bin/env python3
+"""Create Jira issues from one structured spec using the new assemble/execute flow."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
-import re
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any
 from urllib.error import HTTPError, URLError
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -18,352 +14,80 @@ REPO_ROOT = SCRIPT_DIR.parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.common.atlassian import basic_auth, jira_api_v3_url
 from scripts.common.env import load_dotenv
-from scripts.common.http import request_json
-from scripts.common.ticket_config import (
-    load_jira_runtime_profile,
-    load_recent_epics,
-    load_team_defaults,
+from scripts.common.jira_issue_flow import (
+    assemble_issue_plan,
+    execute_issue_plan,
+    load_token,
+    resolve_output_path,
+    write_output,
 )
-from scripts.common.ticket_policy import load_issue_field_mapping
-from scripts.common.ticket_schema import load_issue_schema, load_project_ticket_schema
 
 ENV_PATH = REPO_ROOT / ".env"
 
 
-def _resolve_output_path(output_file: str) -> Path | None:
-    if not output_file:
-        return None
-    out_path = Path(output_file)
-    if not out_path.is_absolute():
-        out_path = REPO_ROOT / out_path
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    return out_path
-
-
-def _write_output(path: Path | None, payload: dict[str, Any]) -> None:
-    if path is None:
-        return
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _current_quarter_tag() -> str:
-    now = datetime.now()
-    year = str(now.year % 100).zfill(2)
-    quarter = (now.month - 1) // 3 + 1
-    return f"{year}Q{quarter}"
-
-
-def _normalize_keyword(summary: str) -> str:
-    text = re.sub(r"[\[\]（）(){}\-_/]+", " ", summary)
-    text = re.sub(r"\s+", " ", text).strip()
-    parts = text.split(" ")
-    return " ".join(parts[:8]) if parts else summary.strip()
-
-
-def _escape_jql_literal(value: str) -> str:
-    return value.replace("\\", "\\\\").replace('"', '\\"')
-
-
-def jira_request(base_url: str, auth: str, path: str, *, method: str = "GET", data: dict[str, Any] | None = None) -> Any:
-    url = jira_api_v3_url(base_url, path)
-    return request_json(
-        url,
-        method=method,
-        headers={
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "Authorization": f"Basic {auth}",
-        },
-        data=data,
-        insecure_env_var="JIRA_INSECURE_SSL",
-    )
-
-
-def _search_duplicates(base_url: str, auth: str, project_key: str, issue_type: str, summary: str) -> list[dict[str, Any]]:
-    keyword = _normalize_keyword(summary)
-    phrase = _escape_jql_literal(keyword)
-    jql = (
-        f"project = {project_key} "
-        f'AND issuetype = "{issue_type}" '
-        f'AND summary ~ "\\"{phrase}\\"" '
-        "ORDER BY created DESC"
-    )
-    data = jira_request(
-        base_url,
-        auth,
-        "/search/jql",
-        method="POST",
-        data={
-            "jql": jql,
-            "maxResults": 5,
-            "fields": ["key", "summary", "status", "parent"],
-        },
-    )
-    return data.get("issues") or []
-
-
-def _auto_parent(
-    project_key: str,
-    components: list[str],
-    quarter: str,
-) -> str:
-    project_prefix = f"{project_key.upper()}-"
-    lookup = {c.strip().lower() for c in components if c.strip()}
-    quarter_upper = quarter.upper()
-    for epic in load_recent_epics(REPO_ROOT):
-        key = str(epic.get("key", ""))
-        title = str(epic.get("title", ""))
-        epic_components = [str(c).strip().lower() for c in (epic.get("components") or [])]
-        if not key.startswith(project_prefix):
-            continue
-        if quarter_upper not in title.upper():
-            continue
-        if lookup.intersection(epic_components):
-            return key
-    return ""
-
-
-def _assemble_fields(
-    args: argparse.Namespace,
-    defaults: dict[str, str],
-    auto_parent_key: str,
-    field_map: dict[str, str],
-) -> dict[str, Any]:
-    client_id_key = field_map["client_id"]
-    fields: dict[str, Any] = {
-        "project": {"key": args.project},
-        "summary": args.summary.strip(),
-        "issuetype": {"name": args.issue_type},
-        "priority": {"name": args.priority},
-        "components": [{"name": c} for c in args.components],
-        client_id_key: [args.client_id or defaults["client_id"]],
+def build_spec(args: argparse.Namespace) -> dict:
+    return {
+        "project": args.project,
+        "issue_type": args.issue_type,
+        "summary": args.summary,
+        "components": args.components,
+        "description": args.description,
+        "priority": args.priority,
+        "assignee_account_id": args.assignee_account_id,
+        "parent": args.parent,
+        "quarter": args.quarter,
+        "client_id": args.client_id,
+        "story_type": args.story_type,
+        "ux_review_required": args.ux_review_required,
+        "ux_review_status": args.ux_review_status,
+        "technical_story_type": args.technical_story_type,
+        "allow_duplicate": args.allow_duplicate,
+        "link_pins": args.link_pin,
     }
-    if args.assignee_account_id:
-        fields["assignee"] = {"id": args.assignee_account_id}
-    elif defaults["assignee_account_id"]:
-        fields["assignee"] = {"id": defaults["assignee_account_id"]}
-
-    chosen_parent = args.parent or auto_parent_key
-    if chosen_parent:
-        fields["parent"] = {"key": chosen_parent}
-
-    if args.issue_type == "Story":
-        fields[field_map["story_type"]] = {"value": args.story_type}
-        fields[field_map["ux_review_required"]] = {"value": args.ux_review_required}
-        fields[field_map["ux_review_status"]] = {"value": args.ux_review_status}
-    else:
-        fields[field_map["technical_story_type"]] = {"value": args.technical_story_type}
-
-    if args.description:
-        fields["description"] = {
-            "version": 1,
-            "type": "doc",
-            "content": [
-                {
-                    "type": "paragraph",
-                    "content": [{"type": "text", "text": args.description}],
-                }
-            ],
-        }
-
-    return fields
-
-
-def _validate_field_map(issue_type: str, field_map: dict[str, str]) -> None:
-    required = {"client_id"}
-    if issue_type == "Story":
-        required.update({"story_type", "ux_review_required", "ux_review_status"})
-    else:
-        required.add("technical_story_type")
-    missing = [k for k in required if not field_map.get(k)]
-    if missing:
-        raise RuntimeError(
-            f"Missing policy field mapping for {issue_type}: {', '.join(sorted(missing))}"
-        )
-
-
-def _option_values(issue_schema: dict[str, Any], field_name: str) -> list[str]:
-    options = ((issue_schema.get("field_options") or {}).get(field_name)) or []
-    return [str(item) for item in options]
-
-
-def _default_value(issue_schema: dict[str, Any], field_name: str) -> str:
-    defaults = issue_schema.get("field_defaults") or {}
-    value = defaults.get(field_name)
-    return str(value) if value is not None else ""
-
-
-def _normalize_issue_args(args: argparse.Namespace, issue_schema: dict[str, Any]) -> None:
-    if not args.priority:
-        args.priority = "Medium"
-
-    if args.issue_type == "Story":
-        args.story_type = args.story_type or _default_value(issue_schema, "Story Type")
-        args.ux_review_required = args.ux_review_required or _default_value(issue_schema, "UX Review Required?")
-        args.ux_review_status = args.ux_review_status or _default_value(issue_schema, "UX Review Status")
-    else:
-        defaults = issue_schema.get("field_defaults") or {}
-        args.technical_story_type = args.technical_story_type or str(defaults.get("Technical Story Type") or "Code Quality")
-
-
-def _validate_issue_args(args: argparse.Namespace, project_schema: dict[str, Any], issue_schema: dict[str, Any]) -> None:
-    supported_work_types = {str(item) for item in (project_schema.get("supported_work_types") or [])}
-    if supported_work_types and args.issue_type not in supported_work_types:
-        raise RuntimeError(
-            f"Issue type '{args.issue_type}' is not enabled for project {args.project} in ticket schema."
-        )
-
-    priority_options = _option_values(issue_schema, "Priority")
-    if priority_options and args.priority not in priority_options:
-        raise RuntimeError(f"Invalid priority '{args.priority}'. Allowed: {', '.join(priority_options)}")
-
-    if args.issue_type == "Story":
-        story_type_options = _option_values(issue_schema, "Story Type")
-        if story_type_options and args.story_type not in story_type_options:
-            raise RuntimeError(f"Invalid story type '{args.story_type}'. Allowed: {', '.join(story_type_options)}")
-        ux_required_options = _option_values(issue_schema, "UX Review Required?")
-        if ux_required_options and args.ux_review_required not in ux_required_options:
-            raise RuntimeError(
-                f"Invalid UX review required value '{args.ux_review_required}'. Allowed: {', '.join(ux_required_options)}"
-            )
-        ux_status_options = _option_values(issue_schema, "UX Review Status")
-        if ux_status_options and args.ux_review_status not in ux_status_options:
-            raise RuntimeError(
-                f"Invalid UX review status '{args.ux_review_status}'. Allowed: {', '.join(ux_status_options)}"
-            )
-    else:
-        technical_story_type_options = _option_values(issue_schema, "Technical Story Type")
-        if technical_story_type_options and args.technical_story_type not in technical_story_type_options:
-            raise RuntimeError(
-                "Invalid technical story type "
-                f"'{args.technical_story_type}'. Allowed: {', '.join(technical_story_type_options)}"
-            )
 
 
 def run() -> int:
     load_dotenv(ENV_PATH)
     parser = argparse.ArgumentParser(
-        description="Create Jira Story/Technical Story with preflight checks and auto field assembly.",
+        description="Assemble and create one Jira issue from a structured spec.",
     )
     parser.add_argument("--project", default="", help="Project key, default from config/assets/global/profile.yaml")
-    parser.add_argument("--issue-type", default="Story", choices=["Story", "Technical Story"])
+    parser.add_argument("--issue-type", default="Story", help="Jira issue type, e.g. Story, Technical Story, Epic")
     parser.add_argument("--summary", required=True, help="Issue summary/title")
     parser.add_argument("--components", required=True, help="Comma-separated components, e.g. 'SOV,My Report'")
     parser.add_argument("--description", default="", help="Plain text description")
     parser.add_argument("--priority", default="")
-    parser.add_argument("--assignee-account-id", default="", help="Atlassian account id")
+    parser.add_argument("--assignee-account-id", default="", help="Atlassian account id override")
     parser.add_argument("--parent", default="", help="Parent issue key override, e.g. CP-45460")
     parser.add_argument("--quarter", default="", help="Quarter token for auto parent match, e.g. 26Q2")
-    parser.add_argument("--client-id", default="", help="Client ID, default from team.yaml")
+    parser.add_argument("--client-id", default="", help="Client ID override")
     parser.add_argument("--story-type", default="")
     parser.add_argument("--ux-review-required", default="")
     parser.add_argument("--ux-review-status", default="")
     parser.add_argument("--technical-story-type", default="")
     parser.add_argument("--allow-duplicate", action="store_true", help="Create even if similar summary exists")
-    parser.add_argument(
-        "--link-pin",
-        default="",
-        help="PIN issue keys to link after create, comma-separated allowed, e.g. PIN-2712,PIN-2805",
-    )
-    parser.add_argument("--dry-run", action="store_true", help="Only run preflight and print payload")
-    parser.add_argument(
-        "--output-file",
-        default="",
-        help="Optional: write full result JSON to file.",
-    )
+    parser.add_argument("--link-pin", default="", help="PIN issue keys to link after create, comma-separated.")
+    parser.add_argument("--dry-run", action="store_true", help="Only assemble and print the resolved plan")
+    parser.add_argument("--output-file", default="", help="Optional: write full result JSON to file.")
     args = parser.parse_args()
 
     try:
-        profile = load_jira_runtime_profile(REPO_ROOT)
+        plan = assemble_issue_plan(REPO_ROOT, ENV_PATH, build_spec(args), check_duplicates=True)
     except RuntimeError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
 
-    args.project = (args.project or profile["default_project"]).upper()
-    args.components = [c.strip() for c in args.components.split(",") if c.strip()]
-    if not args.components:
-        print("Error: --components must include at least one component.", file=sys.stderr)
-        return 1
-    args.quarter = args.quarter.strip() or _current_quarter_tag()
-    raw_link_pins: list[str] = [item.strip().upper() for item in args.link_pin.split(",") if item.strip()]
-    seen: set[str] = set()
-    link_pins: list[str] = []
-    for key in raw_link_pins:
-        if not re.fullmatch(r"[A-Z]+-\d+", key):
-            print("Error: --link-pin must be issue key(s), e.g. PIN-2712 or PIN-1,PIN-2.", file=sys.stderr)
-            return 1
-        if key in seen:
-            continue
-        seen.add(key)
-        link_pins.append(key)
-
-    token = os.environ.get("ATLASSIAN_API_TOKEN", "").strip()
-    if not token:
-        print("Error: ATLASSIAN_API_TOKEN not set.", file=sys.stderr)
-        return 1
-    auth = basic_auth(profile["email"], token)
-
-    try:
-        defaults = load_team_defaults(REPO_ROOT, args.project)
-        project_schema = load_project_ticket_schema(REPO_ROOT, args.project)
-        issue_schema = load_issue_schema(REPO_ROOT, args.project, args.issue_type)
-        _normalize_issue_args(args, issue_schema)
-        _validate_issue_args(args, project_schema, issue_schema)
-        field_map = load_issue_field_mapping(REPO_ROOT, args.project, args.issue_type)
-        _validate_field_map(args.issue_type, field_map)
-    except RuntimeError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
-        return 1
-
-    duplicate_check_error = ""
-    try:
-        duplicates = _search_duplicates(profile["base_url"], auth, args.project, args.issue_type, args.summary)
-    except HTTPError as exc:
-        body = exc.read().decode("utf-8") if exc.fp else ""
-        duplicate_check_error = f"duplicate preflight failed ({exc.code}): {body}"
-        if not args.dry_run:
-            print(f"Error: {duplicate_check_error}", file=sys.stderr)
-            return 1
-        duplicates = []
-    except URLError as exc:
-        duplicate_check_error = f"duplicate preflight failed (network): {exc}"
-        if not args.dry_run:
-            print(f"Error: {duplicate_check_error}", file=sys.stderr)
-            return 1
-        duplicates = []
-
-    auto_parent_key = ""
-    if not args.parent:
-        auto_parent_key = _auto_parent(args.project, args.components, args.quarter)
-
-    fields = _assemble_fields(args, defaults, auto_parent_key, field_map)
-    duplicate_brief = [
-        {
-            "key": issue.get("key"),
-            "summary": issue.get("fields", {}).get("summary", ""),
-            "status": (issue.get("fields", {}).get("status") or {}).get("name", ""),
+    out_path = resolve_output_path(REPO_ROOT, args.output_file)
+    duplicate_count = int(((plan.get("preflight") or {}).get("duplicate_count")) or 0)
+    if duplicate_count and not args.allow_duplicate:
+        out = {
+            "preflight": plan.get("preflight") or {},
+            "blocked": "duplicate_detected",
+            "hint": "pass --allow-duplicate to continue",
+            "plan": plan,
         }
-        for issue in duplicates
-    ]
-
-    preflight = {
-        "project": args.project,
-        "issue_type": args.issue_type,
-        "quarter": args.quarter,
-        "auto_parent": auto_parent_key,
-        "resolved_parent": (fields.get("parent") or {}).get("key", ""),
-        "duplicate_count": len(duplicates),
-        "duplicates": duplicate_brief,
-    }
-    if duplicate_check_error:
-        preflight["duplicate_check_error"] = duplicate_check_error
-
-    if duplicates and not args.allow_duplicate:
-        out = {"preflight": preflight, "blocked": "duplicate_detected", "hint": "pass --allow-duplicate to continue"}
-        out_path = _resolve_output_path(args.output_file)
-        _write_output(out_path, out)
+        write_output(out_path, out)
         if out_path:
             print(f"DONE create_story blocked=duplicate_detected output={out_path}")
         else:
@@ -371,195 +95,40 @@ def run() -> int:
         return 2
 
     if args.dry_run:
-        dry = {"preflight": preflight, "payload": {"fields": fields}}
-        if link_pins:
-            dry["link_plan"] = {
-                "type": "Relates",
-                "inward_issue": "(new issue key after create)",
-                "outward_issues": link_pins,
-            }
-        out_path = _resolve_output_path(args.output_file)
-        _write_output(out_path, dry)
+        write_output(out_path, plan)
+        print(json.dumps(plan, ensure_ascii=False, indent=2))
         if out_path:
-            print(json.dumps(dry, ensure_ascii=False, indent=2))
             print(f"DONE create_story dry_run=true output={out_path}")
         else:
-            print(json.dumps(dry, ensure_ascii=False, indent=2))
             print("DONE create_story dry_run=true")
         return 0
 
     try:
-        created = jira_request(
-            profile["base_url"],
-            auth,
-            "/issue",
-            method="POST",
-            data={"fields": fields},
-        )
+        result = execute_issue_plan(plan, load_token(), fetch_post_check=True)
+    except RuntimeError as exc:
+        out = {"plan": plan, "error": str(exc)}
+        write_output(out_path, out)
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
     except HTTPError as exc:
         body = exc.read().decode("utf-8") if exc.fp else ""
-        out = {
-            "preflight": preflight,
-            "payload": {"fields": fields},
-            "error_code": exc.code,
-            "error_body": body,
-        }
-        out_path = _resolve_output_path(args.output_file)
-        _write_output(out_path, out)
-        if out_path:
-            print(f"Error: create_story create_failed code={exc.code} output={out_path}", file=sys.stderr)
-        else:
-            print(f"Error: create_story create_failed code={exc.code}", file=sys.stderr)
+        out = {"plan": plan, "error_code": exc.code, "error_body": body}
+        write_output(out_path, out)
+        print(f"Error: create_story create_failed code={exc.code}", file=sys.stderr)
         return 1
     except URLError as exc:
-        out = {
-            "preflight": preflight,
-            "payload": {"fields": fields},
-            "error": f"create failed (network): {exc}",
-        }
-        out_path = _resolve_output_path(args.output_file)
-        _write_output(out_path, out)
-        if out_path:
-            print(f"Error: create_story create_failed_network output={out_path}", file=sys.stderr)
-        else:
-            print("Error: create_story create_failed_network", file=sys.stderr)
+        out = {"plan": plan, "error": f"create failed (network): {exc}"}
+        write_output(out_path, out)
+        print("Error: create_story create_failed_network", file=sys.stderr)
         return 1
 
-    issue_key = created.get("key", "")
-    if not issue_key:
-        out = {"preflight": preflight, "created": created, "error": "Jira create response has no issue key."}
-        out_path = _resolve_output_path(args.output_file)
-        _write_output(out_path, out)
-        if out_path:
-            print(f"Error: create_story missing_issue_key output={out_path}", file=sys.stderr)
-        else:
-            print("Error: create_story missing_issue_key", file=sys.stderr)
-        return 1
-
-    try:
-        post_check_fields = [
-            "summary",
-            "issuetype",
-            "assignee",
-            "priority",
-            "components",
-            "parent",
-        ]
-        for custom_key in field_map.values():
-            if custom_key not in post_check_fields:
-                post_check_fields.append(custom_key)
-        fetched = jira_request(
-            profile["base_url"],
-            auth,
-            f"/issue/{issue_key}?fields={','.join(post_check_fields)}",
-            method="GET",
-        )
-    except HTTPError as exc:
-        body = exc.read().decode("utf-8") if exc.fp else ""
-        out = {
-            "preflight": preflight,
-            "created": created,
-            "post_check_error_code": exc.code,
-            "post_check_error_body": body,
-        }
-        out_path = _resolve_output_path(args.output_file)
-        _write_output(out_path, out)
-        if out_path:
-            print(f"Error: create_story post_check_failed code={exc.code} output={out_path}", file=sys.stderr)
-        else:
-            print(f"Error: create_story post_check_failed code={exc.code}", file=sys.stderr)
-        return 1
-    except URLError as exc:
-        out = {
-            "preflight": preflight,
-            "created": created,
-            "post_check_error": f"network error: {exc}",
-        }
-        out_path = _resolve_output_path(args.output_file)
-        _write_output(out_path, out)
-        if out_path:
-            print(f"Error: create_story post_check_failed_network output={out_path}", file=sys.stderr)
-        else:
-            print("Error: create_story post_check_failed_network", file=sys.stderr)
-        return 1
-
-    out = {
-        "preflight": preflight,
-        "created": created,
-        "post_check": {
-            "key": issue_key,
-            "summary": fetched.get("fields", {}).get("summary", ""),
-            "issue_type": (fetched.get("fields", {}).get("issuetype") or {}).get("name", ""),
-            "assignee_account_id": (fetched.get("fields", {}).get("assignee") or {}).get("accountId", ""),
-            "priority": (fetched.get("fields", {}).get("priority") or {}).get("name", ""),
-            "components": [c.get("name") for c in fetched.get("fields", {}).get("components", [])],
-            "parent": (fetched.get("fields", {}).get("parent") or {}).get("key", ""),
-        },
-    }
-
-    if link_pins:
-        link_results: list[dict[str, Any]] = []
-        has_failures = False
-        for pin_key in link_pins:
-            try:
-                link_resp = jira_request(
-                    profile["base_url"],
-                    auth,
-                    "/issueLink",
-                    method="POST",
-                    data={
-                        "type": {"name": "Relates"},
-                        "inwardIssue": {"key": issue_key},
-                        "outwardIssue": {"key": pin_key},
-                    },
-                )
-                link_results.append(
-                    {
-                        "requested": pin_key,
-                        "link_type": "Relates",
-                        "status": "linked",
-                        "response": link_resp,
-                    }
-                )
-            except HTTPError as exc:
-                body = exc.read().decode("utf-8") if exc.fp else ""
-                link_results.append(
-                    {
-                        "requested": pin_key,
-                        "link_type": "Relates",
-                        "status": "failed",
-                        "error_code": exc.code,
-                        "error_body": body,
-                    }
-                )
-                has_failures = True
-            except URLError as exc:
-                link_results.append(
-                    {
-                        "requested": pin_key,
-                        "link_type": "Relates",
-                        "status": "failed",
-                        "error": f"network error: {exc}",
-                    }
-                )
-                has_failures = True
-        out["pin_links"] = link_results
-        if has_failures:
-            out_path = _resolve_output_path(args.output_file)
-            _write_output(out_path, out)
-            if out_path:
-                print(f"Error: create succeeded but pin link failed. output={out_path}", file=sys.stderr)
-            else:
-                print("Error: create succeeded but pin link failed.", file=sys.stderr)
-            return 1
-
-    out_path = _resolve_output_path(args.output_file)
-    _write_output(out_path, out)
+    write_output(out_path, result)
+    issue_key = (((result.get("post_check") or {}).get("key")) or ((result.get("created") or {}).get("key")) or "")
     if out_path:
         print(f"DONE create_story key={issue_key} output={out_path}")
     else:
         print(f"DONE create_story key={issue_key}")
-    return 0
+    return 0 if not result.get("pin_link_failures") else 1
 
 
 if __name__ == "__main__":
