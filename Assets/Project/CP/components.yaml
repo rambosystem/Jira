@@ -1,6 +1,17 @@
 # CP project components. Source: get_createmeta.py CP --options (Components allowedValues).
 # Referenced by team.yaml (workspace.ownership.components_file). Used by query-templates, create-story, create-technical-story, create-epic, sprint-report, generate-release-note.
 # Version per component: see component-versions.yaml (component_versions).
+Defenders components:
+  - name: Bid Explorer
+  - name: Budget Scheduler
+  - name: Calendar Center
+  - name: Company Board
+  - name: Creative Management
+  - name: Dayparting Scheduler
+  - name: Download Center
+  - name: Message
+  - name: My Report
+  - name: SOV
 
 components:
   - name: Account&Role

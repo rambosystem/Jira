@@ -218,9 +218,7 @@ def run() -> int:
     parser.add_argument("--model", default=os.environ.get("PIN_REPORT_LLM_MODEL", DEFAULT_LLM_MODEL))
     parser.add_argument("--llm-base-url", default=os.environ.get("DEEPSEEK_BASE_URL", DEFAULT_LLM_BASE_URL))
     parser.add_argument("--concurrency", type=int, default=5, help="LLM concurrent workers")
-    parser.add_argument("--output", default="", help="Write final ADF JSON to file (optional)")
-    parser.add_argument("--analysis-output", default="", help="Write per-PIN analysis JSON to file (optional)")
-    parser.add_argument("--from-analysis", default="", help="Build ADF from existing pin_analysis.json (no Jira/LLM)")
+    parser.add_argument("--from-analysis", action="store_true", help="Build ADF from tmp/pin_analysis.json only (no Jira/LLM)")
     args = parser.parse_args()
 
     try:
@@ -230,10 +228,8 @@ def run() -> int:
         return 1
 
     if args.from_analysis:
-        # Build ADF from existing analysis file only (no Jira, no LLM)
-        analysis_path = Path(args.from_analysis)
-        if not analysis_path.is_absolute():
-            analysis_path = REPO_ROOT / "tmp" / analysis_path
+        # Build ADF from existing analysis file only (no Jira, no LLM). Input must be in tmp/.
+        analysis_path = REPO_ROOT / "tmp" / "pin_analysis.json"
         if not analysis_path.is_file():
             print(f"Error: analysis file not found: {analysis_path}", file=sys.stderr)
             return 1
@@ -259,9 +255,7 @@ def run() -> int:
                 content.append(adf_empty_paragraph())
         adf_doc = {"version": 1, "type": "doc", "content": content}
         output_text = json.dumps(adf_doc, ensure_ascii=False)
-        output_path = Path(args.output) if args.output else DEFAULT_ADF_OUTPUT
-        if not output_path.is_absolute():
-            output_path = REPO_ROOT / output_path
+        output_path = DEFAULT_ADF_OUTPUT
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(output_text, encoding="utf-8")
         print(f"DONE request_pin_report from_analysis=true output={output_path}")
@@ -366,9 +360,7 @@ def run() -> int:
 
     adf_doc = {"version": 1, "type": "doc", "content": content}
 
-    analysis_path = Path(args.analysis_output) if args.analysis_output else DEFAULT_ANALYSIS_OUTPUT
-    if not analysis_path.is_absolute():
-        analysis_path = REPO_ROOT / analysis_path
+    analysis_path = DEFAULT_ANALYSIS_OUTPUT
     analysis_path.parent.mkdir(parents=True, exist_ok=True)
     analysis_path.write_text(
         json.dumps(
@@ -379,11 +371,9 @@ def run() -> int:
         encoding="utf-8",
     )
 
-    output_text = json.dumps(adf_doc, ensure_ascii=False)
-    output_path = Path(args.output) if args.output else DEFAULT_ADF_OUTPUT
-    if not output_path.is_absolute():
-        output_path = REPO_ROOT / output_path
+    output_path = DEFAULT_ADF_OUTPUT
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_text = json.dumps(adf_doc, ensure_ascii=False)
     output_path.write_text(output_text, encoding="utf-8")
     print(
         f"DONE request_pin_report total={len(ordered_keys)} output={output_path} analysis={analysis_path}"

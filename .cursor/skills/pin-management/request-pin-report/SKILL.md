@@ -14,11 +14,12 @@ description: 根据 PIN 工单生成「Request PIN Report」ADF JSON，可发布
 ## Workflow
 
 1. **确定 PIN ID**：用户给的 ID、或「最新 N 条」用 `--latest N`、或 my-requests 列表拼成 `--pin-ids`。
-2. **生成 JSON**（输出到 repo 下 `tmp/`，仅覆盖不删除）。`--output` / `--analysis-output` 为相对于 `tmp/` 的文件名，不要加 `tmp/` 前缀：
+2. **生成 JSON**：脚本**强制**输出到 `tmp/pin_report_adf.json` 和 `tmp/pin_analysis.json`，不可传路径。
 
 ```bash
-python scripts/pin/request_pin_report_json.py --pin-ids "PIN-2677,PIN-2680" --output pin_report_adf.json --analysis-output pin_analysis.json
-# 或：--latest 5 --output pin_report_adf.json --analysis-output pin_analysis.json
+python scripts/pin/request_pin_report_json.py --pin-ids "PIN-2677,PIN-2680"
+# 或：--latest 5
+# 仅从已有分析重建 ADF：--from-analysis（读取 tmp/pin_analysis.json）
 ```
 
 3. **发布**：用 create-page，body 来自 `tmp/`。`--body-file` 为相对于 `tmp/` 的文件名（如 `pin_report_adf.json`，不要写 `tmp/pin_report_adf.json`）。标题格式为 **`Request PIN Report YYYY-MM-DD`**（如 `Request PIN Report 2026-03-12`）。**默认**会从 body 中识别 PIN（blockCard URL），发布后删除这些 PIN 与本页的 remotelink；不需再传 `--unlink-issues`。若不要删除关联则加 `--no-unlink`：
