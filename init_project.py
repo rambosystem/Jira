@@ -190,7 +190,14 @@ def is_valid_email(value: str) -> bool:
 
 def prompt_non_empty(label: str, secret: bool = False) -> str:
     while True:
-        value = getpass.getpass(label) if secret else input(label)
+        if secret:
+            value = getpass.getpass(label)
+        elif sys.stdin.isatty() and sys.stdout.isatty() and questionary is not None:
+            value = questionary.text(label, style=QUESTIONARY_STYLE).ask()
+            if value is None:
+                raise KeyboardInterrupt
+        else:
+            value = input(label)
         value = value.strip()
         if value:
             return value
