@@ -122,6 +122,9 @@ def main() -> int:
             output_path = REPO_ROOT / output_path
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    if err:
+        failed_pin_ids = [item["key"] for item in details if item["status"] == "error"]
+        print(f"FAILED PIN List: {failed_pin_ids}")
     if output_path:
         print(
             "DONE unlink_pins_from_latest_page "
