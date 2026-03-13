@@ -1,5 +1,6 @@
 # CP team info. Epic/Label/Sprint assets: see Jira/config/assets/global/ and Jira/config/assets/project/CP/sprint-list.yaml.
 # Board queries: use Jira/config/assets/project/CP/query-templates.yaml + this file to build JQL.
+# Ticket defaults and work-type schema: Jira/config/policy/CP/ticket-schema.json.
 # Components: maintained in Jira/config/assets/project/CP/components.yaml (ownership.components_file).
 
 workspace:
@@ -48,23 +49,3 @@ team:
     - name: Keping Meng
       account_id: "712020:283e4a23-8798-468a-8f74-f45c357535ec"
       email: keping.meng@pacvue.com
-
-ticketing:
-  supported_work_types:
-    - Story
-    - Technical Story
-    - Bug
-    - Epic
-    - Sub-task
-    - Dev Bug (Sub-task)
-  defaults:
-    client_id: "0000"
-    assignee:
-      name: Xuanyu Liu
-      account_id: "712020:56137117-3aff-4ea4-b5b5-59aae5ad5235"
-      role: Dev Leader
-    assignee_by_work_type:
-      Epic:
-        name: Rambo Wang
-        account_id: "712020:95adf17b-c3ec-4b54-a057-2777a6a9cab2"
-        role: Product Owner

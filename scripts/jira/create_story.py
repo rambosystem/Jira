@@ -27,8 +27,11 @@ from scripts.common.ticket_config import (
     load_team_defaults,
 )
 from scripts.common.ticket_policy import load_issue_field_mapping
+from scripts.common.ticket_schema import load_issue_schema, load_project_ticket_schema
 
 ENV_PATH = REPO_ROOT / ".env"
+
+
 def _resolve_output_path(output_file: str) -> Path | None:
     if not output_file:
         return None
@@ -181,6 +184,64 @@ def _validate_field_map(issue_type: str, field_map: dict[str, str]) -> None:
         )
 
 
+def _option_values(issue_schema: dict[str, Any], field_name: str) -> list[str]:
+    options = ((issue_schema.get("field_options") or {}).get(field_name)) or []
+    return [str(item) for item in options]
+
+
+def _default_value(issue_schema: dict[str, Any], field_name: str) -> str:
+    defaults = issue_schema.get("field_defaults") or {}
+    value = defaults.get(field_name)
+    return str(value) if value is not None else ""
+
+
+def _normalize_issue_args(args: argparse.Namespace, issue_schema: dict[str, Any]) -> None:
+    if not args.priority:
+        args.priority = "Medium"
+
+    if args.issue_type == "Story":
+        args.story_type = args.story_type or _default_value(issue_schema, "Story Type")
+        args.ux_review_required = args.ux_review_required or _default_value(issue_schema, "UX Review Required?")
+        args.ux_review_status = args.ux_review_status or _default_value(issue_schema, "UX Review Status")
+    else:
+        defaults = issue_schema.get("field_defaults") or {}
+        args.technical_story_type = args.technical_story_type or str(defaults.get("Technical Story Type") or "Code Quality")
+
+
+def _validate_issue_args(args: argparse.Namespace, project_schema: dict[str, Any], issue_schema: dict[str, Any]) -> None:
+    supported_work_types = {str(item) for item in (project_schema.get("supported_work_types") or [])}
+    if supported_work_types and args.issue_type not in supported_work_types:
+        raise RuntimeError(
+            f"Issue type '{args.issue_type}' is not enabled for project {args.project} in ticket schema."
+        )
+
+    priority_options = _option_values(issue_schema, "Priority")
+    if priority_options and args.priority not in priority_options:
+        raise RuntimeError(f"Invalid priority '{args.priority}'. Allowed: {', '.join(priority_options)}")
+
+    if args.issue_type == "Story":
+        story_type_options = _option_values(issue_schema, "Story Type")
+        if story_type_options and args.story_type not in story_type_options:
+            raise RuntimeError(f"Invalid story type '{args.story_type}'. Allowed: {', '.join(story_type_options)}")
+        ux_required_options = _option_values(issue_schema, "UX Review Required?")
+        if ux_required_options and args.ux_review_required not in ux_required_options:
+            raise RuntimeError(
+                f"Invalid UX review required value '{args.ux_review_required}'. Allowed: {', '.join(ux_required_options)}"
+            )
+        ux_status_options = _option_values(issue_schema, "UX Review Status")
+        if ux_status_options and args.ux_review_status not in ux_status_options:
+            raise RuntimeError(
+                f"Invalid UX review status '{args.ux_review_status}'. Allowed: {', '.join(ux_status_options)}"
+            )
+    else:
+        technical_story_type_options = _option_values(issue_schema, "Technical Story Type")
+        if technical_story_type_options and args.technical_story_type not in technical_story_type_options:
+            raise RuntimeError(
+                "Invalid technical story type "
+                f"'{args.technical_story_type}'. Allowed: {', '.join(technical_story_type_options)}"
+            )
+
+
 def run() -> int:
     load_dotenv(ENV_PATH)
     parser = argparse.ArgumentParser(
@@ -191,15 +252,15 @@ def run() -> int:
     parser.add_argument("--summary", required=True, help="Issue summary/title")
     parser.add_argument("--components", required=True, help="Comma-separated components, e.g. 'SOV,My Report'")
     parser.add_argument("--description", default="", help="Plain text description")
-    parser.add_argument("--priority", default="Medium")
+    parser.add_argument("--priority", default="")
     parser.add_argument("--assignee-account-id", default="", help="Atlassian account id")
     parser.add_argument("--parent", default="", help="Parent issue key override, e.g. CP-45460")
     parser.add_argument("--quarter", default="", help="Quarter token for auto parent match, e.g. 26Q2")
     parser.add_argument("--client-id", default="", help="Client ID, default from team.yaml")
-    parser.add_argument("--story-type", default="Improvement")
-    parser.add_argument("--ux-review-required", default="No", choices=["Yes", "No"])
-    parser.add_argument("--ux-review-status", default="Not Needed", choices=["Not Needed", "Pending", "Reviewed"])
-    parser.add_argument("--technical-story-type", default="Code Quality")
+    parser.add_argument("--story-type", default="")
+    parser.add_argument("--ux-review-required", default="")
+    parser.add_argument("--ux-review-status", default="")
+    parser.add_argument("--technical-story-type", default="")
     parser.add_argument("--allow-duplicate", action="store_true", help="Create even if similar summary exists")
     parser.add_argument(
         "--link-pin",
@@ -246,6 +307,10 @@ def run() -> int:
 
     try:
         defaults = load_team_defaults(REPO_ROOT, args.project)
+        project_schema = load_project_ticket_schema(REPO_ROOT, args.project)
+        issue_schema = load_issue_schema(REPO_ROOT, args.project, args.issue_type)
+        _normalize_issue_args(args, issue_schema)
+        _validate_issue_args(args, project_schema, issue_schema)
         field_map = load_issue_field_mapping(REPO_ROOT, args.project, args.issue_type)
         _validate_field_map(args.issue_type, field_map)
     except RuntimeError as exc:

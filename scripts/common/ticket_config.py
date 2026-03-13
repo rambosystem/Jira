@@ -4,13 +4,12 @@ import re
 from pathlib import Path
 
 from scripts.common.profile import (
-    ASSETS_DIRNAME,
-    CONFIG_ROOT_DIRNAME,
-    GLOBAL_DIRNAME,
     load_workspace_profile,
     read_profile,
     resolve_profile_path,
 )
+from scripts.common.profile import ASSETS_DIRNAME, CONFIG_ROOT_DIRNAME, GLOBAL_DIRNAME
+from scripts.common.ticket_schema import load_project_ticket_schema
 
 
 def load_jira_runtime_profile(repo_root: Path) -> dict[str, str]:
@@ -33,27 +32,14 @@ def load_jira_runtime_profile(repo_root: Path) -> dict[str, str]:
 
 
 def load_team_defaults(repo_root: Path, project_key: str) -> dict[str, str]:
-    path = repo_root / CONFIG_ROOT_DIRNAME / ASSETS_DIRNAME / "project" / project_key.upper() / "team.yaml"
-    text = read_profile(path)
-
-    client_id_match = re.search(
-        r"(?m)^\s*client_id:\s*[\"']?([^\"'\n#]+)",
-        text,
-    )
-    assignee_match = re.search(
-        r"(?ms)^\s*defaults:\s*\n.*?^\s*assignee:\s*\n.*?^\s*account_id:\s*[\"']?([^\"'\n#]+)",
-        text,
-    )
-    fallback_assignee_match = re.search(
-        r"(?m)^\s*default_assignee_account_id:\s*[\"']?([^\"'\n#]+)",
-        text,
-    )
+    schema = load_project_ticket_schema(repo_root, project_key)
+    defaults = schema.get("defaults") or {}
+    policy = schema.get("policy") or {}
+    assignee = defaults.get("assignee") or {}
     return {
-        "client_id": (client_id_match.group(1).strip() if client_id_match else "0000"),
-        "assignee_account_id": (
-            assignee_match.group(1).strip()
-            if assignee_match
-            else (fallback_assignee_match.group(1).strip() if fallback_assignee_match else "")
+        "client_id": str(defaults.get("client_id") or "0000"),
+        "assignee_account_id": str(
+            assignee.get("account_id") or policy.get("default_assignee_account_id") or ""
         ),
     }
 
