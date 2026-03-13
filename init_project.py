@@ -139,12 +139,13 @@ def show_startup_progress() -> None:
     ) as progress:
         task_id = progress.add_task("startup", total=100, label=steps[0][0])
         current = 0
+        sleep_per_tick = 1.0 / 100
         for label, percent in steps:
             progress.update(task_id, label=label)
             while current < percent:
                 current += 1
                 progress.update(task_id, completed=current)
-                time.sleep(0.03 if percent < 100 else 0.015)
+                time.sleep(sleep_per_tick)
 
 
 @contextlib.contextmanager
