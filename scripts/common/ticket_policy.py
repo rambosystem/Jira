@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from scripts.common.profile import CONFIG_ROOT_DIRNAME
+
 
 def _strip_quotes(value: str) -> str:
     v = value.strip()
@@ -14,7 +16,7 @@ def _strip_quotes(value: str) -> str:
 def _parse_simple_yaml_map(text: str) -> dict:
     """
     Parse a restricted YAML mapping (dict-only, scalar leaf values).
-    Supports the current policy/field-mappings.yaml structure without third-party deps.
+    Supports the current config/policy/field-mappings.yaml structure without third-party deps.
     """
     root: dict = {}
     stack: list[tuple[int, dict]] = [(-1, root)]
@@ -48,7 +50,7 @@ def _parse_simple_yaml_map(text: str) -> dict:
 
 
 def load_issue_field_mapping(repo_root: Path, project_key: str, issue_type: str) -> dict[str, str]:
-    path = repo_root / "policy" / "field-mappings.yaml"
+    path = repo_root / CONFIG_ROOT_DIRNAME / "policy" / "field-mappings.yaml"
     if not path.is_file():
         raise RuntimeError(f"Policy field mapping not found: {path}")
 
@@ -63,6 +65,6 @@ def load_issue_field_mapping(repo_root: Path, project_key: str, issue_type: str)
     merged = {**defaults, **project_override}
     if not merged:
         raise RuntimeError(
-            f"No field mapping for issue type '{issue_type}' in policy/field-mappings.yaml"
+            f"No field mapping for issue type '{issue_type}' in config/policy/field-mappings.yaml"
         )
     return {str(k): str(v) for k, v in merged.items()}

@@ -4,10 +4,14 @@ import os
 import re
 from pathlib import Path
 
+CONFIG_ROOT_DIRNAME = "config"
+ASSETS_DIRNAME = "assets"
+GLOBAL_DIRNAME = "global"
+
 
 def resolve_profile_path(repo_root: Path) -> Path:
     """Resolve the canonical workspace profile path."""
-    return repo_root / "assets" / "global" / "profile.yaml"
+    return repo_root / CONFIG_ROOT_DIRNAME / ASSETS_DIRNAME / GLOBAL_DIRNAME / "profile.yaml"
 
 
 def profile_value(profile_text: str, key: str) -> str:

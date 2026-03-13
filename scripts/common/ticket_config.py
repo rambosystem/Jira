@@ -4,6 +4,9 @@ import re
 from pathlib import Path
 
 from scripts.common.profile import (
+    ASSETS_DIRNAME,
+    CONFIG_ROOT_DIRNAME,
+    GLOBAL_DIRNAME,
     load_workspace_profile,
     read_profile,
     resolve_profile_path,
@@ -30,7 +33,7 @@ def load_jira_runtime_profile(repo_root: Path) -> dict[str, str]:
 
 
 def load_team_defaults(repo_root: Path, project_key: str) -> dict[str, str]:
-    path = repo_root / "assets" / "project" / project_key.upper() / "team.yaml"
+    path = repo_root / CONFIG_ROOT_DIRNAME / ASSETS_DIRNAME / "project" / project_key.upper() / "team.yaml"
     text = read_profile(path)
 
     client_id_match = re.search(
@@ -56,7 +59,7 @@ def load_team_defaults(repo_root: Path, project_key: str) -> dict[str, str]:
 
 
 def load_recent_epics(repo_root: Path) -> list[dict[str, object]]:
-    path = repo_root / "assets" / "global" / "epic-list.yaml"
+    path = repo_root / CONFIG_ROOT_DIRNAME / ASSETS_DIRNAME / GLOBAL_DIRNAME / "epic-list.yaml"
     text = read_profile(path)
     lines = text.splitlines()
     in_recent = False

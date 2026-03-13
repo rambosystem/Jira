@@ -7,7 +7,7 @@ epic_management:
     story_parent_default_rule: "For functional-module Story, default Parent to module quarterly Epic."
     special_epic_override_rule: "Use a special Epic when user explicitly specifies one or the work is non-quarterly."
 
-  # JQL template to fetch recent epics (reporter = me, not Done/Won't Do, last 24w). Substitute {{reporter_account_id}} from Jira/assets/global/profile.yaml me.account_id.
+  # JQL template to fetch recent epics (reporter = me, not Done/Won't Do, last 24w). Substitute {{reporter_account_id}} from Jira/config/assets/global/profile.yaml me.account_id.
   recent_epics_query:
     description: "Epics I reported, open, created in last 24 weeks"
     jql_template: |

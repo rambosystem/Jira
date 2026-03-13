@@ -1,5 +1,5 @@
-# Query templates for CP board. Substitute placeholders with values from Jira/assets/project/CP/team.yaml
-# and, for {{components}}, from Jira/assets/project/CP/components.yaml when team.yaml has ownership.components_file.
+# Query templates for CP board. Substitute placeholders with values from Jira/config/assets/project/CP/team.yaml
+# and, for {{components}}, from Jira/config/assets/project/CP/components.yaml when team.yaml has ownership.components_file.
 # Placeholders: {{project}}, {{components}}, {{assignee_ids}}, {{reporter_id}}, {{issue_types}}, {{order}}
 
 team_board:

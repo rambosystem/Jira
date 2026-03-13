@@ -1,6 +1,6 @@
-# CP team info. Epic/Label/Sprint assets: see Jira/assets/global/ and Jira/assets/project/CP/sprint-list.yaml.
-# Board queries: use Jira/assets/project/CP/query-templates.yaml + this file to build JQL.
-# Components: maintained in Jira/assets/project/CP/components.yaml (ownership.components_file).
+# CP team info. Epic/Label/Sprint assets: see Jira/config/assets/global/ and Jira/config/assets/project/CP/sprint-list.yaml.
+# Board queries: use Jira/config/assets/project/CP/query-templates.yaml + this file to build JQL.
+# Components: maintained in Jira/config/assets/project/CP/components.yaml (ownership.components_file).
 
 workspace:
   name: CP Team Workspace

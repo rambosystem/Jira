@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Create or update a Confluence page with ADF body via REST API v2.
-Reads confluence_* from assets/global/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
+Reads confluence_* from config/assets/global/profile.yaml. Auth: CONFLUENCE_EMAIL + ATLASSIAN_API_TOKEN.
 
 Flow: Look up page by title → if exists, append (merge ADF) and PUT; else POST new page.
 Body from: --body-stdin, --body-file (relative path → repo tmp/), --body-json, --jira-url.

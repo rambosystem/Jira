@@ -1,8 +1,8 @@
-# PAG team info. Epic/Label: Jira/assets/global/. Sprint: Jira/assets/project/PAG/sprint-list.yaml.
-# Board queries: use Jira/assets/project/PAG/query-templates.yaml + this file to build JQL.
-# Issue structures: Jira/policy/PAG/issue-structures.yaml.
+# PAG team info. Epic/Label: Jira/config/assets/global/. Sprint: Jira/config/assets/project/PAG/sprint-list.yaml.
+# Board queries: use Jira/config/assets/project/PAG/query-templates.yaml + this file to build JQL.
+# Issue structures: Jira/config/policy/PAG/issue-structures.yaml.
 
-# Components: maintained in Jira/assets/project/PAG/components.yaml (ownership.components_file).
+# Components: maintained in Jira/config/assets/project/PAG/components.yaml (ownership.components_file).
 
 workspace:
   name: PAG Team Workspace

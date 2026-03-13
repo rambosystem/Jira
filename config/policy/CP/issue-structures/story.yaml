@@ -1,5 +1,5 @@
 # CP Story issue field structure. Source: get_createmeta.py CP (+ docs/cp-createmeta-fields.md).
-# Sprint: optional when creating for Backlog. Label: Jira/assets/global/label-list.yaml.
+# Sprint: optional when creating for Backlog. Label: Jira/config/assets/global/label-list.yaml.
 
 issue_type: Story
 required_fields:

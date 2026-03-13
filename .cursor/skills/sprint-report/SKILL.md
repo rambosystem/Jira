@@ -21,31 +21,31 @@ Produce a **Sprint 迭代总结** document that:
 
 ## Configuration to Read
 
-1. **`Jira/assets/global/profile.yaml`**
+1. **`Jira/config/assets/global/profile.yaml`**
    - `me.default_project`: project key when user does not specify (e.g. `CP`). Use this to resolve paths below.
 
-2. **`Jira/assets/project/<project>/sprint-list.yaml`** (project from user or `me.default_project` from profile)
+2. **`Jira/config/assets/project/<project>/sprint-list.yaml`** (project from user or `me.default_project` from profile)
    - `sprint_management.format.template`: `<YYQn>-Sprint<1..6>-Defenders`
    - `sprint_management.recent_sprints.active_quarter`: e.g. `26Q1`
    - `sprint_management.recent_sprints.values`: list of sprint names (e.g. `26Q1-Sprint4-Defenders`)
 
-3. **`Jira/assets/project/<project>/team.yaml`** (and optionally **`Jira/assets/project/<project>/components.yaml`**)
+3. **`Jira/config/assets/project/<project>/team.yaml`** (and optionally **`Jira/config/assets/project/<project>/components.yaml`**)
    - `workspace.project.key`: e.g. `CP`
    - **Canonical module list**: If `workspace.ownership.components_file` is set (e.g. `components.yaml`), read the list from that file (same dir as team.yaml); file has `components`: array of `{ name, last_version? }` or strings—use `name` or the string. Otherwise use `workspace.ownership.components`.
 
-When querying Jira for board/sprint data, use **`Jira/assets/project/<project>/query-templates.yaml`** (e.g. `sprint_done_stories`) and substitute placeholders with values from `team.yaml` and the resolved sprint name.
+When querying Jira for board/sprint data, use **`Jira/config/assets/project/<project>/query-templates.yaml`** (e.g. `sprint_done_stories`) and substitute placeholders with values from `team.yaml` and the resolved sprint name.
 
 ## Resolving Sprint Name
 
 - If user says **"Sprint4"** or **"Sprint 4"**: use `active_quarter` + `-Sprint4-Defenders` (e.g. `26Q1-Sprint4-Defenders`).
 - If user gives full name (e.g. `26Q1-Sprint4-Defenders`): use as-is.
-- If quarter is ambiguous, prefer `recent_sprints.active_quarter` from `Jira/assets/project/<project>/sprint-list.yaml`.
+- If quarter is ambiguous, prefer `recent_sprints.active_quarter` from `Jira/config/assets/project/<project>/sprint-list.yaml`.
 
 ## Workflow
 
 1. **Resolve sprint identifier**
-   - Determine project: from user input or `me.default_project` in `Jira/assets/global/profile.yaml`.
-- From user input (e.g. "Sprint4") derive full sprint name (e.g. `26Q1-Sprint4-Defenders`) using `Jira/assets/project/<project>/sprint-list.yaml`.
+- Determine project: from user input or `me.default_project` in `Jira/config/assets/global/profile.yaml`.
+- From user input (e.g. "Sprint4") derive full sprint name (e.g. `26Q1-Sprint4-Defenders`) using `Jira/config/assets/project/<project>/sprint-list.yaml`.
 
 2. **Query Jira**（无需读 schema，直接按下列参数调用）
    - **Server**: `user-mcp-atlassian` · **Tool**: `jira_search`

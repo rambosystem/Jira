@@ -1,6 +1,6 @@
 # PAG issue field structures. Aligned with CP createmeta (same schema).
 # Source: get_createmeta.py PAG / docs/pag-createmeta-fields.md.
-# Sprint: Jira/assets/project/PAG/sprint-list.yaml. Label: Jira/assets/global/label-list.yaml.
+# Sprint: Jira/config/assets/project/PAG/sprint-list.yaml. Label: Jira/config/assets/global/label-list.yaml.
 
 issue_structures:
   Epic:

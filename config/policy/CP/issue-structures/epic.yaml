@@ -1,5 +1,5 @@
 # CP Epic issue field structure. Source: get_createmeta.py CP (+ docs/cp-createmeta-fields.md).
-# Label: Jira/assets/global/label-list.yaml.
+# Label: Jira/config/assets/global/label-list.yaml.
 
 issue_type: Epic
 required_fields:

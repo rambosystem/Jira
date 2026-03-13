@@ -186,7 +186,7 @@ def run() -> int:
     parser = argparse.ArgumentParser(
         description="Create Jira Story/Technical Story with preflight checks and auto field assembly.",
     )
-    parser.add_argument("--project", default="", help="Project key, default from assets/global/profile.yaml")
+    parser.add_argument("--project", default="", help="Project key, default from config/assets/global/profile.yaml")
     parser.add_argument("--issue-type", default="Story", choices=["Story", "Technical Story"])
     parser.add_argument("--summary", required=True, help="Issue summary/title")
     parser.add_argument("--components", required=True, help="Comma-separated components, e.g. 'SOV,My Report'")
