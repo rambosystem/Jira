@@ -22,6 +22,8 @@ Create Jira Story tickets using workspace config and the project ticket schema.
 ## MCP Tools
 
 - `jira_create_issue`
+- `jira_add_issues_to_sprint` when user specifies Sprint（创建后立即加入）
+- `jira_get_agile_boards`、`jira_get_sprints_from_board` 用于按 sprint 名称解析出 sprint_id
 - `jira_create_issue_link` when PIN links are explicitly provided
 - `jira_get_issue` only for post-check when needed
 
@@ -64,7 +66,8 @@ Create Jira Story tickets using workspace config and the project ticket schema.
 4. Assignee
 5. Story-specific required fields from `ticket-schema.json` `issue_types.Story`
 6. Optional description
-7. Optional `--link-pin`
+7. Optional **Sprint**（用户指定则创建后一次性加入该 Sprint，使用 `sprint-list.yaml` 的命名，如 `26Q1-Sprint6-Defenders` 或简写 Sprint 6）
+8. Optional `--link-pin`
 
 Default assignee should come from `ticket-schema.json` `defaults.assignee`.
 Default field values should come from `ticket-schema.json` `issue_types.Story.field_defaults`.
@@ -82,17 +85,19 @@ Default field values should come from `ticket-schema.json` `issue_types.Story.fi
 
 ## Workflow
 
-1. Collect inputs.
+1. Collect inputs（含可选的 Sprint）。
 2. Normalize title and assemble the required schema with defaults.
 3. Show a concise draft before any create action. Do not ask extra questions unless required information is missing or the user asks to adjust it.
 4. **解析并确定 Parent（强制）**：按模块/季度推荐 Epic 或使用用户指定的 Parent；无合适 Epic 时提示并请用户先创建 Epic 或提供 Parent key。
-5. Review key fields and confirmed Parent before create.
-6. Wait for user confirmation or correction.
-7. Create once from the confirmed plan through MCP.
-8. If PIN keys are provided, create `Relates` links.
-9. Post-check key fields.
+5. **若用户指定 Sprint**：从 `sprint-list.yaml` 解析 sprint 全名（如「Sprint 6」→ 当前季度的 `26Q1-Sprint6-Defenders`），写入 draft 便于确认。
+6. Review key fields and confirmed Parent (and Sprint if any) before create.
+7. Wait for user confirmation or correction.
+8. Create once from the confirmed plan through MCP.
+9. **若用户指定了 Sprint**：用 `jira_get_agile_boards(project_key)` 取项目 board_id，再用 `jira_get_sprints_from_board(board_id)` 按名称匹配得到 sprint_id，然后 `jira_add_issues_to_sprint(sprint_id, 新建的 issue_key)`，实现创建与入 Sprint 一次性完成。
+10. If PIN keys are provided, create `Relates` links.
+11. Post-check key fields.
 
 ## Output
 
-- Before create: Concise Draft, Parent（必填）, Confirmation Needed
-- After create: Issue, URL, Type, Component, Assignee, Project, Validation, Validation Details
+- Before create: Concise Draft, Parent（必填）, Sprint（若指定）, Confirmation Needed
+- After create: Issue, URL, Type, Component, Assignee, Project, Sprint（若已加入）, Validation, Validation Details
