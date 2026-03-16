@@ -34,23 +34,20 @@ Create Jira Technical Story tickets using workspace config and the project ticke
 
 ## Required Payload 模块（直接替换）
 
-使用时将占位符替换为实际值，作为 `jira_create_issue` 的 `fields` 传入。
+调用 `jira_create_issue` 时：传 `project_key`、`summary`、`issue_type`（Technical Story）、`assignee`、`components`；其余字段放入 `additional_fields`（JSON 字符串）。**MCP 要求**：`additional_fields` 中的 `parent` 必须为 **字符串**（如 `"parent": "CP-46176"`），不可用对象 `{"key": "..."}`，否则会报错 "expected 'key' property to be a string"。
+
+`additional_fields` 示例（占位符替换为实际值）：
 
 ```json
 {
-  "project": { "key": "<PROJECT_KEY>" },
-  "summary": "<SUMMARY>",
-  "issuetype": { "name": "Technical Story" },
-  "components": [{ "name": "<COMPONENT_NAME>" }],
-  "assignee": { "accountId": "<ACCOUNT_ID>" },
   "priority": { "name": "<PRIORITY>" },
   "customfield_10043": ["<CLIENT_ID>"],
   "customfield_12348": { "value": "<TECHNICAL_STORY_TYPE>" }
 }
 ```
 
-- **占位符**: `<PROJECT_KEY>`=workspace.project.key，`<SUMMARY>`=按 ticket-naming 规范化标题，`<COMPONENT_NAME>`=组件名，`<ACCOUNT_ID>`=defaults.assignee 或用户指定，`<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<TECHNICAL_STORY_TYPE>`=schema field_options 或用户指定。
-- **可选**: Technical Story 不强制 Parent；有 Parent 时加 `"parent": { "key": "<PARENT_KEY>" }`；有描述时加 `"description": { "type": "doc", "version": 1, "content": [...] }`。
+- **占位符**: `<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<TECHNICAL_STORY_TYPE>`=schema field_options 或用户指定。
+- **可选**: Technical Story 不强制 Parent；有 Parent 时在 `additional_fields` 中加 `"parent": "<PARENT_KEY>"`（**字符串**）；有描述时在调用中传 `description` 参数。
 
 ## Preferred Execution
 

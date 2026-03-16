@@ -34,16 +34,13 @@ Create Jira Story tickets using workspace config and the project ticket schema.
 
 ## Required Payload 模块（直接替换）
 
-使用时将占位符替换为实际值，作为 `jira_create_issue` 的 `fields` 传入。
+调用 `jira_create_issue` 时：传 `project_key`、`summary`、`issue_type`（Story）、`assignee`、`components`；其余字段放入 `additional_fields`（JSON 字符串）。**MCP 要求**：`additional_fields` 中的 `parent` 必须为 **字符串**（如 `"parent": "CP-46176"`），不可用对象 `{"key": "..."}`，否则会报错 "expected 'key' property to be a string"。
+
+`additional_fields` 示例（占位符替换为实际值）：
 
 ```json
 {
-  "project": { "key": "<PROJECT_KEY>" },
-  "summary": "<SUMMARY>",
-  "issuetype": { "name": "Story" },
-  "parent": { "key": "<PARENT_KEY>" },
-  "components": [{ "name": "<COMPONENT_NAME>" }],
-  "assignee": { "accountId": "<ACCOUNT_ID>" },
+  "parent": "<PARENT_KEY>",
   "priority": { "name": "<PRIORITY>" },
   "customfield_10043": ["<CLIENT_ID>"],
   "customfield_10085": { "value": "<STORY_TYPE>" },
@@ -52,8 +49,8 @@ Create Jira Story tickets using workspace config and the project ticket schema.
 }
 ```
 
-- **占位符**: `<PARENT_KEY>`=**必填**，Epic；`<PROJECT_KEY>`=workspace.project.key，`<SUMMARY>`=按 ticket-naming 规范化标题，`<COMPONENT_NAME>`=组件名，`<ACCOUNT_ID>`=defaults.assignee 或用户指定，`<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<STORY_TYPE>`=默认 "Improvement"，`<UX_REVIEW_REQUIRED>`=默认 "No"，`<UX_REVIEW_STATUS>`=默认 "Not Needed"。
-- **可选**: 有描述时加 `"description": { "type": "doc", "version": 1, "content": [...] }`。
+- **占位符**: `<PARENT_KEY>`=**必填**，Epic 或上级 Issue key（字符串）；`<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<STORY_TYPE>`=默认 "Improvement"，`<UX_REVIEW_REQUIRED>`=默认 "No"，`<UX_REVIEW_STATUS>`=默认 "Not Needed"。
+- **可选**: 有描述时在调用中传 `description` 参数。
 
 ## Preferred Execution
 
