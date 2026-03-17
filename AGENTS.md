@@ -1,5 +1,7 @@
 # Jira Workspace Guidance
 
+- When users refer to "unaccepted tickets," they are referring to tickets within a Sprint that are in the "Acceptance Testing" status.
+
 ## Execution Preference
 
 - Prefer MCP for Jira and Confluence operations such as query, create, update, link, and other direct remote actions.

@@ -1104,7 +1104,7 @@ def write_project_outputs(
     }
     sprint_list_lines = [
         f"# {project_key} sprint list. Project implied by path (Jira/config/assets/project/{project_key}/).",
-        "",
+        "# Sprint Calendar implied by path (Jira/config/policy/sprint-calendar.yaml).",
     ]
     sprint_list_lines.extend(dump_yaml(sprint_list_yaml))
     (project_dir / "sprint-list.yaml").write_text("\n".join(sprint_list_lines) + "\n", encoding="utf-8")

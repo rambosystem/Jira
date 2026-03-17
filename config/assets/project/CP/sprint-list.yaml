@@ -1,4 +1,5 @@
 # CP sprint list. Project implied by path (Jira/config/assets/project/CP/).
+# Sprint Calendar implied by path (Jira/config/policy/sprint-calendar.yaml).
 
 sprint_management:
   format:
