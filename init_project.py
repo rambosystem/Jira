@@ -1461,6 +1461,11 @@ def configure_cursor_atlassian_mcp(email: str, token: str) -> Path:
     mcp_path = resolve_cursor_mcp_config_path()
     mcp_path.parent.mkdir(parents=True, exist_ok=True)
 
+    uv_cmd = _find_uv_or_uvx() or "uvx"
+    # Use full path in MCP config so Cursor can launch MCP when uv/uvx is not in PATH
+    if not os.path.isabs(uv_cmd):
+        uv_cmd = shutil.which(uv_cmd) or uv_cmd
+
     existing: dict[str, Any] = {}
     if mcp_path.is_file():
         raw = mcp_path.read_text(encoding="utf-8").strip()
@@ -1471,7 +1476,7 @@ def configure_cursor_atlassian_mcp(email: str, token: str) -> Path:
     if not isinstance(servers, dict):
         servers = {}
     servers["mcp-atlassian"] = {
-        "command": "uvx",
+        "command": uv_cmd,
         "args": ["mcp-atlassian"],
         "env": {
             "JIRA_URL": ATLASSIAN_BASE_URL,
@@ -1504,8 +1509,23 @@ def cursor_atlassian_mcp_exists() -> tuple[bool, Path]:
     return "mcp-atlassian" in servers, mcp_path
 
 
+def _find_uv_or_uvx() -> str | None:
+    """Return path to uv or uvx executable, checking PATH and Python prefix bin."""
+    if shutil.which("uvx"):
+        return "uvx"
+    if shutil.which("uv"):
+        return "uv"
+    # After pip install, executables are in Python's scripts dir; it may not be in PATH.
+    prefix = Path(sys.prefix)
+    for name in ("uvx", "uv"):
+        exe = prefix / "bin" / name if os.name != "nt" else prefix / "Scripts" / f"{name}.exe"
+        if exe.exists():
+            return str(exe)
+    return None
+
+
 def ensure_uv_installed() -> None:
-    if shutil.which("uvx") or shutil.which("uv"):
+    if _find_uv_or_uvx():
         return
 
     log("Installing uv for Cursor MCP support")
@@ -1514,8 +1534,12 @@ def ensure_uv_installed() -> None:
     except subprocess.CalledProcessError as exc:
         raise RuntimeError("Failed to install uv, which is required for Atlassian MCP.") from exc
 
-    if not (shutil.which("uvx") or shutil.which("uv")):
-        raise RuntimeError("uv installation completed but uv/uvx is still not available in PATH.")
+    if not _find_uv_or_uvx():
+        bin_dir = Path(sys.prefix) / ("bin" if os.name != "nt" else "Scripts")
+        raise RuntimeError(
+            "uv installation completed but uv/uvx is still not available. "
+            f"Add Python bin to PATH, e.g. in ~/.zshrc: export PATH=\"{bin_dir}:$PATH\""
+        )
 
 
 def run_add_jira_project_flow() -> int:
