@@ -2,6 +2,8 @@
 
 - When users refer to "unaccepted tickets," they are referring to tickets within a Sprint that are in the "Acceptance Testing" status.
 
+- When a task involves time or dates (e.g. current Sprint, "today", reporting period), obtain the current system time by running a command.
+
 ## Execution Preference
 
 - Prefer MCP for Jira and Confluence operations such as query, create, update, link, and other direct remote actions.

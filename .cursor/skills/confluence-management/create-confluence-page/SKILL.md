@@ -1,5 +1,5 @@
 ---
-name: create-page
+name: create-confluence-page
 description: 在 profile 配置的 Confluence 文件夹下创建或更新页面。按标题查找已有页面，存在则追加/覆盖内容，不存在则新建。使用 Confluence REST API v2，不依赖 MCP。被 request-pin-report 等技能用于发布报告；用户说「发布到 Confluence」「创建 Confluence 页面」时也可直接使用。
 ---
 
