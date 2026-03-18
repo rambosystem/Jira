@@ -1,5 +1,6 @@
 # CP sprint list. Project implied by path (Jira/config/assets/project/CP/).
 # Sprint Calendar implied by path (Jira/config/policy/sprint-calendar.yaml).
+# When creating a Sprint, use the full ISO 8601 datetime format to record the start and end times.
 
 sprint_management:
   format:
@@ -19,6 +20,12 @@ sprint_management:
       - 26Q1-Sprint4-Defenders
       - 26Q1-Sprint5-Defenders
       - 26Q1-Sprint6-Defenders
+      - 26Q2-Sprint1-Defenders
+      - 26Q2-Sprint2-Defenders
+      - 26Q2-Sprint3-Defenders
+      - 26Q2-Sprint4-Defenders
+      - 26Q2-Sprint5-Defenders
+      - 26Q2-Sprint6-Defenders
   notes:
     - Sprint values should follow quarter-based naming.
     - Update the pattern and rules here if team naming changes in future quarters.
