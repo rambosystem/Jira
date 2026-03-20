@@ -21,11 +21,10 @@ Create Jira Technical Story tickets using workspace config and the project ticke
 
 ## MCP Tools
 
-- `jira_create_issue`
-- `jira_add_issues_to_sprint` when user specifies Sprint（创建后立即加入）
-- `jira_get_agile_boards`、`jira_get_sprints_from_board` 用于按 sprint 名称解析出 sprint_id
+- `jira_create_issue`（Sprint 通过 `additional_fields` 中的 `customfield_10020` 直接传入 sprint_id，无需额外调用）
 - `jira_create_issue_link` when PIN links are explicitly provided
 - `jira_get_issue` only for post-check when needed
+- **Fallback only**（当 `sprint-list.yaml` 无缓存 id 时）：`jira_get_agile_boards`、`jira_get_sprints_from_board` 按名称解析 sprint_id
 
 ## Required schema + defaults
 
@@ -44,11 +43,13 @@ Create Jira Technical Story tickets using workspace config and the project ticke
 {
   "priority": { "name": "<PRIORITY>" },
   "customfield_10043": ["<CLIENT_ID>"],
-  "customfield_12348": { "value": "<TECHNICAL_STORY_TYPE>" }
+  "customfield_12348": { "value": "<TECHNICAL_STORY_TYPE>" },
+  "customfield_10020": <SPRINT_ID>
 }
 ```
 
-- **占位符**: `<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<TECHNICAL_STORY_TYPE>`=schema field_options 或用户指定。
+- **占位符**: `<PRIORITY>`=schema field_options.Priority，`<CLIENT_ID>`=默认 "0000"，`<TECHNICAL_STORY_TYPE>`=schema field_options 或用户指定，`<SPRINT_ID>`=从 `sprint-list.yaml` `recent_sprints.values` 中按名称匹配的 `id`（数字）。
+- **Sprint 传参**：`customfield_10020` 的值必须为**数字**（sprint_id），不接受文本名称。仅在用户指定 Sprint 且 `sprint-list.yaml` 中存在对应 `id` 时才加入此字段；若无缓存 id，回退到 `jira_get_agile_boards` + `jira_get_sprints_from_board` 查询后，使用 `jira_add_issues_to_sprint` 加入。
 - **可选**: Technical Story 不强制 Parent；有 Parent 时在 `additional_fields` 中加 `"parent": "<PARENT_KEY>"`（**字符串**）；有描述时在调用中传 `description` 参数。
 
 ## Preferred Execution
@@ -62,7 +63,7 @@ Create Jira Technical Story tickets using workspace config and the project ticke
 3. Assignee
 4. Technical Story required fields from `ticket-schema.json` `issue_types.Technical Story`
 5. Optional description
-6. Optional **Sprint**（用户指定则创建后一次性加入该 Sprint，使用 `sprint-list.yaml` 的命名，如 `26Q1-Sprint6-Defenders` 或简写 Sprint 6）
+6. Optional **Sprint**（用户指定则在创建时通过 `customfield_10020` 直接带入 sprint_id，使用 `sprint-list.yaml` 的命名，如 `26Q1-Sprint6-Defenders` 或简写 Sprint 6）
 7. Optional `--link-pin`
 
 Default assignee: use `defaults.assignee.email` from `ticket-schema.json` when passing to Jira (create/update). If schema has no email, resolve from `team.yaml` by `defaults.assignee.name`.
@@ -85,11 +86,11 @@ Default field values should come from `ticket-schema.json` `issue_types.Technica
 2. Normalize title and assemble the required schema with defaults.
 3. Show a concise draft before any create action. Do not ask extra questions unless required information is missing or the user asks to adjust it.
 4. Do not require Epic/Parent. Default Parent to empty unless the user explicitly provides one.
-5. **若用户指定 Sprint**：从 `sprint-list.yaml` 解析 sprint 全名（如「Sprint 6」→ 当前季度的 `26Q1-Sprint6-Defenders`），写入 draft 便于确认。
+5. **若用户指定 Sprint**：从 `sprint-list.yaml` `recent_sprints.values` 解析 sprint 全名和缓存的 `id`（如「Sprint 6」→ `26Q1-Sprint6-Defenders`，id `11448`），写入 draft 便于确认。
 6. Review only the key fields, optional parent, and Sprint (if any).
 7. Wait for user confirmation or correction.
-8. Create once from the confirmed plan through MCP（assignee 传邮箱，如 `defaults.assignee.email`）。
-9. **若用户指定了 Sprint**：用 `jira_get_agile_boards(project_key)` 取项目 board_id，再用 `jira_get_sprints_from_board(board_id)` 按名称匹配得到 sprint_id，然后 `jira_add_issues_to_sprint(sprint_id, 新建的 issue_key)`，实现创建与入 Sprint 一次性完成。
+8. Create once from the confirmed plan through MCP（assignee 传邮箱，如 `defaults.assignee.email`）。若用户指定了 Sprint 且 `sprint-list.yaml` 有缓存 id，在 `additional_fields` 中加入 `"customfield_10020": <sprint_id>`，一次 `jira_create_issue` 调用完成创建 + 入 Sprint。
+9. **Fallback**（`sprint-list.yaml` 无缓存 id）：用 `sprint-list.yaml` 中的 `board_id`（若有）或 `jira_get_agile_boards(project_key)` 取 board_id，再用 `jira_get_sprints_from_board(board_id, state="future")` + `state="active"` 按名称匹配得到 sprint_id，然后 `jira_add_issues_to_sprint(sprint_id, issue_key)`。
 10. **若创建后 assignee 未生效**（接口返回 Unassigned）：用 `jira_update_issue(issue_key, fields: {"assignee": "<email 或 name>"})` 再设一次。
 11. If PIN keys are provided, create `Relates` links.
 12. Post-check key fields.

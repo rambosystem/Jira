@@ -770,6 +770,52 @@ def sprint_name_pattern(team_name: str) -> str:
     return f"^[0-9]{{2}}Q[1-4]-Sprint[1-6]-{re.escape(team_name)}$"
 
 
+def fetch_board_and_sprint_ids(
+    project_key: str,
+    team_name: str,
+    auth_b64: str,
+    active_quarter: str,
+) -> tuple[str, dict[str, str]]:
+    """Fetch the scrum board_id for the team and map sprint names to IDs.
+
+    Returns (board_id, {sprint_name: sprint_id}).
+    """
+    boards = get_json(
+        f"/rest/agile/1.0/board?projectKeyOrId={project_key}&type=scrum&maxResults=50",
+        auth_b64,
+        loading_message=f"Loading agile boards for {project_key}",
+    )
+    board_id = ""
+    team_lower = team_name.lower()
+    for board in boards.get("values") or []:
+        name = str(board.get("name") or "").lower()
+        if team_lower in name:
+            board_id = str(board.get("id") or "")
+            break
+    if not board_id:
+        values = boards.get("values") or []
+        if len(values) == 1:
+            board_id = str(values[0].get("id") or "")
+        else:
+            debug(f"Could not auto-detect board for team {team_name} in {project_key}")
+            return "", {}
+
+    sprint_ids: dict[str, str] = {}
+    pattern = re.compile(rf"^\d{{2}}Q[1-4]-Sprint[1-6]-{re.escape(team_name)}$")
+    for state in ("active", "future", "closed"):
+        sprints = get_json(
+            f"/rest/agile/1.0/board/{board_id}/sprint?state={state}&maxResults=50",
+            auth_b64,
+            loading_message=f"Loading {state} sprints from board {board_id}",
+        )
+        for sprint in sprints.get("values") or []:
+            name = str(sprint.get("name") or "").strip()
+            sid = str(sprint.get("id") or "")
+            if pattern.match(name) and sid:
+                sprint_ids[name] = sid
+    return board_id, sprint_ids
+
+
 def prompt_team_name(project_key: str) -> str:
     return input(f"Input Team Name for sprint naming [{project_key}]: ").strip() or project_key
 
@@ -876,6 +922,8 @@ def write_outputs(
     token: str,
     default_assignee: dict[str, str],
     team_name: str,
+    board_id: str = "",
+    sprint_ids: dict[str, str] | None = None,
 ) -> None:
     PROFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
     ENV_PATH.touch(exist_ok=True)
@@ -926,30 +974,42 @@ def write_outputs(
     (project_dir / "team.yaml").write_text("\n".join(dump_yaml(team_yaml)) + "\n", encoding="utf-8")
 
     active_quarter = current_quarter_token()
-    sprint_list_yaml = {
-        "sprint_management": {
-            "format": {
-                "pattern": sprint_name_pattern(team_name),
-                "template": f"<YYQn>-Sprint<1..6>-{team_name}",
-                "example": f"{active_quarter}-Sprint6-{team_name}",
-            },
-            "rules": {
-                "sprints_per_quarter": 6,
-                "team_name": team_name,
-                "quarter_token": "YYQn",
-            },
-            "recent_sprints": {
-                "active_quarter": active_quarter,
-                "values": [f"{active_quarter}-Sprint{i}-{team_name}" for i in range(1, 7)],
-            },
-            "notes": [
-                "Sprint values should follow quarter-based naming.",
-                f"Update pattern/rules if {team_name} sprint naming changes.",
-            ],
-        }
-    }
+    _sprint_ids = sprint_ids or {}
+    sprint_values = []
+    for i in range(1, 7):
+        name = f"{active_quarter}-Sprint{i}-{team_name}"
+        entry: dict[str, Any] = {"name": name}
+        if name in _sprint_ids:
+            entry["id"] = _sprint_ids[name]
+        sprint_values.append(entry)
+    sprint_mgmt: dict[str, Any] = {}
+    if board_id:
+        sprint_mgmt["board_id"] = board_id
+    sprint_mgmt.update({
+        "format": {
+            "pattern": sprint_name_pattern(team_name),
+            "template": f"<YYQn>-Sprint<1..6>-{team_name}",
+            "example": f"{active_quarter}-Sprint6-{team_name}",
+        },
+        "rules": {
+            "sprints_per_quarter": 6,
+            "team_name": team_name,
+            "quarter_token": "YYQn",
+        },
+        "recent_sprints": {
+            "active_quarter": active_quarter,
+            "values": sprint_values,
+        },
+        "notes": [
+            "Sprint values should follow quarter-based naming.",
+            f"Update pattern/rules if {team_name} sprint naming changes.",
+            "Sprint IDs without an id field have not yet been created in Jira.",
+        ],
+    })
+    sprint_list_yaml = {"sprint_management": sprint_mgmt}
     sprint_list_lines = [
         f"# {project_key} sprint list. Project implied by path (Jira/config/assets/project/{project_key}/).",
+        f"# Sprint IDs are cached from Jira Agile API; re-run init_project.py to refresh.",
         "",
     ]
     sprint_list_lines.extend(dump_yaml(sprint_list_yaml))
@@ -1050,6 +1110,8 @@ def write_project_outputs(
     default_assignee: dict[str, str],
     team_name: str,
     reporter_account_id: str,
+    board_id: str = "",
+    sprint_ids: dict[str, str] | None = None,
 ) -> None:
     project_key = discovery["project_key"]
     project_name = discovery["project_name"]
@@ -1080,31 +1142,42 @@ def write_project_outputs(
     (project_dir / "team.yaml").write_text("\n".join(dump_yaml(team_yaml)) + "\n", encoding="utf-8")
 
     active_quarter = current_quarter_token()
-    sprint_list_yaml = {
-        "sprint_management": {
-            "format": {
-                "pattern": sprint_name_pattern(team_name),
-                "template": f"<YYQn>-Sprint<1..6>-{team_name}",
-                "example": f"{active_quarter}-Sprint6-{team_name}",
-            },
-            "rules": {
-                "sprints_per_quarter": 6,
-                "team_name": team_name,
-                "quarter_token": "YYQn",
-            },
-            "recent_sprints": {
-                "active_quarter": active_quarter,
-                "values": [f"{active_quarter}-Sprint{i}-{team_name}" for i in range(1, 7)],
-            },
-            "notes": [
-                "Sprint values should follow quarter-based naming.",
-                f"Update pattern/rules if {team_name} sprint naming changes.",
-            ],
-        }
-    }
+    _sprint_ids = sprint_ids or {}
+    sprint_values = []
+    for i in range(1, 7):
+        name = f"{active_quarter}-Sprint{i}-{team_name}"
+        entry: dict[str, Any] = {"name": name}
+        if name in _sprint_ids:
+            entry["id"] = _sprint_ids[name]
+        sprint_values.append(entry)
+    sprint_mgmt: dict[str, Any] = {}
+    if board_id:
+        sprint_mgmt["board_id"] = board_id
+    sprint_mgmt.update({
+        "format": {
+            "pattern": sprint_name_pattern(team_name),
+            "template": f"<YYQn>-Sprint<1..6>-{team_name}",
+            "example": f"{active_quarter}-Sprint6-{team_name}",
+        },
+        "rules": {
+            "sprints_per_quarter": 6,
+            "team_name": team_name,
+            "quarter_token": "YYQn",
+        },
+        "recent_sprints": {
+            "active_quarter": active_quarter,
+            "values": sprint_values,
+        },
+        "notes": [
+            "Sprint values should follow quarter-based naming.",
+            f"Update pattern/rules if {team_name} sprint naming changes.",
+            "Sprint IDs without an id field have not yet been created in Jira.",
+        ],
+    })
+    sprint_list_yaml = {"sprint_management": sprint_mgmt}
     sprint_list_lines = [
         f"# {project_key} sprint list. Project implied by path (Jira/config/assets/project/{project_key}/).",
-        "# Sprint Calendar implied by path (Jira/config/policy/sprint-calendar.yaml).",
+        f"# Sprint IDs are cached from Jira Agile API; re-run init_project.py to refresh.",
     ]
     sprint_list_lines.extend(dump_yaml(sprint_list_yaml))
     (project_dir / "sprint-list.yaml").write_text("\n".join(sprint_list_lines) + "\n", encoding="utf-8")
@@ -1268,6 +1341,9 @@ def run_initialize_project_flow() -> int:
     default_assignee = prompt_default_assignee(project_key, auth_b64)
     team_name = prompt_team_name(project_key)
 
+    log(f"Fetching board and sprint IDs for {project_key}/{team_name}")
+    board_id, sprint_ids = fetch_board_and_sprint_ids(project_key, team_name, auth_b64, current_quarter_token())
+
     log(f"Fetching recent epics for {project_key}")
     epics_data = post_json(
         "/rest/api/3/search/jql",
@@ -1310,6 +1386,8 @@ def run_initialize_project_flow() -> int:
         token,
         default_assignee,
         team_name,
+        board_id,
+        sprint_ids,
     )
     if prompt_confirm("Configure ATLASSIAN MCP in Cursor?", default_yes=True):
         exists, mcp_path = cursor_atlassian_mcp_exists()
@@ -1396,6 +1474,9 @@ def run_project_config_flow(project_input: str) -> int:
     print("Sprint setup")
     team_name = prompt_team_name(project_key)
 
+    log(f"Fetching board and sprint IDs for {project_key}/{team_name}")
+    board_id, sprint_ids = fetch_board_and_sprint_ids(project_key, team_name, auth_b64, current_quarter_token())
+
     log(f"Fetching recent epics for {project_key}")
     epics_data = post_json(
         "/rest/api/3/search/jql",
@@ -1428,7 +1509,7 @@ def run_project_config_flow(project_input: str) -> int:
         default_assignee,
     )
     log("Writing project config only")
-    write_project_outputs(discovery, default_assignee, team_name, account_id)
+    write_project_outputs(discovery, default_assignee, team_name, account_id, board_id, sprint_ids)
     return 0
 
 
