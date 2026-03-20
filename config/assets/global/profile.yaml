@@ -28,4 +28,7 @@ me:
   confluence_base_url: "https://pacvue-enterprise.atlassian.net"
   confluence_space_key: "~71202095adf17bc3ec4b54a0572777a6a9cab2"
   confluence_parent_id: "1263042720"
-  confluence_space_id: "32113549"  # 数字 spaceId，来自 GET /spaces?keys={space_key}
+  confluence_space_id: "32113549" # 数字 spaceId，来自 GET /spaces?keys={space_key}
+
+
+  # Lokalise

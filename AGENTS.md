@@ -4,6 +4,10 @@
 
 - When a task involves time or dates (e.g. current Sprint, "today", reporting period), obtain the current system time by running a command.
 
+# MCP Tools
+
+- mcp-atlassian, Jira and Confluence Management Services
+
 ## Execution Preference
 
 - Prefer MCP for Jira and Confluence operations such as query, create, update, link, and other direct remote actions.
