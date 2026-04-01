@@ -4,6 +4,10 @@
 
 - When a task involves time or dates (e.g. current Sprint, "today", reporting period), obtain the current system time by running a command.
 
+# Shell Environment
+
+- The workspace runs on **Windows PowerShell 5.x**, which does **not** support `&&` as a command chain operator. Use the `working_directory` parameter to set cwd, or use `;` to separate commands.
+
 # MCP Tools
 
 - mcp-atlassian, Jira and Confluence Management Services

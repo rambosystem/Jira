@@ -37,6 +37,7 @@ ENV_PATH = REPO_ROOT / ".env"
 DEFAULT_LLM_MODEL = "deepseek-chat"
 DEFAULT_LLM_BASE_URL = "https://api.deepseek.com/"
 DEFAULT_STATUSES = ("Backlog", "Ready for Technical Review")
+STATUS_GROUP_ORDER = ("Ready for Technical Review", "Backlog")
 DEFAULT_FIELDS = ("key", "summary", "status", "priority", "created", "description")
 DEFAULT_ADF_OUTPUT = REPO_ROOT / "tmp" / "pin_report_adf.json"
 DEFAULT_ANALYSIS_OUTPUT = REPO_ROOT / "tmp" / "pin_analysis.json"
@@ -166,6 +167,50 @@ def normalize_json(text: str) -> dict[str, str]:
     return fields
 
 
+PURPLE_COLOR = "#6554c0"
+
+
+def adf_status_panel(status_label: str) -> dict[str, Any]:
+    """Info Panel (Note type) with bold purple text as a status group header."""
+    return {
+        "type": "panel",
+        "attrs": {"panelType": "note"},
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": status_label,
+                        "marks": [
+                            {"type": "textColor", "attrs": {"color": PURPLE_COLOR}},
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+
+def group_keys_by_status(
+    ordered_keys: list[str],
+    statuses: dict[str, str],
+    group_order: tuple[str, ...] = STATUS_GROUP_ORDER,
+) -> list[tuple[str, list[str]]]:
+    """Return (status_label, [keys]) pairs in the configured group order."""
+    buckets: dict[str, list[str]] = {}
+    for key in ordered_keys:
+        s = statuses.get(key, "Backlog")
+        buckets.setdefault(s, []).append(key)
+    result = []
+    for label in group_order:
+        if label in buckets:
+            result.append((label, buckets.pop(label)))
+    for label, keys in buckets.items():
+        result.append((label, keys))
+    return result
+
+
 def adf_text(text: str) -> dict[str, Any]:
     return {"type": "text", "text": text}
 
@@ -236,6 +281,7 @@ def run() -> int:
         data = json.loads(analysis_path.read_text(encoding="utf-8"))
         ordered_keys = list(data.get("pin_ids") or [])
         raw_analyses = data.get("analyses") or {}
+        raw_statuses = data.get("statuses") or {}
         analyses = {}
         for key in ordered_keys:
             a = raw_analyses.get(key) or {}
@@ -248,11 +294,14 @@ def run() -> int:
         if not ordered_keys:
             print("Error: no pin_ids in analysis file.", file=sys.stderr)
             return 1
-        content = []
-        for i, key in enumerate(ordered_keys):
-            content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
-            if i < len(ordered_keys) - 1:
-                content.append(adf_empty_paragraph())
+        groups = group_keys_by_status(ordered_keys, raw_statuses)
+        content: list[dict[str, Any]] = []
+        for group_label, group_keys in groups:
+            content.append(adf_status_panel(group_label))
+            for i, key in enumerate(group_keys):
+                content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
+                if i < len(group_keys) - 1:
+                    content.append(adf_empty_paragraph())
         adf_doc = {"version": 1, "type": "doc", "content": content}
         output_text = json.dumps(adf_doc, ensure_ascii=False)
         output_path = DEFAULT_ADF_OUTPUT
@@ -294,10 +343,14 @@ def run() -> int:
         return 1
 
     issue_map: dict[str, dict[str, Any]] = {}
+    status_map: dict[str, str] = {}
     for issue in search_data.get("issues") or []:
         key = str(issue.get("key") or "").upper()
         if key:
             issue_map[key] = issue
+            fields = issue.get("fields") or {}
+            status_obj = fields.get("status") or {}
+            status_map[key] = status_obj.get("name") or "Backlog"
 
     missing = [k for k in pin_ids if k not in issue_map]
     if missing:
@@ -352,11 +405,14 @@ def run() -> int:
                     "expectation": "暂无描述",
                 }
 
+    groups = group_keys_by_status(ordered_keys, status_map)
     content: list[dict[str, Any]] = []
-    for i, key in enumerate(ordered_keys):
-        content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
-        if i < len(ordered_keys) - 1:
-            content.append(adf_empty_paragraph())
+    for group_label, group_keys in groups:
+        content.append(adf_status_panel(group_label))
+        for i, key in enumerate(group_keys):
+            content.extend(build_pin_block(key, profile["jira_base_url"], analyses[key]))
+            if i < len(group_keys) - 1:
+                content.append(adf_empty_paragraph())
 
     adf_doc = {"version": 1, "type": "doc", "content": content}
 
@@ -364,7 +420,7 @@ def run() -> int:
     analysis_path.parent.mkdir(parents=True, exist_ok=True)
     analysis_path.write_text(
         json.dumps(
-            {"pin_ids": ordered_keys, "missing": missing, "analyses": analyses},
+            {"pin_ids": ordered_keys, "missing": missing, "statuses": status_map, "analyses": analyses},
             ensure_ascii=False,
             indent=2,
         ),

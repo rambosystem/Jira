@@ -26,6 +26,45 @@ epic_management:
         limit: 50
 
   recent_epics:
+    - key: PAG-22
+      title: Proactive Agent
+      components: [Pacvue Agent]
+    - key: PAG-21
+      title: Roll out Ads Agent to Other Retailers
+      components: [Pacvue Agent]
+    - key: PAG-20
+      title: New Recommendation Agent
+      components: [Pacvue Agent]
+    - key: PAG-19
+      title: NLP Execution Agent - Improvement
+      components: [Pacvue Agent]
+    - key: PAG-18
+      title: Visual Report Agent - Improvement
+      components: [Pacvue Agent]
+    - key: PAG-17
+      title: Budget Allocation
+      components: [Pacvue Agent]
+    - key: PAG-16
+      title: Cross Retailer Analysis
+      components: [Pacvue Agent]
+    - key: PAG-15
+      title: Insight Agent - Search Term Reports
+      components: [Pacvue Agent]
+    - key: PAG-14
+      title: Insight Agent - Budget Manager
+      components: [Pacvue Agent]
+    - key: PAG-13
+      title: Insight Agent - iROAS
+      components: [Pacvue Agent]
+    - key: PAG-12
+      title: Insight Agent - Commerce Data
+      components: [Pacvue Agent]
+    - key: PAG-11
+      title: Insight Agent - Share of Voice
+      components: [Pacvue Agent]
+    - key: PAG-10
+      title: Insight Agent - Market Insight Analysis
+      components: [Pacvue Agent]
     - key: CP-46176
       title: SOV Restructure - 26Q2
       components: [SOV]

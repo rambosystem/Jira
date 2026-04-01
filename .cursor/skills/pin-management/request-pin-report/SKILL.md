@@ -42,5 +42,6 @@ python scripts/pin/unlink_pins_from_latest_page.py
 ## 约定
 
 - 脚本：`scripts/pin/request_pin_report_json.py`（`--pin-ids` 或 `--latest`）→ 一次 Jira 查询 + 并发 LLM → 写入 `tmp/`；`scripts/confluence/confluence_create_page.py` 从 `tmp/` 读 body，发布后写入 `tmp/confluence_page_latest.json`。
-- 输出：ADF doc，每 PIN 一块 blockCard + 需求要点（问题 / 背景 / 业务影响 / 期望），多 PIN 用空行分隔。
+- 输出：ADF doc，按 status 分组（先 Ready for Technical Review 后 Backlog），每组以 Info Panel（Note 模式 + Bold Purple）标题开头；每 PIN 一块 blockCard + 需求要点（问题 / 背景 / 业务影响 / 期望），同组 PIN 间用空行分隔。
+- `pin_analysis.json` 包含 `statuses` 字段（`{PIN-key: status_name}`），`--from-analysis` 重建时据此分组。
 - 描述归纳忠于 Jira，不杜撰；PIN key 为 `PIN-<number>`。
