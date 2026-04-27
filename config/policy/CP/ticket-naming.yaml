@@ -18,10 +18,12 @@ naming:
       platform_scope: "Use 'All Platforms' for all-platform scope; multi-platform use slash e.g. Amazon/Walmart/Target."
       action_object: "Formal business wording. Prefer verb-object: 提供, 支持, 新增, 优化, 重构, 对齐, 迁移. Prefer domain-subject style: <业务主体> + <动作> + <对象> (e.g. SOV Rule, Task Scheduler, Report API). For cross-team intent use subject-style (e.g. SOV Rule 提供 Brand SOV 接口)."
       avoid: "Colloquial or ambiguous phrases (e.g. 给别的组, 搞一下, 做个)."
+      hotfix: "热修场景在 [模块] 前增加 [Hotfix] 前缀，最终格式为 '[Hotfix] [模块] - [平台或范围] - [动作 + 对象]'。识别条件：用户明确说『热修 / hotfix / 线上紧急修复』，或要求基于线上 PIN/Bug 立即修复发版。其他命名子规则（module/platform_scope/action_object/avoid）仍然适用。"
     examples:
       - "[My Report] - All Platforms - SOV Report 支持 Google Sheet"
       - "[SOV] - Amazon - Add New Metrics SB Banner"
       - "[SOV] - Amazon - SOV Rule 提供 Brand SOV 接口"
+      - "[Hotfix] [SOV] - Amazon - 修复 Brand SOV 接口 500 错误"
 
   Technical Story:
     inherit: Story
