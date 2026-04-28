@@ -91,48 +91,82 @@ If user asks for markdown source, output fenced markdown only.
 
 ## Execution Order (Strict)
 
-### Step -1: Confirm Release Window and Section Anchor
+### Silent Execution Contract (Steps -1 / 0 / 1)
 
-Before any other step, confirm the release window and the Summary section anchor.
+Steps **-1, 0, and 1** MUST be silent — they perform reads and in-memory
+preparation only. They emit **no** user-facing chat output: no progress
+narration, no "I checked the Summary page...", no candidate tables, no
+version-diff dumps, no sprint metadata recap. The first thing the user sees
+in this workflow is the Step 1.5 checklist (and at most ONE short status
+line immediately above it, only if Step 0 found a real version mismatch
+that requires user attention before they tick).
 
-1. Ask the user for the release window (for example `4.28`).
-2. Convert it to formal anchor `<Mon>/<DD>/<YYYY> Middle Platform`
-   (for example `Apr/28/2026 Middle Platform`).
-3. Open the Summary page using `release_note_summary_page_id` and search for an
-   existing `## <date> Middle Platform` section. This is for **read-only**
+Tool calls in Steps -1 / 0 / 1 are allowed (and required) — only the
+agent's chat-side narration is suppressed. If the user explicitly asks for
+intermediate output ("show me the candidates", "what's on the Summary
+page"), surface it on demand; otherwise stay silent until the checklist.
+
+### Step -1: Confirm Release Window and Section Anchor (Silent)
+
+Before any other step, confirm the release window and the Summary section
+anchor. **Do not narrate this step to the user.**
+
+1. Resolve the release window from user input. If the user only said
+   "Sprint N 发布" / "release Sprint N" without a date, default the window
+   to **today** (system date) and convert it to formal anchor
+   `<Mon>/<DD>/<YYYY> Middle Platform`. Only ask the user if today is
+   clearly outside the sprint's release window.
+2. Open the Summary page using `release_note_summary_page_id` and search for
+   an existing `## <date> Middle Platform` section. This is for **read-only**
    inspection (see Step 4.5 — we never write back to the Summary page).
-4. Decide output mode for Step 4.5:
+3. Decide output mode for Step 4.5:
    - If the section does not exist on the Summary page: write a fresh dated
      section into the tmp file.
    - If the section exists: still write a fresh dated section into the tmp
      file containing only the in-scope modules; the user will paste it into
      the existing section manually.
-5. Never duplicate an existing module section in the same window. If a target
-   module already has a section in the Summary page for the window, ask user
-   whether to replace, merge, or skip — and reflect the decision in the tmp
-   file (skip the module, or include with a `<!-- replace -->` marker).
+4. Never duplicate an existing module section in the same window. Record
+   per-module conflict status in memory; if a target module already has a
+   section in the Summary page for the window, defer the
+   replace/merge/skip decision to **Step 4.5** (after scope is locked) —
+   do NOT ask now, because asking before Step 1.5 leaks pre-checklist
+   noise.
 
-### Step 0: Read Summary and Validate Versions
+### Step 0: Read Summary and Validate Versions (Silent)
 
-Before workflow execution, read the Summary page using `release_note_summary_page_id`.
+Before workflow execution, read the Summary page using
+`release_note_summary_page_id`. **Do not narrate this step to the user.**
 
-1. Parse latest module versions from Summary sections (for example `#### My Report V1.17`).
+1. Parse latest module versions from Summary sections (for example
+   `#### My Report V1.17`).
 2. Compare parsed versions with local `component_versions`.
-3. If mismatches exist, show the diff and use Summary as source of truth for this run.
-4. Keep an in-memory version map for this run (do not write file yet).
+3. Keep an in-memory version map for this run (do not write file yet).
+4. If mismatches exist, do NOT dump the full diff. Instead, hold the diff
+   in memory and surface it as a single short status line (one line, not a
+   table) immediately above the Step 1.5 checklist — only mention the
+   modules whose versions disagree. If versions match, stay completely
+   silent.
 
-### Step 1: List Sprint Candidates
+### Step 1: Collect Sprint Candidates (Silent)
 
-1. Resolve Sprint target from user input (for CP, use configured sprint ids/names).
-2. Query Jira via `mcp-atlassian` `jira_search`. The `fields` arg MUST include
-   `customfield_10085` (Story Type) in addition to
-   `summary,issuetype,components,status`. Without it, Step 4's bullet prefix
-   classification cannot run.
+**Do not narrate this step to the user.** No "Found N stories" line, no
+candidate table, no per-component breakdown.
+
+1. Resolve Sprint target from user input (for CP, use configured sprint
+   ids/names).
+2. Query Jira via `mcp-atlassian` `jira_search`. The `fields` arg MUST
+   include `customfield_10085` (Story Type) in addition to
+   `summary,issuetype,components,status`. Without it, Step 4's bullet
+   prefix classification cannot run.
 3. Default to `issuetype = Story` unless user asks for all types.
-4. Apply user filters (for example: exclude Creative Hub/Management).
-5. Present the resulting candidate list back to the user as a numbered table:
-   `# | Key | Component | Story Type | Status | Summary`. Do NOT proceed past
-   this step without explicit user confirmation in Step 1.5.
+4. Apply user filters (for example: exclude Creative Hub/Management) only
+   if the user already specified them in this turn or in workspace config.
+   Do NOT proactively filter out components on the agent's own judgement —
+   surface every candidate in the Step 1.5 checklist and let the user
+   uncheck them.
+5. Keep the candidate list in memory and go straight to the Step 1.5
+   checklist. The checklist itself is the confirmation surface (HARD
+   gate in Step 1.5).
 
 ### Step 1.5: User Confirms Release Scope (HARD gate, include-list checklist)
 
@@ -145,13 +179,15 @@ in-scope subset before any downstream step runs. Default semantic is
    the positive-select semantic, for example:
    `Tick the stories to INCLUDE in this release.`
 2. Option rules:
-   - Each candidate option label MUST be the Jira **Summary only** (the
-     Story title). Do NOT prepend Key / Component / Story Type / Status to
-     the label — the metadata is already visible in the Step 1 table above
-     the checklist.
+   - Step 1 does NOT display a candidate table, so each option label MUST be
+     **self-contained** with enough metadata for the user to decide without
+     looking elsewhere. Use this label format exactly:
+     `<KEY> | <Component> | <StoryType> | <Summary>`
+     For example: `CP-47005 | Budget Scheduler | Improvement | [Budget Scheduler] - Amazon - Auto Refill 与 Incremental 冲突提醒`.
+     Status is omitted on purpose because Step 1's query already restricts
+     to Done / release-eligible stories.
    - Option `id` MUST equal the Jira key (for example `id: "CP-47868"`), so
-     downstream steps can map selections back to issues without ambiguity
-     even though the label hides the key.
+     downstream steps can map selections back to issues without ambiguity.
    - Always append these control options at the end. Their labels MUST be
      plain text — no icons / emoji / unicode marks (no ☑, ✖, ✅, ❌, etc.):
      - `id: "__all__", label: "Select all candidates"`
@@ -293,8 +329,14 @@ Before returning:
 9. Step 1.5 user confirmation was obtained via the `AskQuestion`
    include-list checklist UI (multi-select; positive selection;
    `__all__` / `__cancel__` controls; skipped → abort; empty submit → re-ask).
-   Downstream steps operated only on the confirmed-scope subset, never on
-   the full Sprint candidate list.
+   The Silent Execution Contract was honored: Steps -1 / 0 / 1 produced
+   no chat output (no candidate table, no version diff dump, no
+   "found N stories" narration); the only optional pre-checklist line was
+   a one-line version-mismatch warning, and only when Step 0 actually
+   detected a mismatch. Option labels were self-contained with
+   `<KEY> | <Component> | <StoryType> | <Summary>`. Downstream steps
+   operated only on the confirmed-scope subset, never on the full Sprint
+   candidate list.
 10. Every confirmed-scope Story has a non-null `customfield_10085` (Story Type),
     and bullet prefixes were derived from the Step 4 mapping table — not from
     free-form judgement.
