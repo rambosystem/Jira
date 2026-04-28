@@ -38,6 +38,23 @@ Use this skill when the user asks to:
 - generate Release Note Summary in fixed markdown format
 - create blank Confluence detail pages first, then write summary
 
+## Tooling
+
+All Jira and Confluence interactions in this skill MUST go through the
+`mcp-atlassian` MCP server (server identifier: `user-mcp-atlassian`). Do NOT
+use the Atlassian Marketplace plugin (`plugin-atlassian-atlassian`) for this
+workflow, even when both servers are available.
+
+Tool mapping (mcp-atlassian):
+
+- Jira search: `jira_search` (JQL; `fields` is a comma-separated string;
+  `limit` max 50 — paginate with `start_at` if needed).
+- Confluence read: `confluence_get_page` (use `page_id`).
+- Confluence create: `confluence_create_page`.
+- Confluence write tools (`confluence_update_page` / `confluence_delete_page`
+  / `confluence_add_comment`) MUST NEVER be invoked against the Summary page
+  per the Safety Rule above.
+
 ## Required Config
 
 Read:
@@ -107,31 +124,57 @@ Before workflow execution, read the Summary page using `release_note_summary_pag
 ### Step 1: List Sprint Candidates
 
 1. Resolve Sprint target from user input (for CP, use configured sprint ids/names).
-2. Query Jira issues for that Sprint. The `fields` arg MUST include
+2. Query Jira via `mcp-atlassian` `jira_search`. The `fields` arg MUST include
    `customfield_10085` (Story Type) in addition to
-   `summary,issuetype,components`. Without it, Step 4's bullet prefix
+   `summary,issuetype,components,status`. Without it, Step 4's bullet prefix
    classification cannot run.
 3. Default to `issuetype = Story` unless user asks for all types.
 4. Apply user filters (for example: exclude Creative Hub/Management).
 5. Present the resulting candidate list back to the user as a numbered table:
-   `# | Key | Component | Story Type | Summary`. Do NOT proceed past this step
-   without explicit user confirmation in Step 1.5.
+   `# | Key | Component | Story Type | Status | Summary`. Do NOT proceed past
+   this step without explicit user confirmation in Step 1.5.
 
-### Step 1.5: User Confirms Release Scope (HARD gate)
+### Step 1.5: User Confirms Release Scope (HARD gate, include-list checklist)
 
 Not every Story in a Sprint needs a release note. The user must hand-pick the
-in-scope subset before any downstream step runs.
+in-scope subset before any downstream step runs. Default semantic is
+**positive selection** (tick to include).
 
-1. Ask the user to confirm the in-scope set in one of these forms:
-   - explicit keys (for example `CP-123, CP-456`)
-   - row numbers from the Step 1 table (for example `1, 3, 5-7`)
-   - `all` to include every candidate
-   - `none` to abort the workflow
-2. Default behavior is **NOT** "all". If the user replies ambiguously, ask again.
-3. Lock the confirmed set as the working scope. All later steps (component
-   grouping, page creation, summary generation, version update) operate only
-   on this confirmed scope.
-4. If the user later asks to add/remove a Story mid-run, restart from Step 2
+1. Render the candidate list as a **multi-select checklist** using the
+   `AskQuestion` tool (`allow_multiple: true`). The prompt MUST clearly state
+   the positive-select semantic, for example:
+   `Tick the stories to INCLUDE in this release.`
+2. Option rules:
+   - Each candidate option label MUST be the Jira **Summary only** (the
+     Story title). Do NOT prepend Key / Component / Story Type / Status to
+     the label — the metadata is already visible in the Step 1 table above
+     the checklist.
+   - Option `id` MUST equal the Jira key (for example `id: "CP-47868"`), so
+     downstream steps can map selections back to issues without ambiguity
+     even though the label hides the key.
+   - Always append these control options at the end. Their labels MUST be
+     plain text — no icons / emoji / unicode marks (no ☑, ✖, ✅, ❌, etc.):
+     - `id: "__all__", label: "Select all candidates"`
+     - `id: "__cancel__", label: "Cancel this release"`
+3. Interpret the response (apply rules in this order, first match wins):
+   1. **Skipped (no answer)** → abort the workflow. Do NOT silently default
+      to "ship all" or to "ship none"; safety overrides convenience.
+   2. `__cancel__` in the selection → abort the workflow.
+   3. `__all__` in the selection → scope = every candidate, regardless of
+      which other options were also ticked.
+   4. At least one Jira-key option ticked, no `__all__` → scope = the set
+      of ticked Jira keys.
+   5. Empty selection (intentional submit with nothing ticked) → re-ask;
+      do not default to "all".
+4. Echo the locked scope back as a short confirmation block before running
+   Step 2:
+
+   ```
+   Locked scope (N): CP-..., CP-...
+   ```
+5. All later steps (component grouping, page creation, summary generation,
+   version update) operate only on this confirmed scope.
+6. If the user later asks to add/remove a Story mid-run, restart from Step 2
    with the updated scope (do not silently mutate scope).
 
 ### Step 2: Resolve Components and Versions
@@ -247,8 +290,11 @@ Before returning:
    is returned to the user with paste instructions.
 8. No write call has been made against the Summary page or any of its
    ancestors/descendants (Safety Rule).
-9. Step 1.5 user confirmation was obtained; downstream steps operated only
-   on the confirmed-scope subset, never on the full Sprint candidate list.
+9. Step 1.5 user confirmation was obtained via the `AskQuestion`
+   include-list checklist UI (multi-select; positive selection;
+   `__all__` / `__cancel__` controls; skipped → abort; empty submit → re-ask).
+   Downstream steps operated only on the confirmed-scope subset, never on
+   the full Sprint candidate list.
 10. Every confirmed-scope Story has a non-null `customfield_10085` (Story Type),
     and bullet prefixes were derived from the Step 4 mapping table — not from
     free-form judgement.
