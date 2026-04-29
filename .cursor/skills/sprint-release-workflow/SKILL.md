@@ -216,8 +216,12 @@ in-scope subset before any downstream step runs. Default semantic is
 ### Step 2: Resolve Components and Versions
 
 1. Group **confirmed-scope** stories from Step 1.5 by component/module.
-2. For each component in scope, read version from Step 0 validated version map.
-3. If a component has no version entry in both Summary and config, stop and ask user.
+2. For each component in scope, read **base version** from Step 0 validated version map.
+3. Compute a **release version** for this run by incrementing the last numeric segment by 1.
+   - Example: `V1.10` -> `V1.11`, `1.10` -> `1.11`, `v2.0.9` -> `v2.0.10`.
+   - Preserve original prefix/casing style (`V` / `v` / none) from the base version.
+   - If the base version is non-numeric or cannot be parsed safely, stop and ask the user.
+4. If a component has no version entry in both Summary and config, stop and ask user.
 
 ### Step 3: Create Blank Detail Pages First
 
@@ -227,7 +231,7 @@ Use Confluence MCP (not local scripts for this skill) to create empty detail pag
 2. Create page with:
    - `space_key: APRN`
    - `parent_id: <mapped parent page id>`
-   - `title: <date + component + version + Release Note>`
+   - `title: <date + component + release_version + Release Note>`
    - `content: " "` (blank placeholder)
 3. Capture each created page URL for summary links.
 
@@ -236,7 +240,7 @@ If parent mapping is missing, ask user and do not create that component page.
 ### Step 4: Generate Release Note Summary
 
 1. Draft sections in requested style:
-   - `#### <Component> V<version>`
+   - `#### <Component> V<release_version>`
    - grouped `For <Platform>`
    - bullet prefix decided by **Story Type** (`customfield_10085.value`):
 
@@ -273,7 +277,7 @@ Write the generated markdown to a local file for the user to copy:
    - Windows filenames cannot contain `/`, so use `-` as separator.
 2. File body must contain a single dated section using `/` form in the heading:
    - First line: `## <Mon>/<DD>/<YYYY> Middle Platform`
-   - Then one `#### <Component> V<version>` block per in-scope module,
+   - Then one `#### <Component> V<release_version>` block per in-scope module,
      in the format defined in `Required Output Format`.
 3. If the file already exists for the same window:
    - If section heading matches: append new module blocks at the end of the
@@ -300,6 +304,7 @@ After Step 4 output is ready, update
 1. Write back confirmed versions for involved modules.
 2. Apply minimal edits only to changed module versions.
 3. Do not change unrelated modules or mappings.
+4. The written value MUST be each component's `release_version` (already incremented in Step 2), not the pre-increment base version.
 
 ## Platform and Bullet Rules
 
@@ -317,7 +322,7 @@ After Step 4 output is ready, update
 Before returning:
 
 1. Summary page version check is executed before workflow.
-2. Every section version equals validated Summary versions for involved modules.
+2. Every section version equals the Step 2 incremented `release_version` for involved modules (not the pre-increment base version).
 3. Every `Click [here]` URL points to a newly created page.
 4. Created pages are under the mapped parent module directories.
 5. `component_versions` is updated after workflow for changed involved modules.
