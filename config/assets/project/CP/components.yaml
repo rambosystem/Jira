@@ -52,6 +52,7 @@ components:
   - name: My Report
   - name: Other
   - name: Pacvue Copilot
+  - name: Pacvue MCP
   - name: Product AI
   - name: Rule
   - name: SOV

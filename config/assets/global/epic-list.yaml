@@ -26,6 +26,9 @@ epic_management:
         limit: 50
 
   recent_epics:
+    - key: CP-48731
+      title: My Report Upgrade - OpenAI - 26Q2
+      components: [My Report]
     - key: PAG-22
       title: Proactive Agent
       components: [Pacvue Agent]
